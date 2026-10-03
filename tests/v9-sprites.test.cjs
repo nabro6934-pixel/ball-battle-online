@@ -18,7 +18,7 @@ for(const id of ids){
  assert.equal(raw.length,40*(1+40*4),'PNG decompressed pixel size '+id);
  assert(raw.some((b,index)=>index%4===3&&b!==0),'visible sprite '+id);
 }
-const html=ctx.htmlCheck;const idx=html.indexOf('const IMAGES='),stop=html.indexOf(';',idx),imgs=JSON.parse(html.slice(idx+13,stop));
+const html=ctx.htmlCheck;const idx=html.indexOf('const IMAGES='),stop=html.indexOf('};',idx),imgs=JSON.parse(html.slice(idx+13,stop+1));
 assert.equal(Object.keys(imgs).length,21,'exact 21 images embedded');
 for(const id of ids)assert(imgs[id].startsWith('data:image/png;base64,'));
 for(const [i,script] of html.split('<script>').slice(1).map(s=>s.split('</script>')[0]).entries())assert.doesNotThrow(()=>new Function(script),'browser script syntax '+i);
