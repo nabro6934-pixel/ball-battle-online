@@ -13,8 +13,8 @@ function fire(s,f,e){let h=f.id,dir=Math.atan2(e.y-f.y,e.x-f.x);
  }
  const count=h==='nice'||h==='duo'?3:h==='darryl'?5:h==='pogo'||h==='rico'?2:1;
  const d={pizza:8,rico:3.5,gaybi:5,cheon:7,darryl:2.2,duo:3.6,hoit:8,nice:3.5,pogo:3,lilago:4.2,spyger:7,filter:1}[h]||5;
- for(let i=0;i<count;i++){let off=(i-(count-1)/2)*.17,a=dir+off;const bullet={owner:f.sid,x:f.x+Math.cos(a)*f.r,y:f.y+Math.sin(a)*f.r,vx:Math.cos(a)*(h==='lilago'?720:495),vy:Math.sin(a)*(h==='lilago'?720:495),life:h==='filter'?65:3,damage:d,r:h==='filter'?13:10,type:h,hitTime:0,bounces:h==='rico'?3:h==='filter'?200:0};s.bullets.push(bullet);}
- f.attack=h==='filter'?5:h==='lilago'?.46:.86;
+ for(let i=0;i<count;i++){let off=(i-(count-1)/2)*.17,a=dir+off;const bullet={owner:f.sid,x:f.x+Math.cos(a)*f.r,y:f.y+Math.sin(a)*f.r,vx:Math.cos(a)*(h==='lilago'?720:495),vy:Math.sin(a)*(h==='lilago'?720:495),life:h==='filter'?1000:3,damage:d,r:h==='filter'?13:10,type:h,hitTime:0,bounces:h==='rico'?3:h==='filter'?100000:0};s.bullets.push(bullet);}
+ f.attack=h==='filter'?1:h==='lilago'?.46:.86;
 }
 function superSkill(s,f,e){const id=f.id;f.super=13+Math.random()*2;f.superRequest=false;
  if(id==='shade'){f.invul=4;return}
@@ -23,7 +23,7 @@ function superSkill(s,f,e){const id=f.id;f.super=13+Math.random()*2;f.superReque
  if(id==='tralalero'){f.skill={kind:'tsunami',life:4,ticks:0};return}
  if(id==='lilago'){f.skill={kind:'stabs',life:2.6,ticks:0};return}
  if(id==='eggkimchi'){if(e&&dist(f,e)<460){f.x=clamp(e.x-65,26,W-26);f.y=clamp(e.y-6,26,H-26);e.curse=5;e.dot=Math.max(e.dot,5);e.dotSource=f.sid;e.slow=Math.max(e.slow,5);e.mute=Math.max(e.mute,5);damage(s,e,4,f);s.fx.push({type:'slap',x:e.x,y:e.y,t:s.t})}return}
- if(id==='filter'){for(const p of s.bullets.filter(p=>p.owner===f.sid&&p.type==='filter'))for(const q of alive(s)){if(q.sid!==f.sid&&Math.hypot(p.x-q.x,p.y-q.y)<145){damage(s,q,4,f);q.slow=2}}s.bullets=s.bullets.filter(p=>p.owner!==f.sid||p.type!=='filter');return}
+ if(id==='filter'){for(const p of s.bullets.filter(p=>p.owner===f.sid&&p.type==='filter')){s.fx.push({type:'poopBurst',x:p.x,y:p.y,t:s.t});for(const q of alive(s)){if(q.sid!==f.sid&&Math.hypot(p.x-q.x,p.y-q.y)<175){damage(s,q,4.4,f);q.slow=2.3;}}}return}
  if(id==='icecookie'){for(const q of alive(s)){if(q.sid!==f.sid&&dist(q,f)<230){q.stun=3;q.mute=3}}return}
  if(id==='zeta'){if(e){const delay=1+Math.random()*2.5;f.skill={kind:'bin',target:e.sid,life:delay};e.stun=Math.max(e.stun,delay);e.mute=Math.max(e.mute,delay);e.binSeal=delay;}return}
  if(id==='pogo'){for(let q of alive(s))if(q.sid!==f.sid&&dist(q,f)<380){q.stun=2.2;damage(s,q,8,f)}return}
