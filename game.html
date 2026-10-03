@@ -408,6 +408,25 @@ function profileAuthHelp(e){
   }catch(ex){btn.disabled=false;$('#socialError').textContent=ex.message}
  };
 }
+async function clanCall(action,data={}){const res=await fetch(socialBase()+'/clans',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...profileCred,...data})});const obj=await res.json();if(!res.ok||!obj.ok)throw Error(obj.error||'클랜 오류');return obj}
+async function renderClans(q=''){
+ try{
+  await initProfile();const z=await clanCall('search',{q});profile=z.profile;refreshHeader();
+  $('#socialTitle').textContent='🏰 클랜 · 미션 / 클럽 검색';const c=z.clan;
+  const members=c?'<h3>🏰 '+escapeHTML(c.name)+'</h3><p>'+escapeHTML(c.desc||'함께 배틀해서 코인을 모으세요!')+'</p><p>멤버 '+c.memberCount+'/100 · 미션 완료 '+c.completed+'회</p><div class="missionPanel"><b>'+escapeHTML(c.mission.label)+'</b><div class="progressTrack"><span style="width:'+Math.min(100,100*c.progress/c.mission.need)+'%"></span></div><p>'+c.progress+'/'+c.mission.need+'승 · 기여한 플레이어만 🪙 '+c.mission.reward+' 지급</p></div><h4>우리 클랜</h4><div class="socialRows">'+c.members.map(m=>'<div class="socialRow"><b>'+escapeHTML(m.nick)+'</b><small>#'+escapeHTML(m.tag)+'</small>'+(c.owner===profile.id&&m.id!==profile.id?'<button data-kick="'+m.id+'">추방</button>':'')+'</div>').join('')+'</div><div class="roomRow"><input id="clanInviteTag" maxlength="8" placeholder="친구 초대 코드"><button id="clanInviteBtn">초대</button><button id="clanLeaveBtn">탈퇴</button></div>':
+  '<h3>🏰 클랜 창설 · 100코인</h3><div class="roomRow"><input id="clanName" maxlength="18" placeholder="클랜 이름"><input id="clanDesc" maxlength="120" placeholder="소개"><button id="clanCreateBtn">창설</button></div><p>최대 100명 · 클랜 미션은 기여한 사람에게만 지급됩니다.</p>';
+  const inv=!c&&z.invites.length?'<h4>받은 초대</h4>'+z.invites.map(x=>'<div class="socialRow"><span>'+escapeHTML(x.name)+'</span><button data-clanjoin="'+x.id+'">초대 수락</button></div>').join(''):'';
+  socialContent.innerHTML='<div class="clanUI">'+members+inv+'<h3>🔎 클럽 검색</h3><div class="roomRow"><input id="clanSearch" placeholder="클랜명 검색" value="'+escapeHTML(q)+'"><button id="clanSearchBtn">검색</button></div><div class="socialRows">'+z.search.slice(0,30).map(x=>'<div class="socialRow"><b>'+escapeHTML(x.name)+'</b><small>'+x.memberCount+'/100 · 미션 '+x.completed+'</small>'+(!c?'<button data-clanjoin="'+x.id+'">가입</button>':'')+'</div>').join('')+'</div><h3>🏆 클랜 순위</h3><div class="socialRows">'+z.ranking.slice(0,15).map((x,i)=>'<div class="socialRow"><b>'+(i+1)+'위</b><span>'+escapeHTML(x.name)+'</span><small>'+x.completed+'회 완료</small></div>').join('')+'</div><p id="clanMsg" class="micro"></p></div>';
+  const run=async(action,data={})=>{try{await clanCall(action,data);await renderClans(q)}catch(e){$('#clanMsg').textContent=e.message}};
+  if($('#clanCreateBtn'))$('#clanCreateBtn').onclick=()=>run('create',{name:$('#clanName').value,desc:$('#clanDesc').value});
+  if($('#clanLeaveBtn'))$('#clanLeaveBtn').onclick=()=>{if(confirm('클랜을 탈퇴할까요?'))run('leave')};
+  if($('#clanInviteBtn'))$('#clanInviteBtn').onclick=()=>run('invite',{tag:$('#clanInviteTag').value});
+  $('#clanSearchBtn').onclick=()=>renderClans($('#clanSearch').value);
+  $('#clanSearch').onkeydown=e=>{if(e.key==='Enter')renderClans(e.target.value)};
+  socialContent.querySelectorAll('[data-clanjoin]').forEach(b=>b.onclick=()=>run('join',{clanId:b.dataset.clanjoin}));
+  socialContent.querySelectorAll('[data-kick]').forEach(b=>b.onclick=()=>{if(confirm('멤버를 내보낼까요?'))run('kick',{target:b.dataset.kick})});
+ }catch(e){socialContent.innerHTML='<p class="micro">클랜을 불러오지 못했어요: '+escapeHTML(e.message)+'</p>'}
+}
 async function initProfile(){
  if(profilePromise)return profilePromise;
  profilePromise=(async()=>{
@@ -439,7 +458,7 @@ function socialMsg(s){$('#socialError').textContent=s||''}
 async function socialRefresh(){try{await initProfile();let v=await socialCall('get',profileCred);profile=v.profile;return v}catch(e){socialMsg(e.message);throw e}}
 function openSocial(which){activeSocial=which;socialModal.classList.remove('hidden');renderSocial()}
 async function renderSocial(){socialMsg('');socialContent.innerHTML='<p class="micro">불러오는 중…</p>';try{
- await initProfile();if(activeSocial==='gacha'){openGacha();return}if(activeSocial==='collection'){openCollection();return}if(activeSocial==='board'){
+ await initProfile();if(activeSocial==='gacha'){openGacha();return}if(activeSocial==='collection'){openCollection();return}if(activeSocial==='clan'){await renderClans();return}if(activeSocial==='board'){
  let r=await fetch(socialBase()+'/leaderboard');if(!r.ok)throw Error('리더보드를 불러올 수 없어요.');let v=await r.json();$('#socialTitle').textContent='🏆 온라인 리더보드';socialContent.innerHTML='<p class="micro">실제 온라인 3점 선승 경기의 승패만 순위에 반영돼요.</p><div class="socialRows">'+(v.players||[]).map((u,i)=>`<div class="socialRow"><b>${i+1}위</b>${infoUser(u)}<span>${u.wins}승<br><small>${u.losses}패</small></span></div>`).join('')+'</div>';return
  }let v=await socialRefresh();if(activeSocial==='profile'){
  $('#socialTitle').textContent='👤 내 프로필';socialContent.innerHTML=`<div class="socialRow">${infoUser(profile)}<b>🪙 ${profile.coins}코인</b></div><div class="scoreCols"><span>${profile.wins}승</span><span>${profile.losses}패</span><span>${profile.wins+profile.losses}경기</span></div><h3>닉네임 수정</h3><input id="editNick" maxlength="14" placeholder="2~14글자" value="${escapeHTML(profile.nick)}"><h3>프로필 캐릭터 선택</h3><div class="avatarChoices">${H.filter(h=>profile.owned.includes(h.id)).map(h=>`<button data-avatar="${h.id}" class="${h.id===profile.avatar?'selected':''}" title="${escapeHTML(h.name)}"><img src="${heroImg(h.id)}" alt="${escapeHTML(h.name)}"></button>`).join('')}</div><button class="primary" id="saveProfile">💾 프로필 저장</button><p class="micro">내 친구 코드: <span class="friendCode">${profile.tag}</span><br>같은 브라우저에서 다시 접속하면 프로필이 유지돼요.</p>`;
