@@ -40,7 +40,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  assert.throws(()=>state.action(s[0],{action:'royale_start'}),/3명/,'minimum 3 members');
  for(let i=2;i<10;i++)state.action(s[i],{action:'royale_join',code:'로얄 테스트'});
  assert.throws(()=>state.action(s[10],{action:'royale_join',code:'로얄 테스트'}),/10명/);
- for(let i=0;i<10;i++)state.action(s[i],{action:'royale_pick',hero:'sahur'});
+ for(let i=0;i<10;i++)state.action(s[i],{action:'royale_pick',hero:[...state.royales.values()][0].offers[s[i].id][0]});
  const before=people.map(p=>p.coins),host=s[0];
  state.action(host,{action:'royale_start'});
  const room=[...state.royales.values()][0];assert.equal(room.sim.actors.length,10);
