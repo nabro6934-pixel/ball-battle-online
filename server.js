@@ -1,9 +1,9 @@
 /** Real player matchmaking & authoritative battles. Zero npm dependencies. Node 20+. */
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const engine=require('./engine.js')
+const engine=require('./engine.js'),royaleEngine=require('./royale.js')
 const PORT=Number(process.env.PORT)||3000;
-const sessions=new Map(),rooms=new Map(),codes=new Map();
+const sessions=new Map(),rooms=new Map(),codes=new Map(),royales=new Map(),royaleCodes=new Map();
 const queue=[];
 const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const TIMEOUT=18000;
@@ -150,6 +150,7 @@ function both(r,evt,data){r.players.forEach(id=>send(sessions.get(id),evt,data))
 function roomOf(s){return s?.room&&rooms.get(s.room)}
 function leave(s,msg='상대 플레이어가 나갔습니다.'){
  if(!s)return;
+ if(s.royale)royaleLeave(s);
  let i=queue.indexOf(s.id);if(i>=0)queue.splice(i,1);
  const r=roomOf(s);s.room=null;s.side=null;if(!r)return;
  if(r.players.length===2 && r.phase!=='complete' && r.phase!=='waiting'){
@@ -177,7 +178,58 @@ function startCombat(r){r.phase='battle';r.updated=Date.now();let seed=crypto.ra
    if(r.sim.finished){stopTimer(r);let w=r.sim.winner;r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage});}
  },1000/30);
 }
+
+let royaleSerial=0;
+function sendRoyaleLobby(r){
+ const lobby={code:r.code,host:r.host,phase:r.phase,players:r.players.map(sid=>{const s=sessions.get(sid),u=profileForSession(s);return {sid,nick:u?.nick||'플레이어',avatar:u?.avatar||'pizza',ready:!!r.picks[sid],hero:r.picks[sid]||null}}),minPlayers:3,maxPlayers:10};
+ for(const sid of r.players){const p=sessions.get(sid);send(p,'royale_lobby',{lobby,offer:r.offers[sid]||[]})}
+}
+function royaleLeave(s){
+ const id=s?.royale;if(!id)return;const r=royales.get(id);s.royale=null;if(!r)return;
+ if(r.phase==='battle'&&r.sim){const a=r.sim.actors.find(a=>a.sid===s.id);if(a){a.hp=0;a.alive=false;a.rank=r.sim.actors.filter(x=>x.hp>0).length+1;}}
+ r.players=r.players.filter(x=>x!==s.id);delete r.picks[s.id];delete r.offers[s.id];
+ if(r.phase==='lobby'){if(r.host===s.id)r.host=r.players[0]||null;if(!r.players.length){royales.delete(id);royaleCodes.delete(r.code)}else sendRoyaleLobby(r)}
+ if(r.phase!=='lobby'&&r.players.length===0){if(r.timer)clearInterval(r.timer);royales.delete(id);royaleCodes.delete(r.code)}
+}
+function royaleAction(s,m){
+ let type=m.action;const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
+ if(type==='royale_create'||type==='royale_join'){
+  if(s.royale)royaleLeave(s);if(s.room)leave(s);
+  const code=String(m.code||'').normalize('NFKC').trim().toLocaleLowerCase('ko-KR');
+  if(!code||Array.from(code).length>28||/[<>\x00-\x1f]/.test(code))throw Error('로얄 방 이름을 1~28자로 입력하세요.');
+  let r=royales.get(royaleCodes.get(code));
+  if(type==='royale_create'&&r)throw Error('이미 존재하는 방 이름입니다.');
+  if(type==='royale_join'&&!r)throw Error('해당 로얄 방을 찾지 못했어요.');
+  if(!r){r={id:'r'+(++royaleSerial),code,phase:'lobby',host:s.id,players:[],offers:{},picks:{},sim:null,timer:null};royales.set(r.id,r);royaleCodes.set(code,r.id)}
+  if(r.phase!=='lobby'||r.players.length>=10)throw Error('경기가 시작됐거나 참가자가 10명이에요.');
+  r.players.push(s.id);s.royale=r.id;r.offers[s.id]=newOffer(u);sendRoyaleLobby(r);return;
+ }
+ const r=royales.get(s.royale);if(type==='royale_leave'){royaleLeave(s);send(s,'royale_left');return}
+ if(!r||!r.players.includes(s.id))throw Error('로얄 방에 참가하지 않았어요.');
+ if(type==='royale_pick'){if(r.phase!=='lobby'||!r.offers[s.id].includes(m.hero)||!u.owned.includes(m.hero))throw Error('보유한 캐릭터 3명 중에서 골라 주세요.');r.picks[s.id]=m.hero;sendRoyaleLobby(r);return}
+ if(type==='royale_start'){
+  if(r.host!==s.id)throw Error('방장만 경기를 시작할 수 있어요.');
+  if(r.phase!=='lobby'||r.players.length<3||r.players.length>10)throw Error('3명 이상 10명 이하에서 시작할 수 있어요.');
+  for(const id of r.players)if(!r.picks[id])r.picks[id]=r.offers[id][0];
+  r.phase='battle';
+  r.sim=royaleEngine.create(r.players.map(id=>{const p=sessions.get(id),v=profileForSession(p);return {sid:id,hero:r.picks[id],nick:v.nick,avatar:v.avatar}}));
+  for(const id of r.players)send(sessions.get(id),'royale_start',{code:r.code,state:r.sim});
+  r.timer=setInterval(()=>{
+    if(!royales.has(r.id)||!r.sim||r.phase!=='battle'){clearInterval(r.timer);return}
+    royaleEngine.tick(r.sim,.065);
+    const state=r.sim;
+    for(const id of r.players)send(sessions.get(id),'royale_state',{state});
+    if(state.finished){clearInterval(r.timer);r.timer=null;r.phase='complete';for(const id of r.players)send(sessions.get(id),'royale_end',{state,winner:state.winner,placements:state.placements});}
+  },65);
+  return;
+ }
+ if(type==='royale_input'){if(r.phase!=='battle')return;const a=r.sim.actors.find(q=>q.sid===s.id);if(!a)return;a.dx=Number.isFinite(m.dx)?Math.min(1,Math.max(-1,m.dx)):0;a.dy=Number.isFinite(m.dy)?Math.min(1,Math.max(-1,m.dy)):0;return}
+ if(type==='royale_super'){if(r.phase!=='battle')return;const a=r.sim.actors.find(q=>q.sid===s.id);if(a&&a.super<=0)a.superRequest=true;return}
+ throw Error('알 수 없는 로얄 명령입니다.');
+}
+
 function action(s,m){s.seen=Date.now();let type=m.action;
+ if(type.startsWith('royale_'))return royaleAction(s,m);
  if(type==='bind'){let u=getProfile({id:m.profileId,secret:m.secret});migrate(u);if(s.profile&&s.profile!==u.id)throw Error('대전 중 프로필을 변경할 수 없어요.');s.profile=u.id;send(s,'profile_bound',{profile:publicUser(u)});return}
  if(type==='leave'){leave(s,'상대 플레이어가 매치를 종료했습니다.');send(s,'left');return}
  if(type==='queue'){if(!profileForSession(s))throw Error('프로필을 먼저 설정하세요.');leave(s);let other=null;while(queue.length){let sid=queue.shift();let cand=sessions.get(sid);if(cand&&cand.stream&&!cand.stream.destroyed&&cand.id!==s.id&&!cand.room){other=cand;break}}
@@ -248,11 +300,12 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:publicUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v9',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v9',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
     res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','Access-Control-Allow-Origin':'*','X-Accel-Buffering':'no'});s.stream=res;send(s,'hello',{status:'ok',side:s.side,room:s.room});
+    if(s.royale){let rr=royales.get(s.royale);if(rr){if(rr.phase==='lobby')sendRoyaleLobby(rr);else{send(s,'royale_start',{code:rr.code,state:rr.sim});send(s,'royale_state',{state:rr.sim});if(rr.phase==='complete')send(s,'royale_end',{state:rr.sim,winner:rr.sim?.winner,placements:rr.sim?.placements});}}}
     let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{side:s.side,code:r.code||null,scores:r.scores,round:r.round});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,scores:r.scores,round:r.round});if(r.phase==='battle')send(s,'start',{heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage});}}
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
