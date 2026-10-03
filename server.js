@@ -136,8 +136,7 @@ function persist(){
 }
 async function initStorage(){
  if(!DATABASE_URL){
-  console.error('WARNING: DATABASE_URL not configured. Temporary local file storage is NOT safe across deploys.');
-  return;
+  throw new Error('DATABASE_URL 환경변수가 없어 업데이트를 중단합니다. 기존 프로필을 보호하려면 PostgreSQL 연결이 필요합니다.');
  }
  let Pg;
  try{Pg=require('pg')}
@@ -266,7 +265,7 @@ const server=http.createServer((req,res)=>{
       return json(res,200,{ok:true,profile:publicUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,400,{error:e.message||'요청에 실패했어요'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
@@ -284,4 +283,9 @@ setInterval(()=>{let now=Date.now();for(let s of sessions.values()){
  if(!s.stream&&now-s.seen>TIMEOUT){leave(s,'상대와의 연결이 종료되었습니다.');sessions.delete(s.id)}
  }for(let r of rooms.values())if(r.phase==='waiting'&&now-r.updated>15*60*1000){leave(sessions.get(r.players[0]),'방이 만료되었습니다.');}
 },5000).unref();
-initStorage().then(()=>server.listen(PORT,'0.0.0.0',()=>console.log(`볼 배틀 서버 실행: http://localhost:${PORT}`))).catch(e=>{console.error('DATABASE INITIALIZATION FAILED; refusing unsafe startup:',e);process.exit(1)});
+initStorage().then(()=>{
+ server.listen(PORT,'0.0.0.0',()=>console.log('볼 배틀 서버 실행. PostgreSQL 연결 성공.'));
+}).catch(e=>{console.error('DATABASE INITIALIZATION FAILED; refusing unsafe startup:',e);process.exit(1)});
+async function shutdown(){try{await dbSaveChain;await dbPool?.end()}catch(e){console.error('Shutdown storage flush:',e.message)}process.exit(0)}
+process.on('SIGTERM',shutdown);
+process.on('SIGINT',shutdown);
