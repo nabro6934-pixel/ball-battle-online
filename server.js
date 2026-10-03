@@ -8,12 +8,12 @@ const queue=[];
 const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const TIMEOUT=18000;
 const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
-const profiles=new Map();
+const profiles=new Map(), clans=new Map();
 let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
 function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
-function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.requests=Array.isArray(u.requests)?u.requests:[];if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';return u}
+function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';return u}
 for(const u of profiles.values())migrate(u);
 function persist(){
  const snapshot=JSON.stringify([...profiles.values()]);
@@ -68,8 +68,11 @@ async function initStorage(){
   console.log('Initial profiles imported to PostgreSQL:',profiles.size);
  }
  dbPool=p;
+ const cr=await p.query("SELECT data FROM ball_battle_state WHERE id='clans'");
+ if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
+ console.log('Clans restored from PostgreSQL:',clans.size);
 }
-function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],setupDone:!!u.setupDone}}
+function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],clanId:u.clanId||null,setupDone:!!u.setupDone}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -108,7 +111,37 @@ function profileLookup(tag){return [...profiles.values()].find(u=>u.tag===String
 function profileForSession(s){return s?.profile&&profiles.get(s.profile)}
 function newOffer(u){const a=[...new Set((u?.owned||[]).filter(x=>HERO_IDS.has(x)))];for(let i=a.length-1;i>0;i--){let j=crypto.randomInt(0,i+1);[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,3)}
 function sendPicks(r){r.phase='pick';r.picks=[null,null];r.angles=[null,null];r.offers=r.players.map(id=>newOffer(profileForSession(sessions.get(id))));r.updated=Date.now();r.players.forEach((id,side)=>send(sessions.get(id),'pick_phase',{offers:r.offers[side],round:r.round,scores:r.scores}))}
-function matchStats(r,w){if(r.statsDone)return;r.statsDone=true;for(let i=0;i<2;i++){let u=profileForSession(sessions.get(r.players[i]));if(!u)continue;if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+100}else{u.losses=(u.losses||0)+1}}persist()}
+
+const CLAN_MISSIONS=[{need:3,reward:35,label:'쉬움 · 온라인 승리 3회'},{need:8,reward:90,label:'보통 · 온라인 승리 8회'},{need:20,reward:220,label:'어려움 · 온라인 승리 20회'}];
+function clanPublic(c){if(!c)return null;const mission=CLAN_MISSIONS[c.stage%3];return {id:c.id,name:c.name,desc:c.desc,owner:c.owner,memberCount:c.members.length,maxMembers:100,members:c.members.map(id=>profiles.get(id)).filter(Boolean).map(u=>({id:u.id,nick:u.nick,avatar:u.avatar,tag:u.tag})),invitedCount:(c.invited||[]).length,stage:c.stage,completed:c.completed,progress:c.progress,mission,participants:Object.keys(c.participation||{}).length,rankScore:(c.completed||0)*100+Object.values(c.participation||{}).reduce((a,b)=>a+b,0),createdAt:c.createdAt}}
+function allClanList(q=''){return [...clans.values()].filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(b.completed||0)-(a.completed||0)||b.members.length-a.members.length).map(clanPublic)}
+function saveClanAndProfiles(){if(!dbPool)throw Error('데이터베이스에 연결할 수 없어요.');const people=JSON.stringify([...profiles.values()]);const groups=JSON.stringify([...clans.values()]);dbSaveChain=dbSaveChain.catch(e=>console.error('Previous save:',e.message)).then(async()=>{
+ const client=await dbPool.connect();try{await client.query('BEGIN');await client.query("INSERT INTO ball_battle_state(id,data) VALUES('profiles',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[people]);await client.query("INSERT INTO ball_battle_state(id,data) VALUES('clans',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[groups]);await client.query('COMMIT')}catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}});dbSaveChain.catch(e=>console.error('CLAN+PROFILE DATABASE SAVE FAILED',e.message));return dbSaveChain}
+function clanContribution(u){if(!u?.clanId)return;const c=clans.get(u.clanId);if(!c||!c.members.includes(u.id))return;c.progress=(c.progress||0)+1;c.participation=c.participation||{};c.participation[u.id]=(c.participation[u.id]||0)+1;const m=CLAN_MISSIONS[c.stage%3];if(c.progress>=m.need){let people=Object.keys(c.participation);for(const id of people){const v=profiles.get(id);if(v&&v.clanId===c.id){v.coins+=m.reward;}}c.completed=(c.completed||0)+1;c.stage=(c.stage+1)%3;c.progress=0;c.participation={};}saveClanAndProfiles()}
+function clanAction(u,m){
+ const act=m.action;let c=clans.get(u.clanId);
+ if(act==='create'){
+  if(c)throw Error('이미 클랜에 소속돼 있어요.');if(u.coins<100)throw Error('클랜 창설에는 100코인이 필요해요.');
+  const name=String(m.name||'').trim().normalize('NFKC'),desc=String(m.desc||'').trim();
+  if(Array.from(name).length<2||Array.from(name).length>18||/[<>\x00-\x1f]/.test(name))throw Error('클랜 이름은 2~18글자');if([...clans.values()].some(x=>x.name.toLowerCase()===name.toLowerCase()))throw Error('이미 사용 중인 이름이에요.');
+  if(Array.from(desc).length>120||/[<>\x00-\x1f]/.test(desc))throw Error('소개는 120자 이내로 써 주세요.');
+  let id='c'+crypto.randomBytes(5).toString('hex');c={id,name,desc,owner:u.id,members:[u.id],invited:[],stage:0,progress:0,participation:{},completed:0,createdAt:Date.now()};clans.set(id,c);u.coins-=100;u.clanId=id;
+ }else if(act==='invite'){
+  if(!c)throw Error('먼저 클랜에 가입해 주세요.');if(c.owner!==u.id)throw Error('클랜장만 초대할 수 있어요.');if(c.members.length>=100)throw Error('클랜은 100명까지예요.');
+  const friend=profileLookup(m.tag);if(!friend||friend.id===u.id||friend.clanId)throw Error('초대할 수 없는 사용자예요.');c.invited=[...new Set([...(c.invited||[]),friend.id])];
+ }else if(act==='join'){
+  if(c)throw Error('이미 클랜에 소속돼 있어요.');c=clans.get(String(m.clanId||''));if(!c)throw Error('클랜을 찾지 못했어요.');if(c.members.length>=100)throw Error('클랜이 가득 찼어요.');c.members.push(u.id);u.clanId=c.id;c.invited=(c.invited||[]).filter(x=>x!==u.id);
+ }else if(act==='leave'){
+  if(!c)throw Error('클랜에 소속돼 있지 않아요.');
+  c.members=c.members.filter(x=>x!==u.id);delete(c.participation[u.id]);u.clanId=null;
+  if(!c.members.length)clans.delete(c.id);else if(c.owner===u.id)c.owner=c.members[0];
+ }else if(act==='kick'){
+  if(!c||c.owner!==u.id)throw Error('클랜장만 추방할 수 있어요.');const target=profiles.get(String(m.target||''));if(!target||target.id===u.id||target.clanId!==c.id)throw Error('잘못된 대상이에요.');target.clanId=null;c.members=c.members.filter(x=>x!==target.id);delete(c.participation[target.id]);
+ }else if(act!=='get'&&act!=='search')throw Error('지원하지 않는 클랜 명령');
+ return {changed:!['get','search'].includes(act),clan:clanPublic(clans.get(u.clanId)),invites:[...clans.values()].filter(x=>(x.invited||[]).includes(u.id)).map(clanPublic),ranking:allClanList().slice(0,50),search:allClanList(String(m.q||'')).slice(0,50)}
+}
+
+function matchStats(r,w){if(r.statsDone)return;r.statsDone=true;for(let i=0;i<2;i++){let u=profileForSession(sessions.get(r.players[i]));if(!u)continue;if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+100;clanContribution(u)}else{u.losses=(u.losses||0)+1}}persist()}
 
 let roomSeq=0;
 function json(res,status,obj){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Cache-Control':'no-store'});res.end(JSON.stringify(obj))}
@@ -174,6 +207,12 @@ const server=http.createServer((req,res)=>{
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
   if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0)).slice(0,50).map(publicUser)})}
+
+  if(req.method==='POST'&&url.pathname==='/clans'){
+   let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>8192){req.destroy();return}body+=part});req.on('end',async()=>{
+    try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:publicUser(u),...out})}
+    catch(e){return json(res,400,{error:e.message||'클랜 오류'})}});return;
+  }
   if(req.method==='POST'&&url.pathname==='/social'){
     let bytes=0,body='';req.on('data',p=>{bytes+=p.length;if(bytes>8192){req.destroy();return}body+=p});
     req.on('end',async()=>{try{const m=JSON.parse(body||'{}');let u;
@@ -209,7 +248,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:publicUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v8',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v9',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
