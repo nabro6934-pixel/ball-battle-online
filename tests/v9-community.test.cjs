@@ -1,0 +1,58 @@
+'use strict';
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+(async()=>{
+ const root=path.join(__dirname,'..'),src=fs.readFileSync(path.join(root,'server.js'),'utf8');
+ const cut=src.indexOf("initStorage().then(");assert(cut>0);
+ const intervalList=[],events=new Map();let listener=null,transactions=0,committed=0;
+ const http={createServer(fn){listener=fn;return {listen(){}}}};
+ const ctx={require(name){if(name==='node:http')return http;return name.startsWith('./')?require(path.join(root,name)):require(name)},__dirname:root,process:{env:{},on(){}},console:{log(){},error(){}},setTimeout,clearTimeout,
+  setInterval(fn,n){const t={fn,ms:n,unref(){return this}};intervalList.push(t);return t;},clearInterval(x){intervalList.splice(intervalList.indexOf(x),1)},Buffer,URL};
+ vm.createContext(ctx);vm.runInContext(src.slice(0,cut),ctx,{timeout:10000});
+ const state=vm.runInContext('({profiles,clans,sessions,rooms,royales,clanAction,clanContribution,action,royaleLeave})',ctx);
+ const people=Array.from({length:12},(_,i)=>({id:'profile'+i,tag:'AABB'+String(i).padStart(4,'0'),secret:'secret'+i,nick:'유저'+i,avatar:'moai',wins:0,losses:0,coins:200,owned:['pizza','moai','sahur','shade'],friends:[],requests:[],setupDone:true,clanId:null}));
+ people.forEach(p=>state.profiles.set(p.id,p));
+ const mock={async connect(){return {async query(q,args){if(q==='BEGIN')transactions++;if(q==='COMMIT')committed++;return {rows:[]}},release(){}}},async query(){return {rows:[]}}};
+ ctx.mockDB=mock;vm.runInContext('dbPool=mockDB',ctx);
+ const c0=state.clanAction(people[0],{action:'create',name:'시험 클랜',desc:'미션과 순위'});
+ assert.equal(people[0].coins,100);assert(c0.changed);assert.equal(c0.clan.memberCount,1);assert.equal(c0.clan.maxMembers,100);
+ const clanId=c0.clan.id;state.clanAction(people[1],{action:'join',clanId});state.clanAction(people[2],{action:'join',clanId});
+ state.clanContribution(people[0]);state.clanContribution(people[0]);
+ assert.equal(state.clans.get(clanId).progress,2);
+ state.clanContribution(people[1]);
+ assert.equal(people[0].coins,135,'creator participates and receives only mission reward');
+ assert.equal(people[1].coins,235,'participant receives reward');
+ assert.equal(people[2].coins,200,'non participant does not receive reward');
+ assert.equal(state.clans.get(clanId).completed,1);
+ assert.equal(state.clans.get(clanId).progress,0);
+ assert.equal(state.clanAction(people[3],{action:'search',q:'시험'}).search.length,1);
+ assert.throws(()=>state.clanAction(people[1],{action:'invite',tag:people[4].tag}),/클랜장/);
+ state.clanAction(people[0],{action:'invite',tag:people[4].tag});
+ assert.equal(state.clanAction(people[4],{action:'search'}).invites.length,1);
+ state.clanAction(people[0],{action:'leave'});
+ assert.equal(state.clans.get(clanId).owner,people[1].id);
+ assert.equal(people[0].coins,135);
+ await vm.runInContext('dbSaveChain',ctx);assert(transactions>=3&&committed===transactions,'atomic profile/clan saves');
+
+ function session(i){const sid='sess'+String(i).padStart(20,'0');const arr=[];events.set(sid,arr);let v={id:sid,stream:{write(text){arr.push(text)}},room:null,profile:people[i].id,seen:Date.now(),side:null};state.sessions.set(sid,v);return v}
+ const s=Array.from({length:11},(_,i)=>session(i));
+ state.action(s[0],{action:'royale_create',code:'로얄 테스트'});
+ state.action(s[1],{action:'royale_join',code:'로얄 테스트'});
+ assert.throws(()=>state.action(s[0],{action:'royale_start'}),/3명/,'minimum 3 members');
+ for(let i=2;i<10;i++)state.action(s[i],{action:'royale_join',code:'로얄 테스트'});
+ assert.throws(()=>state.action(s[10],{action:'royale_join',code:'로얄 테스트'}),/10명/);
+ for(let i=0;i<10;i++)state.action(s[i],{action:'royale_pick',hero:[...state.royales.values()][0].offers[s[i].id][0]});
+ const before=people.map(p=>p.coins),host=s[0];
+ state.action(host,{action:'royale_start'});
+ const room=[...state.royales.values()][0];assert.equal(room.sim.actors.length,10);
+ const battleTimer=intervalList.find(x=>x.ms===65);assert(battleTimer);
+ for(let i=0;i<8;i++)battleTimer.fn();
+ assert(room.sim.t>0&&events.get(host.id).some(x=>x.includes('royale_state')),'state packets streamed');
+ state.action(host,{action:'royale_input',dx:1,dy:-1});
+ assert.equal(room.sim.actors[0].dx,1);
+ state.royaleLeave(s[5]);
+ assert.equal(room.sim.placements.length,1,'leaving player must receive placement');
+ assert.equal(room.sim.placements[0].rank,10);
+ for(let i=0;i<10;i++)assert.equal(people[i].coins,before[i],'friendly Royale never changes coins');
+ assert.equal(state.clans.get(clanId).completed,1,'royale results do not advance clan missions');
+ console.log('PASS clan economy, mission contributors, invitations, atomic SQL saves; 3-10 multiplayer royale, disconnect rank, no rewards');
+})().catch(e=>{console.error(e);process.exit(1)});
