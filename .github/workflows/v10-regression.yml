@@ -18,6 +18,7 @@ jobs:
       - run: node tests/v10-regression.test.cjs
       - run: node tests/v10-effects.test.cjs
       - run: node tests/v9-sprites.test.cjs
+      - run: node tests/v101-filter.test.cjs
       - run: node tests/v9-smoke.test.cjs
       - run: node tests/v9-community.test.cjs
       - run: node tests/profile_recovery.test.cjs
