@@ -264,30 +264,16 @@ function action(s,m){s.seen=Date.now();let type=m.action;
  if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
-// Compact user-provided character sprites: transparent indexed palettes -> PNG data URIs.
-// These resources are presentation-only; the persistent account database is unchanged.
-const zlib=require('node:zlib');
-const v9Palettes=Object.assign({},require('./sprites/sprites-a.json'),require('./sprites/sprites-b.json'),require('./sprites/sprites-c.json'));
-function pngChunk(type,bytes){
- const len=Buffer.alloc(4);len.writeUInt32BE(bytes.length);
- const tag=Buffer.from(type,'ascii'),input=Buffer.concat([tag,bytes]);
- let crc=0xffffffff;for(const v of input){crc^=v;for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0)}
- const sum=Buffer.alloc(4);sum.writeUInt32BE((crc^0xffffffff)>>>0);
- return Buffer.concat([len,input,sum]);
-}
-function spritePng(encoded){
- const p=zlib.inflateSync(Buffer.from(encoded,'base64'));
- const w=p[0],h=p[1];if(w!==40||h!==40||p.length!==71+w*h)throw Error('Corrupted hero sprite palette');
- const raw=Buffer.alloc(h*(1+w*4));
- for(let i=0;i<w*h;i++){
-  const ix=p[71+i],o=Math.floor(i/w)*(1+w*4)+1+(i%w)*4;
-  if(ix){if(ix>23)throw Error('Sprite palette index out of bounds');raw[o]=p[2+(ix-1)*3];raw[o+1]=p[3+(ix-1)*3];raw[o+2]=p[4+(ix-1)*3];raw[o+3]=255;}
- }
- const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(w,0);ihdr.writeUInt32BE(h,4);ihdr[8]=8;ihdr[9]=6;
- return Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),pngChunk('IHDR',ihdr),pngChunk('IDAT',zlib.deflateSync(raw,{level:9})),pngChunk('IEND',Buffer.alloc(0))]);
-}
-const spriteImages=Object.fromEntries(Object.entries(v9Palettes).map(([id,b64])=>[id,'data:image/png;base64,'+spritePng(b64).toString('base64')]));
-if(Object.keys(spriteImages).length!==9)throw Error('Expected nine user-provided fighter portraits');
+// High-resolution transparent WebP portraits from the user's original images.
+// No profile, currency, clan, or battle record is modified when these load.
+const hdIds=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
+const spriteImages=Object.fromEntries(hdIds.map(id=>{
+ const b64=fs.readFileSync(path.join(__dirname,'hd',id+'.b64'),'utf8').trim();
+ const header=Buffer.from(b64.slice(0,24),'base64');
+ if(header.toString('ascii',0,4)!=='RIFF'||header.toString('ascii',8,12)!=='WEBP'||b64.length<2700)
+  throw new Error('Damaged or missing high-resolution portrait: '+id);
+ return [id,'data:image/webp;base64,'+b64];
+}));
 const GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
