@@ -22,7 +22,7 @@ for(const [id,encoded] of Object.entries(newPics)){
  assert.equal(inflated.length,2+23*3+40*40,'sprite data is intact for '+id);
 }
 const scripts=html.split('<script>').slice(1).map(x=>x.split('</script>')[0]);
-assert.equal(scripts.length,2);scripts.forEach(x=>new Function(x));assert(html.includes('YOU · '));assert(html.includes('renderClans'));
+assert.equal(scripts.length,2);scripts.forEach(x=>new Function(x));assert(html.includes('▼ YOU'));assert(html.includes('renderClans'));
 const src=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8');
 const boot=src.lastIndexOf('initStorage().then(');assert(boot>0);
 const ctx={require(id){return id.startsWith('./')?require(path.join(__dirname,'..',id)):require(id)},__dirname:path.join(__dirname,'..'),process:{env:{},on(){}},console:{log(){},error(){}},setInterval(){return {unref(){}}},setTimeout,Buffer};vm.createContext(ctx);
