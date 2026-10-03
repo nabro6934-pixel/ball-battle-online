@@ -40,6 +40,19 @@ clanAction(users[2],{action:'join',clanId:clan.id});
 clanContribution(users[0]);clanContribution(users[1]);clanContribution(users[0]);
 assert.equal(users[0].coins,235);assert.equal(users[1].coins,335);assert.equal(users[2].coins,300);
 assert.equal(clans.get(clan.id).completed,1);assert.equal(clans.get(clan.id).progress,0);
+
+const net=vm.runInContext('({identify,royaleAction,royales})',ctx);
+const sessions=users.map((u,i)=>{let s=net.identify('session'+i);s.profile=u.id;s.stream={write(){},destroyed:false};return s});
+net.royaleAction(sessions[0],{action:'royale_create',code:'친구 배틀'});
+assert.equal(net.royales.size,1);
+net.royaleAction(sessions[1],{action:'royale_join',code:'친구 배틀'});
+net.royaleAction(sessions[2],{action:'royale_join',code:'친구 배틀'});
+const royale=[...net.royales.values()][0];assert.equal(royale.players.length,3);assert.equal(royale.phase,'lobby');
+assert(royale.offers[sessions[2].id].every(h=>users[2].owned.includes(h)));
+net.royaleAction(sessions[0],{action:'royale_start'});
+assert.equal(royale.phase,'battle');assert.equal(royale.sim.actors.length,3);
+assert.equal(users[0].coins,235);assert.equal(users[1].coins,335);assert.equal(users[2].coins,300);
+assert.equal(users[0].wins,0,'friendly Royale must not award wins');
 vm.runInContext('dbSaveChain',ctx).then(()=>{
  assert(qs.some(x=>x.sql.includes("'profiles'"))&&qs.some(x=>x.sql.includes("'clans'")),'atomic clan save');
  console.log('PASS 21 heroes, '+fights+' pair fights, 10-player royale, 3-user clan mission, HTML syntax and SQL persistence');
