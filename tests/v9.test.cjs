@@ -34,5 +34,7 @@ clanAction(users[2],{action:'join',clanId:clan.id});
 clanContribution(users[0]);clanContribution(users[1]);clanContribution(users[0]);
 assert.equal(users[0].coins,235);assert.equal(users[1].coins,335);assert.equal(users[2].coins,300);
 assert.equal(clans.get(clan.id).completed,1);assert.equal(clans.get(clan.id).progress,0);
-vm.runInContext('dbSaveChain',ctx).then(()=>console.log('PASS 21 heroes, '+fights+' pair fights, 10-person royale and 3-user clan mission, HTML syntax, SQL persistence')).catch(e=>{console.error(e);process.exitCode=1});
-assert(qs.some(x=>x.sql.includes("'profiles'"))&&qs.some(x=>x.sql.includes("'clans'")),'atomic clan save');
+vm.runInContext('dbSaveChain',ctx).then(()=>{
+ assert(qs.some(x=>x.sql.includes("'profiles'"))&&qs.some(x=>x.sql.includes("'clans'")),'atomic clan save');
+ console.log('PASS 21 heroes, '+fights+' pair fights, 10-player royale, 3-user clan mission, HTML syntax and SQL persistence');
+}).catch(e=>{console.error(e);process.exitCode=1});
