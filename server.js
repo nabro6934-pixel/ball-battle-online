@@ -281,8 +281,9 @@ function spritePng(encoded){
 const spriteImages=Object.fromEntries(Object.entries(v9Palettes).map(([id,b64])=>[id,'data:image/png;base64,'+spritePng(b64).toString('base64')]));
 if(Object.keys(spriteImages).length!==9)throw Error('Expected nine user-provided fighter portraits');
 const GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
- /const IMAGES=(\{[^;]+\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
+ /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
+if(!GAME_HTML.includes('"sahur":"data:image/png;base64,'))throw Error('New character assets were not injected into the game HTML');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
