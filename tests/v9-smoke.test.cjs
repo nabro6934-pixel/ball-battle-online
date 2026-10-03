@@ -28,7 +28,7 @@ const src=html.split('<script>').slice(1).map(t=>t.split('</script>')[0]);
 assert.equal(src.length,2);for(const js of src)new Function(js);
 assert(html.includes("data-mode=\"royale\""),'royale menu exists');
 assert(html.includes('renderClans'),'clan menus exist');
-assert(html.includes('YOU · '),'royale YOU indicator');
+assert(html.includes('▼ YOU'),'royale YOU indicator');
 assert(html.includes('/clans'),'clan endpoint linked');
 const server=fs.readFileSync(__dirname+'/../server.js','utf8');
 new Function(server);
