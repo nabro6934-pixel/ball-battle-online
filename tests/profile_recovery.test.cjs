@@ -21,7 +21,7 @@ const crypto=require('node:crypto');
  vm.runInContext('dbPool=mockPool',ctx);
  const p=vm.runInContext('profiles',ctx);
  const {recoverOldProfile,getProfile}=vm.runInContext('({recoverOldProfile,getProfile})',ctx);
- assert.equal(p.size,0);
+ p.clear(); assert.equal(p.size,0); // Other integration tests can create local temporary profiles
  let u=await recoverOldProfile(a,b);
  assert.equal(u.nick,'기존 유저');assert.equal(u.coins,900);
  assert.equal(u.owned.length,3);assert.equal(u.wins,12);
