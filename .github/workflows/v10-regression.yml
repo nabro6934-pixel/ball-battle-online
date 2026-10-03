@@ -1,0 +1,21 @@
+name: Verify v10 gameplay
+on:
+  push:
+    branches: [v10-hd-fx-ui-data]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check engine.js && node --check server.js && node --check royale.js
+      - run: node tests/v10-regression.test.cjs
+      - run: node tests/v9-smoke.test.cjs
+      - run: node tests/v9-community.test.cjs
+      - run: node tests/profile_recovery.test.cjs
