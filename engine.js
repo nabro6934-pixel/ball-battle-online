@@ -14,15 +14,15 @@ const HEROES=[
  {id:'pogo',name:'포고하는 12년생',color:'#d62434',shade:'#ffc747',hp:146,speed:257,atk:'몬스터볼 두 개',ult:'전기 줄 5개',blurb:'몬스터볼 2개가 0.5초 기절과 10초 동안 초당 3 피해 감전을 건다. 5개 전기 줄은 3초 뒤 강하게 감전시킨다.',basic:'2발 · 기절 0.5초 · 10초간 3/초 감전',super:'5개의 전기 줄 · 3초 예고'},
  {id:'utti',name:'우띠',color:'#ff92c5',shade:'#f2c345',hp:191,speed:285,atk:'접촉 찍기',ult:'공중 5연속 찍기',blurb:'발사체 없이 가까이 닿으면 찍는다. 궁극기는 5초간 공중에서 표식을 남기다 5연속 착지 공격.',basic:'돌진 명중 시 6.5 피해 · 1초',super:'5초 체공 후 표식에 5연타 (회피 가능)'},
  {id:'ddak',name:'다딱이는 아가리',color:'#13ccfb',shade:'#115cc9',hp:175,speed:277,atk:'다이아몬드 검',ult:'3초 뮤트',blurb:'가까운 적에게 다이아몬드 검으로 베어낸다. 궁극기로 3초 동안 상대 행동을 봉쇄한다.',basic:'짧은 돌진 검베기 · 적중 시 8 피해',super:'3초간 상대 침묵'},
- {id:'sahur',name:'퉁퉁퉁사후르',color:'#d9a263',shade:'#76502d',hp:174,speed:252,atk:'근접 방망이 휘두르기',ult:'그림자 세계',blurb:'방망이로 근접 타격. 궁극기로 상대를 5초간 그림자 세계로 끌고 가서 침묵시키며 피해를 준다.',basic:'실제 타격 범위 105 · 8 피해',super:'5초 그림자 세계 · 침묵 + 초당 3.2'},
+ {id:'sahur',name:'퉁퉁퉁사후르',color:'#d9a263',shade:'#76502d',hp:174,speed:252,atk:'근접 방망이 휘두르기',ult:'그림자 세계',blurb:'방망이로 근접 타격. 궁극기로 상대를 5초간 그림자 세계로 끌고 가서 침묵시키며 피해를 준다.',basic:'실제 타격 범위 190 · 8 피해',super:'5초 그림자 세계 · 침묵 + 초당 3.2'},
  {id:'spyger',name:'스파이거',color:'#57d648',shade:'#512ab0',hp:149,speed:251,atk:'선인장 커브볼',ult:'가시 지대',blurb:'곡선으로 휘는 선인장 발사체를 던지고 큰 피해·둔화 장판을 5초 유지한다.',basic:'커브볼 7.5 피해',super:'5초 장판 · 초당 최대 3.5 피해 + 둔화'},
- {id:'tralalero',name:'트랄랄레로 트랄랄라',color:'#4eb5e7',shade:'#1551a7',hp:170,speed:274,atk:'킥 돌진',ult:'4초 쓰나미',blurb:'발차기 돌진으로 적중 시 피해를 입힌다. 궁극기는 4초 동안 쓰나미를 소환한다.',basic:'실제 충돌 시 9 피해',super:'4초 거대 파도 · 밀침 + 반복 피해'},
+ {id:'tralalero',name:'트랄랄레로 트랄랄라',color:'#4eb5e7',shade:'#1551a7',hp:170,speed:274,atk:'킥 돌진',ult:'4초 쓰나미',blurb:'발차기 돌진으로 적중 시 피해를 입힌다. 궁극기는 4초 동안 쓰나미를 소환한다.',basic:'발차기 범위 195 · 적중 시 9 피해',super:'4초 거대 파도 · 밀침 + 반복 피해'},
  {id:'lilago',name:'릴라고',color:'#2487f6',shade:'#eacb40',hp:154,speed:253,atk:'초장거리 연속 주먹',ult:'추적 10연속 찌르기',blurb:'사거리가 긴 주먹 공격. 궁극기는 적을 추적해 최대 10번 찌른다.',basic:'주먹 4.1 피해 · 빠른 연사',super:'10회 추적 찌르기 · 접근 시 적중'},
- {id:'eggkimchi',name:'가지김치',color:'#ae4c83',shade:'#ec8127',hp:163,speed:244,atk:'싸대기',ult:'5초 빨강 저주',blurb:'근접 싸대기로 공격하고, 궁극기 접촉 시 상대를 붉게 만들고 둔화·침묵·약한 지속 피해를 건다.',basic:'근접 타격 7 피해',super:'5초 저주 · 둔화/침묵/초당 2'},
+ {id:'eggkimchi',name:'가지김치',color:'#ae4c83',shade:'#ec8127',hp:163,speed:244,atk:'싸대기',ult:'5초 빨강 저주',blurb:'근접 싸대기로 공격하고, 궁극기 접촉 시 상대를 붉게 만들고 둔화·침묵·약한 지속 피해를 건다.',basic:'싸대기 범위 177 · 7 피해',super:'5초 저주 · 둔화/침묵/초당 2'},
  {id:'filter',name:'필터 낀 병신',color:'#f9abbe',shade:'#684e7d',hp:150,speed:247,atk:'영구 반사 똥',ult:'똥 동시 폭발',blurb:'1초마다 1피해짜리 영구 반사 똥을 추가한다. 궁극기로 전부 폭발시켜 둔화시킨다.',basic:'1초마다 영구 반사 똥 하나 · 접촉 시 1 피해',super:'전부 폭발 · 개수에 비례해 광역 피해와 둔화'},
- {id:'icecookie',name:'빙신쿠키',color:'#88d8fc',shade:'#196cbe',hp:172,speed:254,atk:'회전 방망이',ult:'빙결 장판',blurb:'몸 주위로 야구 방망이를 돌려 접촉 타격. 궁극기는 주변 적을 얼려 이동과 공격을 모두 막는다.',basic:'범위 100 · 회전 피해 6.5',super:'범위 빙결 3초 · 이동/공격 봉쇄'},
+ {id:'icecookie',name:'빙신쿠키',color:'#88d8fc',shade:'#196cbe',hp:172,speed:254,atk:'회전 방망이',ult:'빙결 장판',blurb:'몸 주위로 야구 방망이를 돌려 접촉 타격. 궁극기는 주변 적을 얼려 이동과 공격을 모두 막는다.',basic:'범위 166 · 회전 피해 6.5',super:'범위 빙결 3초 · 이동/공격 봉쇄'},
  {id:'zeta',name:'제타',color:'#e5eefa',shade:'#2b5fd4',hp:147,speed:247,atk:'전방위 Z 발사',ult:'쓰레기통 봉인',blurb:'여러 방향으로 Z를 발사. 궁극기는 무작위 지연 후 쓰레기통을 흔들며 강한 피해를 주고 둔화시킨다.',basic:'8방향 Z · 2.1 피해',super:'무작위 지연 · 29 피해 + 둔화'},
- {id:'shade',name:'노란고아 셰이드',color:'#ffcf42',shade:'#e95ea2',hp:151,speed:267,atk:'양손 박수',ult:'4초 그림자 회피',blurb:'박수 사이에 끼인 상대를 때린다. 궁극기 4초간 모든 공격을 회피하면서 자신은 공격할 수 있다.',basic:'근접 범위 100 · 적중 시 6.8',super:'4초 공격 회피 · 공격 가능'},
+ {id:'shade',name:'노란고아 셰이드',color:'#ffcf42',shade:'#e95ea2',hp:151,speed:267,atk:'양손 박수',ult:'4초 그림자 회피',blurb:'박수 사이에 끼인 상대를 때린다. 궁극기 4초간 모든 공격을 회피하면서 자신은 공격할 수 있다.',basic:'박수 범위 173 · 적중 시 6.8',super:'4초 공격 회피 · 공격 가능'},
  {id:'moai',name:'모아이',color:'#91919a',shade:'#b2b6bd',hp:129,speed:252,atk:'회전 충돌',ult:'남은 체력 65%',blurb:'체력이 낮지만 1회 부활하여 빨갛게 변하고 강력한 딸피 글자를 원형 발사한다.',basic:'회전 충돌 · 부활 1회',super:'상대 현재 체력 65% 감소'}
 ];
 const HERO_BY_ID=Object.fromEntries(HEROES.map(x=>[x.id,x]));
@@ -54,18 +54,18 @@ function basic(s,f,e){let d=dist(f,e),id=f.id;fx(s,'shot',f.x,f.y,{side:f.side,c
  if(id==='ddak'){f.atkTimer=.85;f.charge=.47;f.chargeCooldown=.85;f.swing=.42;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'blade',f.x,f.y,{tx:e.x,ty:e.y,color:'#00d8fa'});}
  if(id==='moai'){f.atkTimer=.68;if(f.reborn){for(let j=0;j<7;j++)radial(s,f,'lastword',j*Math.PI*2/7+f.spin,420,3.1,14,1.8);f.atkTimer=1.12;}}
 
- if(id==='sahur'){f.atkTimer=.86;f.swing=.32;f.charge=.28;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#e5a85e'});}
+ if(id==='sahur'){f.atkTimer=.86;f.swing=.48;f.charge=.46;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#e5a85e',radius:190,reach:190});}
  if(id==='spyger'){fire(s,f,e,'cactus',rand(s,-.24,.24),520,7.5,{r:17,life:2.8,bounces:1});f.atkTimer=.95;}
- if(id==='tralalero'){f.atkTimer=.92;f.charge=.34;f.swing=.3;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'dash',f.x,f.y,{text:'KICK'});}
+ if(id==='tralalero'){f.atkTimer=.92;f.charge=.47;f.swing=.45;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'dash',f.x,f.y,{text:'KICK',radius:195,reach:195});}
  if(id==='lilago'){fire(s,f,e,'fist',rand(s,-.03,.03),685,4.1,{r:18,life:2.5});f.atkTimer=.46;}
- if(id==='eggkimchi'){f.atkTimer=.93;f.charge=.27;f.swing=.29;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#ff6e7a'});}
+ if(id==='eggkimchi'){f.atkTimer=.93;f.charge=.43;f.swing=.43;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#ff6e7a',radius:177,reach:177});}
  if(id==='filter'){fire(s,f,e,'filterpoop',rand(s,-.8,.8),300,1,{r:17,life:1e9,bounces:1e9});f.atkTimer=1;fx(s,'poop',f.x,f.y,{color:'#986d3d'});}
- if(id==='icecookie'){f.atkTimer=.85;f.spin+=1.2;fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#84dfff'});if(d<106)damage(s,e,6.5,f,'회전 야구방망이');}
+ if(id==='icecookie'){f.atkTimer=.85;f.spin+=1.2;fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#84dfff',radius:166,reach:166});if(d<166)damage(s,e,6.5,f,'회전 야구방망이');}
  if(id==='zeta'){for(let j=0;j<8;j++)radial(s,f,'z',f.spin+j*Math.PI/4,420,2.2,15,2.1);f.atkTimer=1.12;}
- if(id==='shade'){fx(s,'clap',f.x,f.y,{tx:e.x,ty:e.y,color:'#fae64b'});f.atkTimer=.81;f.charge=.20;f.swing=.23;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'sword',f.x,f.y,{text:'짝!'});}
+ if(id==='shade'){fx(s,'clap',f.x,f.y,{tx:e.x,ty:e.y,color:'#fae64b',radius:173,reach:173});f.atkTimer=.81;f.charge=.42;f.swing=.40;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'sword',f.x,f.y,{text:'짝!'});}
 
 }
-function superMove(s,f,e){const id=f.id;f.ultTimer=({pizza:11,rico:10.8,gaybi:11.4,cheon:11.8,darryl:13.0,duo:13,hoit:11.5,nice:12,pogo:13,utti:16.8,ddak:14.4,moai:18,sahur:16,spyger:13.3,tralalero:13,lilago:14,eggkimchi:15,filter:16,icecookie:15.5,zeta:16.2,shade:17})[id];fx(s,'super',f.x,f.y,{text:HERO_BY_ID[id].ult,color:HERO_BY_ID[id].color,side:f.side});
+function superMove(s,f,e){const id=f.id;f.ultTimer=({pizza:11,rico:10.8,gaybi:11.4,cheon:10.8,darryl:12.4,duo:12,hoit:10.2,nice:12,pogo:12.3,utti:15.3,ddak:10.6,moai:18,sahur:15.2,spyger:10.9,tralalero:13,lilago:12.5,eggkimchi:11.8,filter:16,icecookie:13.8,zeta:15.6,shade:17})[id];fx(s,'super',f.x,f.y,{text:HERO_BY_ID[id].ult,color:HERO_BY_ID[id].color,side:f.side});
  if(id==='pizza'){f.ultActive={type:'pizza',elapsed:0,waves:0};fx(s,'flash',500,310,{color:'#ffa950'});}
  if(id==='rico'){f.ultActive={type:'rico',elapsed:0,waves:0};}
  if(id==='gaybi'){e.stun=Math.max(e.stun,2.12);f.ultActive={type:'gaybi',elapsed:0,waves:0};fx(s,'ring',e.x,e.y,{radius:95,color:'#53f0ff'});}
@@ -133,7 +133,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
     f.x+=f.vx*dt;f.y+=f.vy*dt;
     if(f.x<L+f.r){f.x=L+f.r;f.vx=Math.abs(f.vx)}if(f.x>R-f.r){f.x=R-f.r;f.vx=-Math.abs(f.vx)}
     if(f.y<T+f.r){f.y=T+f.r;f.vy=Math.abs(f.vy)}if(f.y>B-f.r){f.y=B-f.r;f.vy=-Math.abs(f.vy)}
-    if(['sahur','eggkimchi','shade','tralalero'].includes(f.id)&&f.swing>0&&f.charge>0&&dist(f,e)<(f.id==='tralalero'?110:115)){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.86){damage(s,e,({sahur:8,eggkimchi:7,shade:6.8,tralalero:9})[f.id],f,f.id);f.charge=0;f.swing=0;fx(s,f.id==='eggkimchi'?'slap':f.id==='sahur'?'batSwing':f.id==='shade'?'clap':'slam',e.x,e.y,{color:HERO_BY_ID[f.id].color,tx:e.x,ty:e.y});}}if(f.id==='utti'&&f.charge>0&&dist(f,e)<135){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.85){damage(s,e,9.0,f,'돌진 찍기');f.charge=0;f.contact=.72;fx(s,'slam',e.x,e.y,{color:'#ff7bac'});}}if(f.id==='ddak'&&f.swing>0&&f.charge>0&&dist(f,e)<127){let ga=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ga-f.chargeDir),Math.cos(ga-f.chargeDir)))<.85){damage(s,e,7.3,f,'다이아 검베기');f.swing=0;f.charge=0;fx(s,'sword',e.x,e.y,{color:'#25dfff'});}}if(f.atkTimer<=0)basic(s,f,e);if(!s.finished&&f.ultTimer<=0)superMove(s,f,e);
+    if(['sahur','eggkimchi','shade','tralalero'].includes(f.id)&&f.swing>0&&f.charge>0&&dist(f,e)<({sahur:190,eggkimchi:177,shade:173,tralalero:195})[f.id]){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.86){damage(s,e,({sahur:8,eggkimchi:7,shade:6.8,tralalero:9})[f.id],f,f.id);f.charge=0;f.swing=0;fx(s,f.id==='eggkimchi'?'slap':f.id==='sahur'?'batSwing':f.id==='shade'?'clap':'slam',e.x,e.y,{color:HERO_BY_ID[f.id].color,tx:e.x,ty:e.y});}}if(f.id==='utti'&&f.charge>0&&dist(f,e)<172){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.85){damage(s,e,9.0,f,'돌진 찍기');f.charge=0;f.contact=.72;fx(s,'slam',e.x,e.y,{color:'#ff7bac'});}}if(f.id==='ddak'&&f.swing>0&&f.charge>0&&dist(f,e)<165){let ga=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ga-f.chargeDir),Math.cos(ga-f.chargeDir)))<.85){damage(s,e,7.3,f,'다이아 검베기');f.swing=0;f.charge=0;fx(s,'sword',e.x,e.y,{color:'#25dfff'});}}if(f.atkTimer<=0)basic(s,f,e);if(!s.finished&&f.ultTimer<=0)superMove(s,f,e);
   }
  }
  if(s.finished)return s;
