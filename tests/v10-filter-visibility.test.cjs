@@ -9,9 +9,9 @@ assert(js[0].includes('f.atkTimer=1;'),'1 second spawn ALSO in offline engine');
 assert(js[0].includes('p.hiddenUntil=s.t+.52'),'retaining projectile ALSO in offline engine');
 for(let n=0;n<10;n++){const s=E.create(['filter','pizza'],[0,0],123+n);s.actors[0].atkTimer=0;s.actors[0].ultTimer=99;for(let i=0;i<120;i++)E.tick(s,1/60);assert(s.bullets.filter(b=>b.owner===0&&b.type==='filterpoop').length>=1,'filter spawns');}
 const s=E.create(['filter','moai'],[0,0],334);
-s.actors[0].ultTimer=0;for(let i=0;i<60&&!s.finished;i++)E.tick(s,1/60);
+s.actors[0].ultTimer=99;for(let i=0;i<110&&!s.finished;i++)E.tick(s,1/60);
 const before=s.bullets.filter(b=>b.owner===0&&b.type==='filterpoop').length;assert(before>=1);
-E.tick(s,1/60);
+s.actors[0].ultTimer=0;E.tick(s,1/60);
 assert(s.bullets.filter(b=>b.owner===0&&b.type==='filterpoop').length>=before,'poop survives ult');
 assert(s.bullets.some(b=>b.type==='filterpoop'&&b.hiddenUntil>0),'poop temporarily hidden');
 for(let i=0;i<70&&!s.finished;i++)E.tick(s,1/60);
