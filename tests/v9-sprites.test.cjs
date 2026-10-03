@@ -10,10 +10,10 @@ for(const id of ids){
  assert(payload.length>1400,'nonempty sprite '+id);
  assert.equal(payload.toString('ascii',0,4),'RIFF');
  assert.equal(payload.toString('ascii',8,12),'WEBP');
- // All portraits are compressed 256 by 256 pixels, while v9 used only 40x40.
+ // All portraits are full-resolution 768 by 768 pixels, replacing earlier 256px thumbnails.
  assert.equal(payload.toString('ascii',12,16),'VP8X');
  const width=1+payload.readUIntLE(24,3),height=1+payload.readUIntLE(27,3);
- assert.equal(width,256,id+' width');assert.equal(height,256,id+' height');
+ assert.equal(width,768,id+' width');assert.equal(height,768,id+' height');
  hd[id]='data:image/webp;base64,'+source;
 }
 const start=server.indexOf('const hdIds='),end=server.indexOf('const server=http.createServer');
@@ -33,4 +33,4 @@ assert(html.includes('friendSort'),'friend sorting enabled');
 assert(html.includes("▼ YOU"),'battle self marker enabled');
 assert(html.includes("trashBin"),'visible trash bin FX');
 assert(html.includes("slap"),'visible slap FX');
-console.log('PASS original WebP 256px x9, 21 heroes, client syntax, stats+friends UI and effects');
+console.log('PASS original WebP 768px x9, 21 heroes, client syntax, stats+friends UI and effects');

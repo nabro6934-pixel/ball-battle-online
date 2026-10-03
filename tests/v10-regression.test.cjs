@@ -9,7 +9,7 @@ for(const id of ids){
  assert(buf.length>1800,'valid high-resolution sprite '+id);
  if(buf.toString('ascii',12,16)==='VP8X'){
   let w=1+buf.readUIntLE(24,3),h=1+buf.readUIntLE(27,3);
-  assert(w>=192&&h>=192,'high-resolution portrait '+id);
+  assert.equal(w,768,'full-size WebP width '+id);assert.equal(h,768,'full-size WebP height '+id);
  }
 }
 const html=fs.readFileSync(path.join(root,'game.html'),'utf8');
@@ -68,4 +68,4 @@ E.tick(z,1/60);assert(q.binSeal>0,'trash bin visibly captures enemy');
 let old=q.hp;
 for(let i=0;i<290&&!z.finished;i++)E.tick(z,1/60);
 assert(q.hp<old-20,'trash bin explosion deals damage');
-console.log('PASS 21 image sprites, 256px HD portraits, JS syntax, controls, visuals, clan/profile backup, PvP stats and 2 ultimate damage checks');
+console.log('PASS 21 image sprites, 768px original-detail portraits, JS syntax, controls, visuals, clan/profile backup, PvP stats and 2 ultimate damage checks');
