@@ -7,7 +7,7 @@ const crypto=require('node:crypto');
  const src=fs.readFileSync(path.join(__dirname,'..','server.js'),'utf8');
  const boot=src.lastIndexOf('initStorage().then(');
  assert(boot>0,'server boot statement found');
- const ctx={require,__dirname:path.join(__dirname,'..'),process:{env:{},on(){}},console:{log(){},error(){}},setInterval(){return {unref(){}}},setTimeout,Buffer};
+ const ctx={require(id){return id.startsWith('./')?require(path.join(__dirname,'..',id)):require(id)},__dirname:path.join(__dirname,'..'),process:{env:{},on(){}},console:{log(){},error(){}},setInterval(){return {unref(){}}},setTimeout,Buffer};
  vm.createContext(ctx);
  vm.runInContext(src.slice(0,boot),ctx,{filename:'server.js',timeout:10000});
  const a='a'.repeat(24), b='b'.repeat(64);
