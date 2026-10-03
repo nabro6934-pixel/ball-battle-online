@@ -18,7 +18,7 @@ const html=fs.readFileSync(path.join(__dirname,'..','game.html'),'utf8');
 const manifestText=html.split('const PACKED_NEW_SPRITES=')[1]?.split(';')[0];const packedMatch=manifestText?[null,manifestText]:null;assert(packedMatch,'sprite manifest embedded');
 const zlib=require('node:zlib'),newPics=JSON.parse(packedMatch[1]);assert.equal(Object.keys(newPics).length,9);
 for(const [id,encoded] of Object.entries(newPics)){
- let inflated=zlib.inflateSync(Buffer.from(encoded,'base64'));
+ let inflated;try{inflated=zlib.inflateSync(Buffer.from(encoded,'base64'))}catch(e){throw Error('sprite corrupt: '+id+' / '+e.message)}
  assert.equal(inflated.length,2+23*3+40*40,'sprite data is intact for '+id);
 }
 const scripts=html.split('<script>').slice(1).map(x=>x.split('</script>')[0]);
