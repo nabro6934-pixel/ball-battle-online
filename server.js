@@ -189,7 +189,7 @@ function sendRoyaleLobby(r){
 }
 function royaleLeave(s){
  const id=s?.royale;if(!id)return;const r=royales.get(id);s.royale=null;if(!r)return;
- if(r.phase==='battle'&&r.sim){const a=r.sim.actors.find(a=>a.sid===s.id);if(a){a.hp=0;a.alive=false;a.rank=r.sim.actors.filter(x=>x.hp>0).length+1;}}
+ if(r.phase==='battle'&&r.sim){const a=r.sim.actors.find(a=>a.sid===s.id);if(a&&a.hp>0){a.rank=r.sim.actors.filter(x=>x.hp>0).length;a.hp=0;a.alive=false;r.sim.placements.push({sid:a.sid,rank:a.rank,name:a.name});}}
  r.players=r.players.filter(x=>x!==s.id);delete r.picks[s.id];delete r.offers[s.id];
  if(r.phase==='lobby'){if(r.host===s.id)r.host=r.players[0]||null;if(!r.players.length){royales.delete(id);royaleCodes.delete(r.code)}else sendRoyaleLobby(r)}
  if(r.phase!=='lobby'&&r.players.length===0){if(r.timer)clearInterval(r.timer);royales.delete(id);royaleCodes.delete(r.code)}
