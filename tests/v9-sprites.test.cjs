@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const root=path.join(__dirname,'..'),js=fs.readFileSync(path.join(root,'server.js'),'utf8');
 const start=js.indexOf("const zlib=require('node:zlib')"),end=js.indexOf('const server=http.createServer');
 assert(start>0&&end>start,'sprite injection code');
-const ctx={require:(p)=>p.startsWith('./')?require(path.join(root,p)):require(p),fs,path,Buffer};
+const ctx={require:(p)=>p.startsWith('./')?require(path.join(root,p)):require(p),fs,path,Buffer,__dirname:root};
 vm.createContext(ctx);
 vm.runInContext(js.slice(start,end)+';this.spritesCheck=spriteImages;this.htmlCheck=GAME_HTML;',ctx);
 const v=ctx.spritesCheck,ids=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
