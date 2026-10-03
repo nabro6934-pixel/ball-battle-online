@@ -240,7 +240,7 @@ function startOnline(type,code=''){app.server=((location.protocol==='http:'||loc
  es.onerror=()=>{setStatus('재연결 중…');if(!connected&&app.eventStream===es){ /* timeout reports unavailable server */ }};
 }
 async function sendAction(action,data={}){if(!app.online)return;let res;try{res=await fetch(app.server+'/api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid:app.session,action,...data})})}catch{throw Error('서버에 연결할 수 없습니다.')}let body=await res.json();if(!res.ok||!body.ok)throw Error(body.error||'요청 실패');return body}
-function onEvent(m){switch(m.event){case 'hello':app.onlineReady=true;setStatus('온라인 접속',true);(async()=>{await initProfile();if(profileCred)await sendAction('bind',{profileId:profileCred.id,secret:profileCred.secret});if(app.pendingAction){let a=app.pendingAction;app.pendingAction=null;await sendAction(a.action,a.action==='room'?{code:a.code}:{})}})().catch(showError);break;
+function onEvent(m){switch(m.event){case 'hello':app.onlineReady=true;setStatus('온라인 접속',true);(async()=>{await initProfile();if(profileCred)await sendAction('bind',{profileId:profileCred.id,secret:profileCred.secret});if(app.pendingAction){let a=app.pendingAction;app.pendingAction=null;await sendAction(a.action,a.action==='room'?{code:a.code}:{})}})().catch(e=>{if(e?.code?.startsWith('PROFILE_')){setStatus('프로필 인증 확인 필요');return;}showError(e)});break;
  case 'profile_bound':break;
  case 'queueing':waiting('대기 중인 플레이어를 찾는 중…','랜덤 매칭');break;
  case 'created':app.code=null;waiting('같은 방 이름을 입력한 친구를 기다리는 중…','비공개 방 대기');break;
@@ -336,8 +336,44 @@ $('#aimConfirm').onclick=readyAngle;$('#goHome').onclick=home;$('#soundToggle').
 const socialModal=$('#socialModal'),socialContent=$('#socialContent');
 let profileCred=null,profile=null,profilePromise=null,activeSocial='profile';
 const socialBase=()=>app.server.replace(/\/$/,'');
-async function socialCall(action,data={}){let res=await fetch(socialBase()+'/social',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...data})});let obj=await res.json();if(!res.ok||!obj.ok)throw Error(obj.error||'요청 실패');return obj}
-async function initProfile(){if(profilePromise)return profilePromise;profilePromise=(async()=>{let saved;try{saved=JSON.parse(getStore('localStorage','ballbattle_profile')||'null')}catch{};let v;v=await socialCall('register',saved||{});profile=v.profile;profileCred=v.credentials;putStore('localStorage','ballbattle_profile',JSON.stringify(profileCred));setTimeout(()=>{refreshHeader();showFirstSetup()},50);return profile})();try{return await profilePromise}catch(e){profilePromise=null;throw e}}
+async function socialCall(action,data={}){let res=await fetch(socialBase()+'/social',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...data})});let obj=await res.json();if(!res.ok||!obj.ok){const error=new Error(obj.error||'요청 실패');error.code=obj.code||'REQUEST_ERROR';throw error;}return obj}
+function profileAuthHelp(e){
+ if(!e?.code?.startsWith('PROFILE_'))return;
+ activeSocial='setup';socialModal.classList.remove('hidden');$('#socialClose').style.display='none';$('#socialTitle').textContent='🔐 로그인 정보 확인';
+ socialContent.innerHTML='<p class="micro">이 기기의 로그인 정보가 계정과 일치하지 않아요. 기존 코인, 캐릭터, 친구 기록을 보호하기 위해 자동으로 초기화하지 않았어요.</p><div class="subLinks"><button id="retrySavedProfile" class="primary">다시 시도</button><button id="makeSeparateProfile">별도 새 계정 만들기</button></div><p class="micro">새 계정을 만들더라도 기존 로그인 정보는 별도로 보관돼요. 원래 사용했던 기기나 브라우저로 다시 접속할 수도 있어요.</p>';
+ $('#retrySavedProfile').onclick=()=>location.reload();
+ $('#makeSeparateProfile').onclick=async()=>{
+  if(!confirm('기존 계정은 변경하지 않고, 이 기기에 별도 새 프로필을 만들까요?'))return;
+  const btn=$('#makeSeparateProfile');btn.disabled=true;
+  try{
+   const result=await socialCall('register',{});
+   const old=getStore('localStorage','ballbattle_profile');
+   if(old)putStore('localStorage','ballbattle_profile_previous',old);
+   profile=result.profile;profileCred=result.credentials;profilePromise=Promise.resolve(profile);
+   putStore('localStorage','ballbattle_profile',JSON.stringify(profileCred));
+   $('#socialClose').style.display='';socialModal.classList.add('hidden');
+   refreshHeader();home();setTimeout(showFirstSetup,30);
+  }catch(ex){btn.disabled=false;$('#socialError').textContent=ex.message}
+ };
+}
+async function initProfile(){
+ if(profilePromise)return profilePromise;
+ profilePromise=(async()=>{
+  let saved=null;
+  const raw=getStore('localStorage','ballbattle_profile');
+  if(raw){
+   try{saved=JSON.parse(raw)}catch{const e=new Error('저장된 로그인 정보가 손상됐어요.');e.code='PROFILE_CREDENTIALS_INVALID';throw e}
+   if(!saved||typeof saved!=='object'||typeof saved.id!=='string'||typeof saved.secret!=='string'){
+    const e=new Error('저장된 로그인 정보가 완전하지 않아요.');e.code='PROFILE_CREDENTIALS_INVALID';throw e
+   }
+  }
+  const v=await socialCall('register',saved||{});
+  profile=v.profile;profileCred=v.credentials;
+  putStore('localStorage','ballbattle_profile',JSON.stringify(profileCred));
+  setTimeout(()=>{refreshHeader();showFirstSetup()},50);return profile
+ })();
+ try{return await profilePromise}catch(e){profilePromise=null;profileAuthHelp(e);throw e}
+}
 async function rewardCpu(){try{await initProfile();let v=await socialCall('cpu_win',profileCred);profile=v.profile;refreshHeader()}catch(e){log('승리 보상 확인: '+e.message)}}
 async function refreshPlayer(){try{let v=await socialRefresh();profile=v.profile;refreshHeader()}catch(e){log('프로필 업데이트를 확인할 수 없어요.')}}
 async function requestOpponentFriend(){try{await initProfile();if(!app.opponent?.tag||app.opponent.tag==='-')throw Error('상대 계정을 찾지 못했어요.');await socialCall('request',{...profileCred,tag:app.opponent.tag});alert('친구 요청을 보냈어요!')}catch(e){alert(e.message)}}
