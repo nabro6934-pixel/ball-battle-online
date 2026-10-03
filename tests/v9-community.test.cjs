@@ -54,5 +54,14 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  assert.equal(room.sim.placements[0].rank,10);
  for(let i=0;i<10;i++)assert.equal(people[i].coins,before[i],'friendly Royale never changes coins');
  assert.equal(state.clans.get(clanId).completed,1,'royale results do not advance clan missions');
- console.log('PASS clan economy, mission contributors, invitations, atomic SQL saves; 3-10 multiplayer royale, disconnect rank, no rewards');
+ const matchup=vm.runInContext('({matchStats,publicUser,privateUser})',ctx);
+ const round={players:[s[3].id,s[4].id],statsDone:false};
+ const prevCoins=people[3].coins;matchup.matchStats(round,0);matchup.matchStats(round,0);
+ assert.equal(people[3].coins,prevCoins+100,'winner receives coins only once');
+ assert.deepEqual([people[3].versus[people[4].id].wins,people[3].versus[people[4].id].losses],[1,0]);
+ assert.deepEqual([people[4].versus[people[3].id].wins,people[4].versus[people[3].id].losses],[0,1]);
+ assert.equal(matchup.publicUser(people[3]).versus,undefined,'opponent stats not exposed publicly');
+ assert.equal(matchup.privateUser(people[3]).versus[people[4].id].wins,1,'my own rival stats available');
+ await vm.runInContext('dbSaveChain',ctx);
+ console.log('PASS persistent 1W/1L, privacy; clan missions, invitations, atomic SQL saves; 3-10 royale, no rewards');
 })().catch(e=>{console.error(e);process.exit(1)});

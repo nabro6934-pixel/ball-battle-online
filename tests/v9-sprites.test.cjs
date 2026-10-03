@@ -1,25 +1,36 @@
 'use strict';
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),zlib=require('node:zlib');
-const root=path.join(__dirname,'..'),js=fs.readFileSync(path.join(root,'server.js'),'utf8');
-const start=js.indexOf("const zlib=require('node:zlib')"),end=js.indexOf('const server=http.createServer');
-assert(start>0&&end>start,'sprite injection code');
-const ctx={require:(p)=>p.startsWith('./')?require(path.join(root,p)):require(p),fs,path,Buffer,__dirname:root};
-vm.createContext(ctx);
-vm.runInContext(js.slice(start,end)+';this.spritesCheck=spriteImages;this.htmlCheck=GAME_HTML;',ctx);
-const v=ctx.spritesCheck,ids=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
-assert.equal(Object.keys(v).length,9);
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.join(__dirname,'..'),server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+const ids=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
+assert.equal(ids.length,9);
+const hd={};
 for(const id of ids){
- const uri=v[id];assert(uri.startsWith('data:image/png;base64,'));
- const png=Buffer.from(uri.split(',')[1],'base64');
- assert(png.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex')),'PNG header '+id);
- assert.equal(png.readUInt32BE(16),40);assert.equal(png.readUInt32BE(20),40);
- let p=8,raw;
- while(p<png.length){const n=png.readUInt32BE(p),type=png.toString('ascii',p+4,p+8);if(type==='IDAT')raw=zlib.inflateSync(png.subarray(p+8,p+8+n));p+=12+n;}
- assert.equal(raw.length,40*(1+40*4),'PNG decompressed pixel size '+id);
- assert(raw.some((b,index)=>index%4===3&&b!==0),'visible sprite '+id);
+ const source=fs.readFileSync(path.join(root,'hd',id+'.b64'),'utf8').trim();
+ const payload=Buffer.from(source,'base64');
+ assert(payload.length>1400,'nonempty sprite '+id);
+ assert.equal(payload.toString('ascii',0,4),'RIFF');
+ assert.equal(payload.toString('ascii',8,12),'WEBP');
+ // All portraits are compressed 256 by 256 pixels, while v9 used only 40x40.
+ assert.equal(payload.toString('ascii',12,16),'VP8X');
+ const width=1+payload.readUIntLE(24,3),height=1+payload.readUIntLE(27,3);
+ assert.equal(width,256,id+' width');assert.equal(height,256,id+' height');
+ hd[id]='data:image/webp;base64,'+source;
 }
-const html=ctx.htmlCheck;const idx=html.indexOf('const IMAGES='),stop=html.indexOf('};',idx),imgs=JSON.parse(html.slice(idx+13,stop+1));
-assert.equal(Object.keys(imgs).length,21,'exact 21 images embedded');
-for(const id of ids)assert(imgs[id].startsWith('data:image/png;base64,'));
-for(const [i,script] of html.split('<script>').slice(1).map(s=>s.split('</script>')[0]).entries())assert.doesNotThrow(()=>new Function(script),'browser script syntax '+i);
-console.log('PASS nine transparent portraits, valid PNG, all 21 game hero images and HTML JS');
+const start=server.indexOf('const hdIds='),end=server.indexOf('const server=http.createServer');
+assert(start>0&&end>start,'HD server injector exists');
+const ctx={require,fs,path,Buffer,__dirname:root};vm.createContext(ctx);
+vm.runInContext(server.slice(start,end)+';this.images=spriteImages;this.html=GAME_HTML;',ctx);
+const html=ctx.html;assert.equal(Object.keys(ctx.images).length,9);
+const idx=html.indexOf('const IMAGES='),stop=html.indexOf('};',idx);
+const images=JSON.parse(html.slice(idx+13,stop+1));
+assert.equal(Object.keys(images).length,21,'21 heroes preserved');
+for(const id of ids)assert.equal(images[id],hd[id],'source image embedded: '+id);
+const script=html.split('<script>').slice(1).map(x=>x.split('</script>')[0]);
+assert.equal(script.length,2);script.forEach(js=>new Function(js));
+assert(!html.includes('id="heroStatsBtn"'),'separate stats button removed');
+assert(html.includes('collectionSort'),'collection has sort');
+assert(html.includes('friendSort'),'friend sorting enabled');
+assert(html.includes("▼ YOU"),'battle self marker enabled');
+assert(html.includes("trashBin"),'visible trash bin FX');
+assert(html.includes("slap"),'visible slap FX');
+console.log('PASS original WebP 256px x9, 21 heroes, client syntax, stats+friends UI and effects');

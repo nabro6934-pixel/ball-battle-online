@@ -22,10 +22,10 @@ function superSkill(s,f,e){const id=f.id;f.super=13+Math.random()*2;f.superReque
  if(id==='spyger'){f.zone={x:e?e.x:f.x,y:e?e.y:f.y,life:5,rad:190};return}
  if(id==='tralalero'){f.skill={kind:'tsunami',life:4,ticks:0};return}
  if(id==='lilago'){f.skill={kind:'stabs',life:2.6,ticks:0};return}
- if(id==='eggkimchi'){if(e&&dist(f,e)<230){e.curse=5;e.dot=5;e.dotSource=f.sid;e.slow=5;e.mute=5}return}
+ if(id==='eggkimchi'){if(e&&dist(f,e)<460){f.x=clamp(e.x-65,26,W-26);f.y=clamp(e.y-6,26,H-26);e.curse=5;e.dot=Math.max(e.dot,5);e.dotSource=f.sid;e.slow=Math.max(e.slow,5);e.mute=Math.max(e.mute,5);damage(s,e,4,f);s.fx.push({type:'slap',x:e.x,y:e.y,t:s.t})}return}
  if(id==='filter'){for(const p of s.bullets.filter(p=>p.owner===f.sid&&p.type==='filter'))for(const q of alive(s)){if(q.sid!==f.sid&&Math.hypot(p.x-q.x,p.y-q.y)<145){damage(s,q,4,f);q.slow=2}}s.bullets=s.bullets.filter(p=>p.owner!==f.sid||p.type!=='filter');return}
  if(id==='icecookie'){for(const q of alive(s)){if(q.sid!==f.sid&&dist(q,f)<230){q.stun=3;q.mute=3}}return}
- if(id==='zeta'){if(e){f.skill={kind:'bin',target:e.sid,life:1+Math.random()*2.5};e.stun=Math.max(e.stun,1.6)}return}
+ if(id==='zeta'){if(e){const delay=1+Math.random()*2.5;f.skill={kind:'bin',target:e.sid,life:delay};e.stun=Math.max(e.stun,delay);e.mute=Math.max(e.mute,delay);e.binSeal=delay;}return}
  if(id==='pogo'){for(let q of alive(s))if(q.sid!==f.sid&&dist(q,f)<380){q.stun=2.2;damage(s,q,8,f)}return}
  if(id==='moai'){if(e)damage(s,e,e.hp*.65,f);return}
  if(id==='nice'||id==='rico'){radial(s,f,16,3.5);return}
@@ -40,8 +40,8 @@ function superSkill(s,f,e){const id=f.id;f.super=13+Math.random()*2;f.superReque
 }
 function tick(s,dt=.05){if(s.finished)return s;dt=clamp(dt,0,.06);s.t+=dt;
  for(let f of alive(s)){
-  f.attack-=dt;f.super-=dt;f.stun=Math.max(0,f.stun-dt);f.mute=Math.max(0,f.mute-dt);f.slow=Math.max(0,f.slow-dt);f.invul=Math.max(0,f.invul-dt);
-  if(f.dot>0){f.dot-=dt;damage(s,f,2*dt,s.actors.find(q=>q.sid===f.dotSource));}
+  f.attack-=dt;f.super-=dt;f.stun=Math.max(0,f.stun-dt);f.mute=Math.max(0,f.mute-dt);f.slow=Math.max(0,f.slow-dt);f.invul=Math.max(0,f.invul-dt);f.binSeal=Math.max(0,(f.binSeal||0)-dt);
+  if(f.dot>0){f.dot-=dt;damage(s,f,3*dt,s.actors.find(q=>q.sid===f.dotSource));}
   const others=alive(s).filter(q=>q.sid!==f.sid).sort((a,b)=>dist(a,f)-dist(b,f));const e=others[0];
   if(f.hp<=0)continue;
   if(f.zone){f.zone.life-=dt;for(let q of others){if(Math.hypot(q.x-f.zone.x,q.y-f.zone.y)<f.zone.rad){damage(s,q,3.5*dt,f);q.slow=Math.max(q.slow,.18)}}if(f.zone.life<=0)f.zone=null}
