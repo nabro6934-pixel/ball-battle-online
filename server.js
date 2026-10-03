@@ -281,6 +281,10 @@ if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-res
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
+  if(req.method==='GET'&&url.pathname==='/download'){
+ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="ball_battle_v10_1.html"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+ res.end(GAME_HTML);return;
+}
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
   if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0)).slice(0,50).map(publicUser)})}
 
