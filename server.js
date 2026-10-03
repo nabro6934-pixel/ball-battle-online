@@ -70,7 +70,40 @@ async function initStorage(){
  dbPool=p;
 }
 function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],setupDone:!!u.setupDone}}
-function getProfile(m){let u=profiles.get(String(m.id||''));if(!u||u.secret!==m.secret)throw Error('프로필 인증에 실패했습니다.');return u}
+function authError(code,message){const e=new Error(message);e.code=code;return e}
+function getProfile(m){
+ let u=profiles.get(String(m.id||''));
+ if(!u)throw authError('PROFILE_NOT_FOUND','이 기기의 이전 프로필을 찾을 수 없어요.');
+ if(u.secret!==m.secret)throw authError('PROFILE_SECRET_MISMATCH','기존 프로필의 인증 키가 일치하지 않아요. 기존 데이터는 보호되고 있어요.');
+ return u;
+}
+// Older browsers may hold valid local credentials issued before database persistence.
+// Restore only a matching signed-in account from an earlier snapshot; never overwrite another user.
+async function recoverOldProfile(id,secret){
+ if(!/^[a-f0-9]{24}$/i.test(id)||!/^[a-f0-9]{64}$/i.test(secret))
+   throw authError('PROFILE_CREDENTIALS_INVALID','저장된 로그인 정보가 손상됐어요.');
+ if(profiles.has(id))return migrate(getProfile({id,secret}));
+ if(!dbPool)throw Error('계정 데이터베이스에 연결할 수 없습니다.');
+ const backups=await dbPool.query('SELECT data FROM ball_battle_backups ORDER BY id DESC LIMIT 40');
+ for(const row of backups.rows){
+   const all=Array.isArray(row.data)?row.data:JSON.parse(row.data);
+   const old=all.find(v=>v&&v.id===id);
+   if(!old)continue;
+   if(old.secret!==secret)throw authError('PROFILE_SECRET_MISMATCH','백업에 있는 프로필의 인증 키가 일치하지 않아요.');
+   const u=migrate({...old});
+   if(profileLookup(u.tag))throw Error('백업 프로필 코드가 이미 사용 중이에요.');
+   profiles.set(id,u);persist();
+   console.log('Legacy profile restored from backup');
+   return u;
+ }
+ // No surviving database record for this legacy key. Preserve its ID and secret,
+ // while issuing a clean starter profile without modifying any other account.
+ let tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));
+ const u={id,secret,tag,nick:'새 플레이어',avatar:'pizza',wins:0,losses:0,coins:0,owned:starter(),setupDone:false,friends:[],requests:[]};
+ profiles.set(id,u);persist();
+ console.log('Legacy login re-registered (no prior database record)');
+ return u;
+}
 function profileLookup(tag){return [...profiles.values()].find(u=>u.tag===String(tag||'').trim().toUpperCase())}
 function profileForSession(s){return s?.profile&&profiles.get(s.profile)}
 function newOffer(u){const a=[...new Set((u?.owned||[]).filter(x=>HERO_IDS.has(x)))];for(let i=a.length-1;i>0;i--){let j=crypto.randomInt(0,i+1);[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,3)}
@@ -145,7 +178,10 @@ const server=http.createServer((req,res)=>{
     let bytes=0,body='';req.on('data',p=>{bytes+=p.length;if(bytes>8192){req.destroy();return}body+=p});
     req.on('end',async()=>{try{const m=JSON.parse(body||'{}');let u;
       if(m.action==='register'){
-        if(m.id&&m.secret){u=migrate(getProfile(m))}
+        if(m.id||m.secret){
+          if(!m.id||!m.secret)throw authError('PROFILE_CREDENTIALS_INVALID','저장된 로그인 정보가 완전하지 않아요.');
+          u=profiles.has(String(m.id))?migrate(getProfile(m)):await recoverOldProfile(String(m.id),String(m.secret));
+        }
         else{let id=crypto.randomBytes(12).toString('hex'),tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));u={id,tag,secret:crypto.randomBytes(32).toString('hex'),nick:'새 플레이어',avatar:'pizza',wins:0,losses:0,coins:0,owned:starter(),setupDone:false,friends:[],requests:[]};profiles.set(id,u);persist()}
         await dbSaveChain;return json(res,200,{ok:true,profile:publicUser(u),credentials:{id:u.id,secret:u.secret}})
       }
@@ -171,7 +207,7 @@ const server=http.createServer((req,res)=>{
         let v=profiles.get(String(m.target||''));u.friends=(u.friends||[]).filter(id=>id!==m.target);if(v)v.friends=(v.friends||[]).filter(id=>id!==u.id);persist()
       }else if(m.action!=='get')throw Error('지원하지 않는 명령입니다.');
       await dbSaveChain;return json(res,200,{ok:true,profile:publicUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
-    }catch(e){return json(res,400,{error:e.message||'요청에 실패했어요'})}});return;
+    }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
   if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v8',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
@@ -182,7 +218,7 @@ const server=http.createServer((req,res)=>{
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
   if(req.method==='POST'&&url.pathname==='/api'){
-    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>4096){req.destroy();return}body+=part});req.on('end',()=>{try{let m=JSON.parse(body);if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream)throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,400,{error:e.message||'서버 오류'})}});return;
+    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>4096){req.destroy();return}body+=part});req.on('end',()=>{try{let m=JSON.parse(body);if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream)throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'서버 오류',code:e.code||'REQUEST_ERROR'})}});return;
   }
   json(res,404,{error:'Not found'});
 });
