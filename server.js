@@ -56,6 +56,9 @@ async function initStorage(){
  await p.query('CREATE TABLE IF NOT EXISTS ball_battle_backups(id bigserial PRIMARY KEY, saved_at timestamptz NOT NULL DEFAULT now(), data jsonb NOT NULL)');
  await p.query("INSERT INTO ball_battle_backups(data) SELECT data FROM ball_battle_state WHERE id='profiles'");
  await p.query("DELETE FROM ball_battle_backups WHERE id NOT IN (SELECT id FROM ball_battle_backups ORDER BY id DESC LIMIT 40)");
+ await p.query('CREATE TABLE IF NOT EXISTS ball_battle_clan_backups(id bigserial PRIMARY KEY, saved_at timestamptz NOT NULL DEFAULT now(), data jsonb NOT NULL)');
+ await p.query("INSERT INTO ball_battle_clan_backups(data) SELECT data FROM ball_battle_state WHERE id='clans'");
+ await p.query("DELETE FROM ball_battle_clan_backups WHERE id NOT IN (SELECT id FROM ball_battle_clan_backups ORDER BY id DESC LIMIT 40)");
  const r=await p.query("SELECT data FROM ball_battle_state WHERE id='profiles'");
  if(r.rowCount>0){
   const saved=Array.isArray(r.rows[0].data)?r.rows[0].data:JSON.parse(r.rows[0].data);
