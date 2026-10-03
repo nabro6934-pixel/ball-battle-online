@@ -16,3 +16,4 @@ jobs:
           node-version: '22'
       - run: node --check engine.js && node --check royale.js && node --check server.js
       - run: node tests/v9-smoke.test.cjs
+      - run: node tests/v9-sprites.test.cjs
