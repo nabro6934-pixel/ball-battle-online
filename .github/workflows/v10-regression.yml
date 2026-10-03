@@ -1,7 +1,7 @@
 name: Verify v10 gameplay
 on:
   push:
-    branches: [v10-hd-fx-ui-data]
+    branches: [v10-hd-fx-ui-data, v10-visible-effects-filter-buff]
   pull_request:
     branches: [main]
 jobs:
@@ -16,6 +16,7 @@ jobs:
           node-version: '22'
       - run: node --check engine.js && node --check server.js && node --check royale.js
       - run: node tests/v10-regression.test.cjs
+      - run: node tests/v10-filter-visibility.test.cjs
       - run: node tests/v9-smoke.test.cjs
       - run: node tests/v9-community.test.cjs
       - run: node tests/profile_recovery.test.cjs
