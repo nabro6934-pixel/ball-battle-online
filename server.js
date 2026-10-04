@@ -255,7 +255,7 @@ function sendRoyaleLobby(r){
 function royaleLeave(s){
  const id=s?.royale;if(!id)return;const r=royales.get(id);s.royale=null;if(!r)return;
  if(r.phase==='battle'&&r.sim){const a=r.sim.actors.find(a=>a.sid===s.id);if(a&&a.hp>0){a.rank=r.sim.actors.filter(x=>x.hp>0).length;a.hp=0;a.alive=false;r.sim.placements.push({sid:a.sid,rank:a.rank,name:a.name});}}
- r.players=r.players.filter(x=>x!==s.id);delete r.picks[s.id];delete r.offers[s.id];
+ r.players=r.players.filter(x=>x!==s.id);if(r.host===s.id)r.host=r.players[0]||null;delete r.picks[s.id];delete r.offers[s.id];
  if(r.phase==='lobby'){if(r.host===s.id)r.host=r.players[0]||null;if(!r.players.length){royales.delete(id);royaleCodes.delete(r.code)}else sendRoyaleLobby(r)}
  if(r.phase!=='lobby'&&r.players.length===0){if(r.timer)clearInterval(r.timer);royales.delete(id);royaleCodes.delete(r.code)}
 }
@@ -274,6 +274,14 @@ function royaleAction(s,m){
  }
  const r=royales.get(s.royale);if(type==='royale_leave'){royaleLeave(s);send(s,'royale_left');return}
  if(!r||!r.players.includes(s.id))throw Error('로얄 방에 참가하지 않았어요.');
+ if(type==='royale_replay'){
+  if(r.phase==='lobby'){sendRoyaleLobby(r);return;}
+  if(r.phase!=='complete')throw Error('경기가 끝난 뒤 다시 플레이할 수 있어요.');
+  if(r.timer)clearInterval(r.timer);r.timer=null;r.sim=null;r.phase='lobby';r.picks={};r.offers={};
+  if(!r.players.includes(r.host))r.host=r.players[0];
+  for(const id of r.players)r.offers[id]=newOffer(profileForSession(sessions.get(id)));
+  sendRoyaleLobby(r);return;
+ }
  if(type==='royale_pick'){if(r.phase!=='lobby'||!r.offers[s.id].includes(m.hero)||!u.owned.includes(m.hero))throw Error('보유한 캐릭터 3명 중에서 골라 주세요.');r.picks[s.id]=m.hero;sendRoyaleLobby(r);return}
  if(type==='royale_start'){
   if(r.host!==s.id)throw Error('방장만 경기를 시작할 수 있어요.');
@@ -417,7 +425,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v11.4',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v11.5',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

@@ -54,6 +54,18 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  assert.equal(room.sim.placements[0].rank,10);
  for(let i=0;i<10;i++)assert.equal(people[i].coins,before[i],'friendly Royale never changes coins');
  assert.equal(state.clans.get(clanId).completed,1,'royale results do not advance clan missions');
+ // Replay keeps the same room and connections, refreshes offers, and never changes rewards.
+ assert.throws(()=>state.action(host,{action:'royale_replay'}),/경기가 끝난/);
+ room.sim.t=129.99;for(let i=0;i<4&&room.phase!=='complete';i++)battleTimer.fn();
+ assert.equal(room.phase,'complete');const sameId=room.id,samePlayers=[...room.players];
+ state.action(s[1],{action:'royale_replay'});
+ assert.equal(room.phase,'lobby');assert.equal(room.sim,null);assert.equal(room.timer,null);
+ assert.equal(room.id,sameId);assert.deepEqual([...room.players],samePlayers);
+ for(const sid of room.players){assert.equal(state.sessions.get(sid).royale,sameId);assert.equal(room.offers[sid].length,3);assert(!room.picks[sid]);}
+ const offers=JSON.stringify(room.offers);state.action(s[2],{action:'royale_replay'});assert.equal(JSON.stringify(room.offers),offers,'duplicate replay leaves fresh lobby intact');
+ state.royaleLeave(host);assert.equal(room.host,s[1].id,'new host replaces departed host');
+ state.action(s[1],{action:'royale_start'});assert.equal(room.phase,'battle');assert.equal(room.sim.actors.length,samePlayers.length-1);
+ for(let i=0;i<10;i++)assert.equal(people[i].coins,before[i],'replay has no rewards');
  const matchup=vm.runInContext('({matchStats,publicUser,privateUser})',ctx);
  const round={players:[s[3].id,s[4].id],statsDone:false};
  const prevCoins=people[3].coins;matchup.matchStats(round,0);matchup.matchStats(round,0);

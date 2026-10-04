@@ -9,13 +9,13 @@ const HEROES=[
  {id:'cheon',name:'천도현급',color:'#ffcd43',shade:'#bd6414',hp:172,speed:256,atk:'골때리네',ult:'대지진',blurb:'“골때리네”를 계속 외쳐 공격. 궁극기로 전장을 뒤흔든다.',basic:'말풍선 7 피해 · 0.9초',super:'전체 지진 20 피해 · 11.8초'},
  {id:'darryl',name:'검은 고아 대릴',color:'#4aabff',shade:'#12389a',hp:156,speed:240,atk:'쌍총 산탄',ult:'연속 구르기 찍기',blurb:'쌍총 산탄을 쏘고, 궁극기로 돌진해 연속으로 찍는다.',basic:'산탄 5개 · 근접 특화',super:'돌진 + 5회 찍기 · 12.5초'},
  {id:'duo',name:'듀오',color:'#7fc933',shade:'#234924',hp:151,speed:254,atk:'영어 단어',ult:'빨간 광폭화',blurb:'사다리꼴로 영어 단어를 뱉는다. 궁극기는 3초 동안 공격 3배와 이동 가속.',basic:'단어 3발 · 0.96초',super:'3초간 공격력 3배 · 12초'},
- {id:'hoit',name:'호잇',color:'#e5bacf',shade:'#735775',hp:157,speed:245,atk:'정현자지 부메랑',ult:'맹독 회전 구슬',blurb:'말풍선이 부메랑처럼 왕복한다. 궁극기로 독 구슬을 굴려 지속 피해.',basic:'왕복 말풍선 · 0.88초',super:'맹독 구슬 · 11초'},
+ {id:'hoit',name:'호잇',color:'#e5bacf',shade:'#735775',hp:157,speed:245,atk:'정현자지 부메랑',ult:'맹독 회전 구슬',blurb:'말풍선이 부메랑처럼 왕복한다. 궁극기로 독 구슬을 굴려 지속 피해.',basic:'왕복 말풍선 · 0.88초',super:'맹독 구슬 6초 유지 · 10.2초'},
  {id:'nice',name:'나이스급',color:'#f9c64c',shade:'#5133a4',hp:151,speed:247,atk:'삼중 똥 폭격',ult:'360도 회전 다이아',blurb:'세 줄 똥 공격 후 몸을 회전하며 입에서 전방위로 다이아몬드를 3초간 뿌린다.',basic:'3방향 공격 · 0.88초',super:'3초간 회전 다이아 난사 · 11.6초'},
  {id:'pogo',name:'포고하는 12년생',color:'#d62434',shade:'#ffc747',hp:166,speed:269,atk:'몬스터볼 두 개',ult:'전기 줄 5개',blurb:'몬스터볼 2개가 0.5초 기절과 10초 동안 초당 3 피해 감전을 건다. 5개 전기 줄은 3초 뒤 강하게 감전시킨다.',basic:'2발 · 기절 0.5초 · 10초간 3/초 감전',super:'5개의 전기 줄 · 3초 예고'},
- {id:'utti',name:'우띠',color:'#ff92c5',shade:'#f2c345',hp:191,speed:285,atk:'접촉 찍기',ult:'공중 5연속 찍기',blurb:'발사체 없이 가까이 닿으면 찍는다. 궁극기는 5초간 공중에서 표식을 남기다 5연속 착지 공격.',basic:'돌진 명중 시 6.5 피해 · 1초',super:'5초 체공 후 표식에 5연타 (회피 가능)'},
+ {id:'utti',name:'우띠',color:'#ff92c5',shade:'#f2c345',hp:191,speed:285,atk:'접촉 찍기',ult:'공중 5연속 찍기',blurb:'발사체 없이 가까이 닿으면 찍는다. 궁극기는 5초간 체공하며 접촉 피해를 주고 표식에 5연속 착지 공격.',basic:'돌진 명중 시 6.5 피해 · 1초',super:'체공 중 접촉 3 피해 · 0.75초 간격 · 착지 5연타'},
  {id:'ddak',name:'다딱이는 아가리',color:'#13ccfb',shade:'#115cc9',hp:175,speed:277,atk:'다이아몬드 검',ult:'3초 뮤트',blurb:'가까운 적에게 다이아몬드 검으로 베어낸다. 궁극기로 3초 동안 상대 행동을 봉쇄한다.',basic:'짧은 돌진 검베기 · 적중 시 8 피해',super:'3초간 상대 침묵'},
  {id:'sahur',name:'퉁퉁퉁사후르',color:'#d9a263',shade:'#76502d',hp:193,speed:267,atk:'근접 방망이 휘두르기',ult:'그림자 세계',blurb:'방망이로 근접 타격. 궁극기로 상대를 5초간 그림자 세계로 끌고 가서 침묵시키며 피해를 준다.',basic:'실제 타격 범위 190 · 8 피해',super:'5초 그림자 세계 · 침묵 + 초당 3.2'},
- {id:'spyger',name:'스파이거',color:'#57d648',shade:'#512ab0',hp:149,speed:251,atk:'유도 선인장',ult:'가시 지대',blurb:'상대를 추적하는 선인장 유도탄을 던지고 큰 피해·둔화 장판을 5초 유지한다.',basic:'유도탄 7.5 피해',super:'5초 장판 · 초당 최대 3.5 피해 + 둔화'},
+ {id:'spyger',name:'스파이거',color:'#57d648',shade:'#512ab0',hp:149,speed:251,atk:'유도 선인장',ult:'가시 지대',blurb:'상대를 추적하는 선인장 유도탄을 던지고 큰 피해·둔화 장판을 5초 유지한다.',basic:'유도탄 9 피해',super:'범위 260 · 5초 장판 · 초당 3.5 피해 + 둔화'},
  {id:'tralalero',name:'트랄랄레로 트랄랄라',color:'#4eb5e7',shade:'#1551a7',hp:181,speed:284,atk:'킥 돌진',ult:'4초 쓰나미',blurb:'발차기 돌진으로 적중 시 피해를 입힌다. 궁극기는 4초 동안 쓰나미를 소환한다.',basic:'발차기 범위 195 · 적중 시 9 피해',super:'4초 거대 파도 · 밀침 + 반복 피해'},
  {id:'lilago',name:'릴라고',color:'#2487f6',shade:'#eacb40',hp:154,speed:253,atk:'초장거리 연속 주먹',ult:'추적 10연속 찌르기',blurb:'사거리가 긴 주먹 공격. 궁극기는 적을 추적해 최대 10번 찌른다.',basic:'주먹 4.1 피해 · 빠른 연사',super:'10회 추적 찌르기 · 접근 시 적중'},
  {id:'eggkimchi',name:'가지김치',color:'#ae4c83',shade:'#ec8127',hp:163,speed:244,atk:'싸대기',ult:'5초 빨강 저주',blurb:'근접 싸대기로 공격하고, 궁극기 접촉 시 상대를 붉게 만들고 둔화·침묵·약한 지속 피해를 건다.',basic:'싸대기 범위 177 · 7 피해',super:'5초 저주 · 둔화/침묵/초당 2'},
@@ -26,9 +26,9 @@ const HEROES=[
  {id:'moai',name:'모아이',color:'#91919a',shade:'#b2b6bd',hp:77.4,speed:252,atk:'회전 충돌',ult:'남은 체력 65%',blurb:'체력이 낮지만 1회 부활하여 빨갛게 변하고 강력한 딸피 글자를 원형 발사한다.',basic:'회전 충돌 · 부활 1회',super:'상대 현재 체력 65% 감소'} ,{"id": "medicine", "name": "약먹으러가자", "color": "#35cfff", "shade": "#40345e", "hp": 160, "speed": 250, "atk": "알약 3×3 투척", "ult": "왕복 알약 폭풍", "blurb": "알약 3개씩 3연사. 궁극기는 사방으로 날아갔다 돌아오는 알약으로 왕복 피해.", "basic": "3발 × 3연사 · 알약당 2.1", "super": "12방향 왕복 알약 · 12초"},
  {"id": "alvin", "name": "앨빈", "color": "#ffd95a", "shade": "#40345e", "hp": 165, "speed": 255, "atk": "긴 칼 휘두르기", "ult": "전방위 칼날", "blurb": "긴 칼을 계속 휘두르고 궁극기로 사방에 칼을 던진다.", "basic": "긴 칼 범위 245 · 6 피해", "super": "12방향 칼날 × 5회 · 11초"},
  {"id": "lea", "name": "레아급", "color": "#cd8bf1", "shade": "#40345e", "hp": 184, "speed": 270, "atk": "지속 포스필드", "ult": "5초 변신", "blurb": "주변 포스필드로 적을 2초간 끌어당겨 행동을 봉쇄한 뒤 밀어낸다. 밀쳐져 충돌하면 6 피해. 5초 동안 상대의 모습과 공격을 복사하고 피해가 1.5배.", "basic": "범위 155 · 초당 7.5 피해 · 2초 흡인/행동 봉쇄 · 밀치기 충돌 6", "super": "5초 공격 복사 · 피해 1.5배 · 14초"},
- {"id": "pogo6974", "name": "포고하는 6974년생", "color": "#ff9c35", "shade": "#40345e", "hp": 207, "speed": 284, "atk": "전방위 가시", "ult": "영구 코너 지대", "blurb": "사방으로 가시 발사. 궁극기는 코너 한 곳에 영구 장판을 만들고 그곳에 있던 적을 5초 가둔다.", "basic": "16방향 가시 · 7.3 피해", "super": "확장 코너 장판 · 초당 9 피해 · 10초"},
+ {"id": "pogo6974", "name": "포고하는 6974년생", "color": "#ff9c35", "shade": "#40345e", "hp": 207, "speed": 284, "atk": "전방위 가시", "ult": "영구 코너 지대", "blurb": "사방으로 가시 발사. 궁극기는 코너 한 곳에 영구 장판을 만들고 그곳에 있던 적을 5초 가둔다.", "basic": "16방향 가시 · 4.56 피해", "super": "확장 코너 장판 · 초당 9 피해 · 10초"},
  {"id": "zetaseungju", "name": "제타승주", "color": "#ff81bb", "shade": "#40345e", "hp": 150, "speed": 275, "atk": "뽀뽀 커브볼", "ult": "은신 기습", "blurb": "뽀뽀 5개를 곡선으로 동시에 발사. 은신 후 접촉하면 순간적으로 큰 피해.", "basic": "커브볼 5발 · 각 2.6 피해", "super": "최대 5초 은신 · 접촉 32 피해 · 14초"},
- {"id": "b67", "name": "67B", "color": "#ffcf56", "shade": "#40345e", "hp": 163, "speed": 252, "atk": "67 숫자 사격", "ult": "분신 두 개", "blurb": "총으로 67 숫자를 발사. 궁극기는 본체 최대 체력과 공격력의 30%를 가진 분신 두 개를 소환한다.", "basic": "67 탄환 · 5.2 피해 · 0.65초", "super": "체력/공격력 30% 분신 × 2 · 15초"}
+ {"id": "b67", "name": "67B", "color": "#ffcf56", "shade": "#40345e", "hp": 163, "speed": 252, "atk": "67 숫자 사격", "ult": "분신 두 개", "blurb": "총으로 67 숫자를 발사. 궁극기는 본체 최대 체력의 20%, 공격력의 30%를 가진 분신 두 개를 소환한다.", "basic": "67 탄환 · 5.2 피해 · 0.65초", "super": "체력 20% / 공격력 30% 분신 × 2 · 15초"}
 ];
 const HERO_BY_ID=Object.fromEntries(HEROES.map(x=>[x.id,x]));
 function rng(s){s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed/4294967296}
@@ -64,7 +64,7 @@ function basic(s,f,e){let d=dist(f,e),id=attackId(f);fx(s,'shot',f.x,f.y,{side:f
  if(id==='moai'){f.atkTimer=.68;if(f.reborn||f.morphReborn){for(let j=0;j<7;j++)radial(s,f,'lastword',j*Math.PI*2/7+f.spin,420,3.1,14,1.8);f.atkTimer=1.12;}}
 
  if(id==='sahur'){f.atkTimer=.86;f.swing=.48;f.charge=.46;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#e5a85e',radius:230,reach:230});}
- if(id==='spyger'){fire(s,f,e,'cactus',rand(s,-.24,.24),520,7.5,{r:17,life:2.8,bounces:1,homing:true});f.atkTimer=.95;}
+ if(id==='spyger'){fire(s,f,e,'cactus',rand(s,-.24,.24),520,9,{r:17,life:2.8,bounces:1,homing:true});f.atkTimer=.95;}
  if(id==='tralalero'){f.atkTimer=.92;f.charge=.47;f.swing=.45;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'dash',f.x,f.y,{text:'KICK',radius:240,reach:240});}
  if(id==='lilago'){fire(s,f,e,'fist',rand(s,-.03,.03),685,4.1,{r:18,life:2.5});f.atkTimer=.46;}
  if(id==='eggkimchi'){f.atkTimer=.93;f.charge=.43;f.swing=.43;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#ff6e7a',radius:210,reach:210});}
@@ -76,7 +76,7 @@ function basic(s,f,e){let d=dist(f,e),id=attackId(f);fx(s,'shot',f.x,f.y,{side:f
  if(id==='medicine'){pillBurst(s,f,e);f.pillBurst={left:2,next:s.t+.16};f.atkTimer=1.45;}
  if(id==='alvin'){f.atkTimer=.55;f.swing=.5;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&dist(f,q)<245)damage(s,q,6,f,'긴 칼');fx(s,'blade',f.x,f.y,{tx:e.x,ty:e.y,reach:245});}
  if(id==='lea')f.atkTimer=.25;
- if(id==='pogo6974'){for(let j=0;j<16;j++)radial(s,f,'spike',f.spin+j*Math.PI/8,510,7.3,12,3.1);f.atkTimer=.82;}
+ if(id==='pogo6974'){for(let j=0;j<16;j++)radial(s,f,'spike',f.spin+j*Math.PI/8,510,3.65*1.25,12,3.1);f.atkTimer=.82;}
  if(id==='zetaseungju'){for(let j=-2;j<=2;j++)fire(s,f,e,'kiss',j*.14,460,2.6,{r:14,life:2.8});f.atkTimer=.95;}
  if(id==='b67'){fire(s,f,e,'number67',0,620,5.2,{r:14,life:2.8});f.atkTimer=.65;f.swing=.2;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);}
 
@@ -88,15 +88,15 @@ function superMove(s,f,e){f.targetSide=e.side;const id=f.id;f.ultTimer=({pizza:1
  if(id==='cheon'){f.ultActive={type:'cheon',elapsed:0,waves:0};fx(s,'flash',W/2,H/2,{color:'#ffce59'});}
  if(id==='darryl'){f.ultActive={type:'darryl',elapsed:0,waves:0,misses:0};}
  if(id==='duo'){f.boost=3;f.vx*=1.42;f.vy*=1.42;fx(s,'flash',f.x,f.y,{color:'#ff4141'});}
- if(id==='hoit'){fire(s,f,e,'poisonorb',0,285,10,{r:43,life:3,bounces:4});fx(s,'flash',f.x,f.y,{color:'#b4fc59'});}
+ if(id==='hoit'){fire(s,f,e,'poisonorb',0,285,10,{r:43,life:6,bounces:100});s.bullets[s.bullets.length-1].hitTargets={};fx(s,'flash',f.x,f.y,{color:'#b4fc59'});}
  if(id==='nice'){f.ultActive={type:'nice',elapsed:0,waves:0};fx(s,'flash',f.x,f.y,{color:'#a180ff'});}
  if(id==='pogo'){f.ultActive={type:'pogo',elapsed:0,waves:0,lines:Array.from({length:5},(_,i)=>{const a=rand(s,0,Math.PI),c=rand(s,L+138,R-138),d=rand(s,T+78,B-78),vx=Math.cos(a),vy=Math.sin(a);return {x:c,y:d,vx,vy}})};fx(s,'electricWarning',W/2,H/2,{color:'#f7d746'});}
- if(id==='utti'){f.ultActive={type:'utti',elapsed:0,waves:0,landed:false};f.airborne=5;f.invul=5;f.marker={x:e.x,y:e.y};f.vx=0;f.vy=0;fx(s,'marker',e.x,e.y,{color:'#ff78c9'});}
+ if(id==='utti'){f.ultActive={type:'utti',elapsed:0,waves:0,landed:false};f.airborne=5;f.invul=5;f.airHits={};f.marker={x:e.x,y:e.y};f.vx=0;f.vy=0;fx(s,'marker',e.x,e.y,{color:'#ff78c9'});}
  if(id==='ddak'){e.mute=Math.max(e.mute,1.55);e.stun=Math.max(e.stun,1.55);fx(s,'silence',e.x,e.y,{color:'#00caff'});}
  if(id==='moai'){damage(s,e,Math.max(1,e.hp*.65),f,'남은 체력 60% 감소');fx(s,'moaiBlast',e.x,e.y,{color:'#ee3345'});}
 
  if(id==='sahur'){f.ultActive={type:'sahur',elapsed:0,waves:0};e.mute=Math.max(e.mute,5);e.realm=5;fx(s,'flash',W/2,H/2,{color:'#4a2670'});}
- if(id==='spyger'){f.ultActive={type:'spyger',elapsed:0,waves:0,x:e.x,y:e.y};fx(s,'ring',e.x,e.y,{radius:200,color:'#6cf35a'});}
+ if(id==='spyger'){f.ultActive={type:'spyger',elapsed:0,waves:0,x:e.x,y:e.y};fx(s,'ring',e.x,e.y,{radius:260,color:'#6cf35a'});}
  if(id==='tralalero'){f.ultActive={type:'tralalero',elapsed:0,waves:0};fx(s,'flash',W/2,H/2,{color:'#4ecbff'});}
  if(id==='lilago'){f.ultActive={type:'lilago',elapsed:0,waves:0};}
  if(id==='eggkimchi'){f.ultActive={type:'eggkimchi',elapsed:0,waves:0,attached:false,stalk:0};f.charge=.7;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#d45586'});}
@@ -117,13 +117,13 @@ function superMove(s,f,e){f.targetSide=e.side;const id=f.id;f.ultTimer=({pizza:1
  if(id==='lea'){f.morphId=attackId(e);f.morphReborn=e.reborn;f.morphUntil=s.t+5;f.atkTimer=0;f.pillBurst=null;fx(s,'ring',f.x,f.y,{radius:125,color:'#cd8bf1'});}
  if(id==='pogo6974'){const c=Math.floor(rng(s)*4),w=(R-L)*.39,h=(B-T)*.435;const z={owner:f.side,x:c%2?R-w:L,y:c>=2?B-h:T,w,h};if(!s.zones.some(q=>q.owner===z.owner&&q.x===z.x&&q.y===z.y))s.zones.push(z);for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&inside(q,z))q.cornerTrap={...z,until:s.t+5};}
  if(id==='zetaseungju'){f.stealth=5;f.charge=5;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);}
- if(id==='b67'){s.clones=s.clones.filter(q=>q.side!==f.side);for(let j=0;j<2;j++){const q=actor(HERO_BY_ID.b67,f.side,0);q.isClone=true;q.entityId='clone'+s.summonSerial++;q.hp=q.max=+(f.max*.3).toFixed(2);q.damageScale=.3;q.x=clamp(f.x+(j?85:-85),L+q.r,R-q.r);q.y=clamp(f.y+70,T+q.r,B-q.r);q.ultTimer=Infinity;s.clones.push(q);}}
+ if(id==='b67'){s.clones=s.clones.filter(q=>q.side!==f.side);for(let j=0;j<2;j++){const q=actor(HERO_BY_ID.b67,f.side,0);q.isClone=true;q.entityId='clone'+s.summonSerial++;q.hp=q.max=+(f.max*.2).toFixed(2);q.damageScale=.3;q.x=clamp(f.x+(j?85:-85),L+q.r,R-q.r);q.y=clamp(f.y+70,T+q.r,B-q.r);q.ultTimer=Infinity;s.clones.push(q);}}
 
 }
 function updateSuper(s,f,e,dt){let u=f.ultActive;if(!u)return;u.elapsed+=dt;let rate=({alvin:.35,pizza:.22,rico:.19,gaybi:.19,cheon:.29,darryl:.28,nice:.25,pogo:3,utti:.20,sahur:.25,spyger:.25,tralalero:.25,lilago:.21,eggkimchi:.25,zeta:.10})[u.type];let max=({alvin:5,pizza:10,rico:3,gaybi:10,cheon:5,darryl:5,nice:12,pogo:1,utti:5,sahur:20,spyger:20,tralalero:16,lilago:10,eggkimchi:20,zeta:1})[u.type];
  const stepTime=u.type==='alvin'?u.elapsed+.35:u.type==='utti'?u.elapsed-5:u.type==='zeta'?u.elapsed-u.delay:u.elapsed;while(u.waves<max&&stepTime>=(u.waves+1)*rate&&!s.finished){u.waves++;
  if(u.type==='alvin'){for(let j=0;j<12;j++)radial(s,f,'longsword',j*Math.PI/6,560,6.5,17,2.8);fx(s,'blade',f.x,f.y,{reach:245,color:'#ffd95a'});}
- if(u.type==='pizza'){damage(s,e,3.1,f,'피자 폭우');for(let j=0;j<5;j++)fx(s,'pizzaDrop',rand(s,L+18,R-18),rand(s,T+20,B-22),{radius:rand(s,18,28),color:'#ffab45'});}
+ if(u.type==='pizza'){damage(s,e,2.4,f,'피자 폭우');for(let j=0;j<5;j++)fx(s,'pizzaDrop',rand(s,L+18,R-18),rand(s,T+20,B-22),{radius:rand(s,18,28),color:'#ffab45'});}
  if(u.type==='rico'){for(let a of [-.38,0,.38])for(let z of [-.055,.055])fire(s,f,e,'gum',a+z,590,3.25,{r:10,life:2.8,bounces:2});fx(s,'ring',f.x,f.y,{radius:80,color:'#ff588a'})}
  if(u.type==='gaybi'){if(dist(f,e)<175){damage(s,e,2.2,f,'10연타');e.stun=Math.max(e.stun,.15);}fx(s,'slam',e.x,e.y,{n:u.waves,color:'#42eafa'});}
  if(u.type==='cheon'){damage(s,e,3.7,f,'지진');e.vx*=.73;e.vy*=.73;fx(s,'quake',W/2,H/2,{n:u.waves,color:'#ffcb55'});}
@@ -133,7 +133,7 @@ function updateSuper(s,f,e,dt){let u=f.ultActive;if(!u)return;u.elapsed+=dt;let 
 
 
  if(u.type==='sahur'){damage(s,e,0.8,f,'그림자 세계');e.mute=Math.max(e.mute,.35);fx(s,'flash',e.x,e.y,{color:'#44305d'});}
- if(u.type==='spyger'){if(Math.hypot(e.x-u.x,e.y-u.y)<210){damage(s,e,.875,f,'가시 장판');e.slow=Math.max(e.slow,.5);e.slowPower=.65;}fx(s,'ring',u.x,u.y,{radius:210,color:'#8be65d'});}
+ if(u.type==='spyger'){if(Math.hypot(e.x-u.x,e.y-u.y)<260){damage(s,e,.875,f,'가시 장판');e.slow=Math.max(e.slow,.5);e.slowPower=.65;}fx(s,'ring',u.x,u.y,{radius:260,color:'#8be65d'});}
  if(u.type==='tralalero'){if(Math.abs(e.y-(85+u.elapsed*((H-120)/4)))<82){damage(s,e,1.45,f,'쓰나미');e.vy+=45;}fx(s,'wave',W/2,85+u.elapsed*((H-120)/4),{radius:500,color:'#50c7fc'});}
  if(u.type==='lilago'){if(dist(f,e)>180){f.x=clamp(e.x-140,L+f.r,R-f.r);f.y=clamp(e.y-20,T+f.r,B-f.r);}damage(s,e,2.8,f,'추적 찌르기');e.stun=Math.max(e.stun,.08);fx(s,'needle',e.x,e.y,{color:'#ffe65f',text:'찌르기'});}
  if(u.type==='eggkimchi'){
@@ -168,7 +168,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
  for(const f of entities(s)){
   if(f.hp<=0||(f.isClone&&s.actors[f.side].hp<=0))continue;const nearest=entities(s).filter(q=>q.side!==f.side&&q.hp>0).sort((a,b)=>dist(a,f)-dist(b,f))[0];const locked=f.ultActive&&s.actors[f.targetSide];const e=locked?.hp>0?locked:nearest;if(!e)continue;
   if(f.morphId&&s.t>=f.morphUntil){f.morphId=null;f.morphReborn=false;f.pillBurst=null;f.charge=0;f.swing=0;f.atkTimer=0;}f.stealth=Math.max(0,(f.stealth||0)-dt);if(!f.stealth&&f.id==='zetaseungju')f.charge=Math.min(f.charge,.4);
-  f.atkTimer-=dt;f.ultTimer-=dt;f.charge=Math.max(0,f.charge-dt);f.swing=Math.max(0,f.swing-dt);f.chargeCooldown=Math.max(0,f.chargeCooldown-dt);f.stun=Math.max(0,f.stun-dt);f.freeze=Math.max(0,f.freeze-dt);if(f.iceBreak&&f.freeze<=1e-8){const src=s.actors[f.iceBreak.source];f.iceBreak=null;damage(s,f,30,src,'얼음 파괴');fx(s,'iceShatter',f.x,f.y,{color:'#75dfff'});}f.realm=Math.max(0,f.realm-dt);f.slow=Math.max(0,f.slow-dt);if(f.curse>0){f.curse=Math.max(0,f.curse-dt);damage(s,f,3*dt,s.actors[f.curseSource??e.side],'붉은 저주')}f.contact=Math.max(0,f.contact-dt);f.invul=Math.max(0,f.invul-dt);f.mute=Math.max(0,f.mute-dt);f.binSeal=Math.max(0,(f.binSeal||0)-dt);if(f.shock>0){f.shock=Math.max(0,f.shock-dt);damage(s,f,3*dt,s.actors[f.shockSource??e.side],'감전');}if(f.airborne>0){f.airborne=Math.max(0,f.airborne-dt);f.x=clamp(e.x,L+f.r,R-f.r);f.y=clamp(e.y,T+f.r,B-f.r);if(f.marker){f.marker.x+=clamp(e.x-f.marker.x,-185*dt,185*dt);f.marker.y+=clamp(e.y-f.marker.y,-185*dt,185*dt)}}f.boost=Math.max(0,f.boost-dt);if(f.poison>0){f.poison=Math.max(0,f.poison-dt);damage(s,f,2.6*dt,s.actors[f.poisonSource??e.side],'독');}f.spin+=dt*2;
+  f.atkTimer-=dt;f.ultTimer-=dt;f.charge=Math.max(0,f.charge-dt);f.swing=Math.max(0,f.swing-dt);f.chargeCooldown=Math.max(0,f.chargeCooldown-dt);f.stun=Math.max(0,f.stun-dt);f.freeze=Math.max(0,f.freeze-dt);if(f.iceBreak&&f.freeze<=1e-8){const src=s.actors[f.iceBreak.source];f.iceBreak=null;damage(s,f,30,src,'얼음 파괴');fx(s,'iceShatter',f.x,f.y,{color:'#75dfff'});}f.realm=Math.max(0,f.realm-dt);f.slow=Math.max(0,f.slow-dt);if(f.curse>0){f.curse=Math.max(0,f.curse-dt);damage(s,f,3*dt,s.actors[f.curseSource??e.side],'붉은 저주')}f.contact=Math.max(0,f.contact-dt);f.invul=Math.max(0,f.invul-dt);f.mute=Math.max(0,f.mute-dt);f.binSeal=Math.max(0,(f.binSeal||0)-dt);if(f.shock>0){f.shock=Math.max(0,f.shock-dt);damage(s,f,3*dt,s.actors[f.shockSource??e.side],'감전');}if(f.airborne>0){f.airborne=Math.max(0,f.airborne-dt);if(f.ultActive?.type==='utti'&&!held(s,f)){for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&dist(f,q)<f.r+q.r){f.airHits=f.airHits||{};const key=q.entityId||q.side;if(s.t-(f.airHits[key]??-100)>=.75){f.airHits[key]=s.t;damage(s,q,3,f,'체공 충돌');fx(s,'slam',q.x,q.y,{color:'#ff78c9'});}}}f.x=clamp(e.x,L+f.r,R-f.r);f.y=clamp(e.y,T+f.r,B-f.r);if(f.marker){f.marker.x+=clamp(e.x-f.marker.x,-185*dt,185*dt);f.marker.y+=clamp(e.y-f.marker.y,-185*dt,185*dt)}}f.boost=Math.max(0,f.boost-dt);if(f.poison>0){f.poison=Math.max(0,f.poison-dt);damage(s,f,2.6*dt,s.actors[f.poisonSource??e.side],'독');}f.spin+=dt*2;
   if(f.pillBurst&&!held(s,f)&&f.stun<=0&&f.mute<=0&&s.t>=f.pillBurst.next){pillBurst(s,f,e);f.pillBurst.next+=.16;if(--f.pillBurst.left<=0)f.pillBurst=null;}if(attackId(f)==='lea'&&!held(s,f)&&f.mute<=0&&f.freeze<=0)for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&dist(f,q)<155+q.r)damage(s,q,7.5*dt,f,'포스필드');
   if(f.ultActive&&!held(s,f))updateSuper(s,f,e,dt);if(s.finished)break;
   if(!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&f.airborne<=0){const knocked=f.knockback&&s.t<f.knockback.until;if(!knocked&&f.charge>0){let goal=Math.atan2(e.y-f.y,e.x-f.x);let diff=Math.atan2(Math.sin(goal-f.chargeDir),Math.cos(goal-f.chargeDir));f.chargeDir+=clamp(diff,-1.6*dt,1.6*dt);const speed=attackId(f)==='utti'?660:attackId(f)==='ddak'?650:460;f.vx=Math.cos(f.chargeDir)*speed;f.vy=Math.sin(f.chargeDir)*speed;}else if(!knocked&&attackId(f)==='utti'){f.vx*=.996;f.vy*=.996;}
@@ -212,8 +212,9 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
   if(p.y<T+p.r||p.y>B-p.r){if(p.bounces>0){p.vy*=-1;p.bounces--;p.y=clamp(p.y,T+p.r,B-p.r)}else{s.bullets.splice(i,1);continue;}}
   let target=entities(s).filter(a=>a.side!==p.owner&&a.hp>0&&a.invul<=0).find(a=>dist(a,p)<p.r+a.r);let dd=target?dist(target,p):Infinity;
   if((p.type==='boomerang'||p.type==='returnpill')&&p.age>.62){let o=s.actors[p.owner],a=Math.atan2(o.y-p.y,o.x-p.x);p.vx=Math.cos(a)*575;p.vy=Math.sin(a)*575;if(Math.hypot(o.x-p.x,o.y-p.y)<o.r+14){s.bullets.splice(i,1);continue;}}
+  if(p.type==='poisonorb'){target=entities(s).find(q=>q.side!==p.owner&&q.hp>0&&q.invul<=0&&dist(q,p)<p.r+q.r&&!p.hitTargets[q.entityId||q.side]);dd=target?dist(target,p):Infinity;if(target)p.hitTargets[target.entityId||target.side]=true;}
   if(p.type==='returnpill'){const pass=p.age>.62?1:0;target=entities(s).find(q=>q.side!==p.owner&&q.hp>0&&q.invul<=0&&dist(q,p)<p.r+q.r&&p.hitPass[q.entityId||q.side]!==pass);dd=target?dist(target,p):Infinity;if(target)p.hitPass[target.entityId||target.side]=pass;}
-  if(target&&dd<p.r+target.r&&target.invul<=0&&!(p.hiddenUntil>s.t)){if(p.type==='filterpoop'&&s.t-p.lastHit<1.0)continue;if(p.type==='monster'){target.stun=Math.max(target.stun,.5);target.shock=Math.max(target.shock,10);target.shockSource=p.owner;}if(p.type==='poisonorb'){target.poison=Math.max(target.poison,5);target.poisonSource=p.owner;}damage(s,target,p.damage,s.actors[p.owner],p.type,true);fx(s,'spark',p.x,p.y,{color:HERO_BY_ID[s.actors[p.owner].id].color});if(p.type==='returnpill'){}else if(p.type==='filterpoop'){p.lastHit=s.t;p.vx*=-1;p.vy*=-1;}else{s.bullets.splice(i,1)}}
+  if(target&&dd<p.r+target.r&&target.invul<=0&&!(p.hiddenUntil>s.t)){if(p.type==='filterpoop'&&s.t-p.lastHit<1.0)continue;if(p.type==='monster'){target.stun=Math.max(target.stun,.5);target.shock=Math.max(target.shock,10);target.shockSource=p.owner;}if(p.type==='poisonorb'){target.poison=Math.max(target.poison,5);target.poisonSource=p.owner;}damage(s,target,p.damage,s.actors[p.owner],p.type,true);fx(s,'spark',p.x,p.y,{color:HERO_BY_ID[s.actors[p.owner].id].color});if(p.type==='returnpill'||p.type==='poisonorb'){}else if(p.type==='filterpoop'){p.lastHit=s.t;p.vx*=-1;p.vy*=-1;}else{s.bullets.splice(i,1)}}
  }
  for(let i=s.fx.length-1;i>=0;i--){if(s.t-s.fx[i].t>2.5)s.fx.splice(i,1)}
  if(royale&&s.t>=130&&!s.finished){const ordered=s.actors.filter(f=>f.hp>0).sort((a,b)=>(b.hp/b.max-a.hp/a.max)||(s.damage[b.side]-s.damage[a.side]));for(const f of ordered.slice(1).reverse()){f.hp=0;s.eliminations.push(f.side)}end(s,ordered[0]?.side??0)}
