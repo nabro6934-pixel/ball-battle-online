@@ -16,7 +16,7 @@ for(const a of ids)for(const b of ids){
 let royaleCount=0;for(let n=3;n<=10;n++){
  const game=R.create(Array.from({length:n},(_,i)=>({sid:'user'+i,hero:ids[i],nick:'테스터'+i,avatar:ids[i]})));
  assert.equal(game.actors.length,n);
- for(let i=0;i<2700&&!game.finished;i++){for(const a of game.actors){a.dx=Math.sin(i/50+a.x);a.dy=Math.cos(i/70+a.y);a.superRequest=true;}R.tick(game,.06)}
+ for(let i=0;i<2700&&!game.finished;i++)R.tick(game,.06);
  assert(game.finished,'royale game should finish within 130s');
  assert.equal(game.placements.length,n,'exactly one rank per participant');
  assert.equal(new Set(game.placements.map(p=>p.sid)).size,n,'all unique participants');

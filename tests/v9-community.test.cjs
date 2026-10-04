@@ -48,7 +48,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  for(let i=0;i<8;i++)battleTimer.fn();
  assert(room.sim.t>0&&events.get(host.id).some(x=>x.includes('royale_state')),'state packets streamed');
  state.action(host,{action:'royale_input',dx:1,dy:-1});
- assert.equal(room.sim.actors[0].dx,1);
+ assert.equal(room.sim.actors[0].dx,undefined,'legacy manual input must not control automatic fighters');
  state.royaleLeave(s[5]);
  assert.equal(room.sim.placements.length,1,'leaving player must receive placement');
  assert.equal(room.sim.placements[0].rank,10);

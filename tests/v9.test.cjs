@@ -11,8 +11,8 @@ for(const a of E.HEROES)for(const b of E.HEROES){
  fights++;
 }
 const rooms=R.create(E.HEROES.slice(0,10).map((h,i)=>({sid:'player'+i,hero:h.id,nick:'친구'+i,avatar:h.id})));
-assert.equal(rooms.actors.length,10);assert(rooms.actors.every(a=>a.hp>0&&a.r<=25));
-for(let i=0;i<2700&&!rooms.finished;i++){for(let j=0;j<rooms.actors.length;j++){let a=rooms.actors[j];a.dx=Math.cos(i/120+j);a.dy=Math.sin(i/100+j);a.superRequest=true;}R.tick(rooms,.05)}
+assert.equal(rooms.actors.length,10);assert(rooms.actors.every(a=>a.hp>0&&a.r===39));
+for(let i=0;i<2700&&!rooms.finished;i++)R.tick(rooms,.05);
 assert(rooms.finished);assert(rooms.winner);assert.equal(rooms.placements.filter(p=>p.rank===1).length,1);
 const html=fs.readFileSync(path.join(__dirname,'..','game.html'),'utf8');
 const manifestText=html.split('const PACKED_NEW_SPRITES=')[1]?.split(';')[0];const packedMatch=manifestText?[null,manifestText]:null;assert(packedMatch,'sprite manifest embedded');
