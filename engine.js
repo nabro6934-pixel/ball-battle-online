@@ -54,18 +54,18 @@ function basic(s,f,e){let d=dist(f,e),id=f.id;fx(s,'shot',f.x,f.y,{side:f.side,c
  if(id==='ddak'){f.atkTimer=.85;f.charge=.47;f.chargeCooldown=.85;f.swing=.42;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'blade',f.x,f.y,{tx:e.x,ty:e.y,color:'#00d8fa'});}
  if(id==='moai'){f.atkTimer=.68;if(f.reborn){for(let j=0;j<7;j++)radial(s,f,'lastword',j*Math.PI*2/7+f.spin,420,3.1,14,1.8);f.atkTimer=1.12;}}
 
- if(id==='sahur'){f.atkTimer=.86;f.swing=.48;f.charge=.46;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#e5a85e',radius:190,reach:190});}
+ if(id==='sahur'){f.atkTimer=.86;f.swing=.48;f.charge=.46;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#e5a85e',radius:230,reach:230});}
  if(id==='spyger'){fire(s,f,e,'cactus',rand(s,-.24,.24),520,7.5,{r:17,life:2.8,bounces:1});f.atkTimer=.95;}
- if(id==='tralalero'){f.atkTimer=.92;f.charge=.47;f.swing=.45;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'dash',f.x,f.y,{text:'KICK',radius:195,reach:195});}
+ if(id==='tralalero'){f.atkTimer=.92;f.charge=.47;f.swing=.45;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'dash',f.x,f.y,{text:'KICK',radius:240,reach:240});}
  if(id==='lilago'){fire(s,f,e,'fist',rand(s,-.03,.03),685,4.1,{r:18,life:2.5});f.atkTimer=.46;}
- if(id==='eggkimchi'){f.atkTimer=.93;f.charge=.43;f.swing=.43;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#ff6e7a',radius:177,reach:177});}
+ if(id==='eggkimchi'){f.atkTimer=.93;f.charge=.43;f.swing=.43;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'slap',f.x,f.y,{tx:e.x,ty:e.y,color:'#ff6e7a',radius:210,reach:210});}
  if(id==='filter'){fire(s,f,e,'filterpoop',rand(s,-.8,.8),300,1,{r:17,life:1e9,bounces:1e9});f.atkTimer=1;fx(s,'poop',f.x,f.y,{color:'#986d3d'});}
- if(id==='icecookie'){f.atkTimer=.85;f.spin+=1.2;fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#84dfff',radius:166,reach:166});if(d<166)damage(s,e,6.5,f,'회전 야구방망이');}
+ if(id==='icecookie'){f.atkTimer=.85;f.spin+=1.2;fx(s,'batSwing',f.x,f.y,{tx:e.x,ty:e.y,color:'#84dfff',radius:210,reach:210});if(d<210)damage(s,e,6.5,f,'회전 야구방망이');}
  if(id==='zeta'){for(let j=0;j<8;j++)radial(s,f,'z',f.spin+j*Math.PI/4,420,2.2,15,2.1);f.atkTimer=1.12;}
- if(id==='shade'){fx(s,'clap',f.x,f.y,{tx:e.x,ty:e.y,color:'#fae64b',radius:173,reach:173});f.atkTimer=.81;f.charge=.42;f.swing=.40;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'sword',f.x,f.y,{text:'짝!'});}
+ if(id==='shade'){fx(s,'clap',f.x,f.y,{tx:e.x,ty:e.y,color:'#fae64b',radius:205,reach:205});f.atkTimer=.81;f.charge=.42;f.swing=.40;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);fx(s,'sword',f.x,f.y,{text:'짝!'});}
 
 }
-function superMove(s,f,e){const id=f.id;f.ultTimer=({pizza:11,rico:10.8,gaybi:11.4,cheon:10.8,darryl:12.4,duo:12,hoit:10.2,nice:12,pogo:12.3,utti:15.3,ddak:10.6,moai:18,sahur:15.2,spyger:10.9,tralalero:13,lilago:12.5,eggkimchi:11.8,filter:16,icecookie:13.8,zeta:15.6,shade:17})[id];fx(s,'super',f.x,f.y,{text:HERO_BY_ID[id].ult,color:HERO_BY_ID[id].color,side:f.side});
+function superMove(s,f,e){const id=f.id;f.ultTimer=({pizza:11,rico:10.8,gaybi:11.4,cheon:10.8,darryl:12.4,duo:12,hoit:10.2,nice:12,pogo:12.3,utti:15.3,ddak:10.6,moai:18,sahur:15.2,spyger:9.8,tralalero:10.8,lilago:10.4,eggkimchi:11.8,filter:10.8,icecookie:12.0,zeta:15.6,shade:17})[id];fx(s,'super',f.x,f.y,{text:HERO_BY_ID[id].ult,color:HERO_BY_ID[id].color,side:f.side});
  if(id==='pizza'){f.ultActive={type:'pizza',elapsed:0,waves:0};fx(s,'flash',500,310,{color:'#ffa950'});}
  if(id==='rico'){f.ultActive={type:'rico',elapsed:0,waves:0};}
  if(id==='gaybi'){e.stun=Math.max(e.stun,2.12);f.ultActive={type:'gaybi',elapsed:0,waves:0};fx(s,'ring',e.x,e.y,{radius:95,color:'#53f0ff'});}
@@ -133,7 +133,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
     f.x+=f.vx*dt;f.y+=f.vy*dt;
     if(f.x<L+f.r){f.x=L+f.r;f.vx=Math.abs(f.vx)}if(f.x>R-f.r){f.x=R-f.r;f.vx=-Math.abs(f.vx)}
     if(f.y<T+f.r){f.y=T+f.r;f.vy=Math.abs(f.vy)}if(f.y>B-f.r){f.y=B-f.r;f.vy=-Math.abs(f.vy)}
-    if(['sahur','eggkimchi','shade','tralalero'].includes(f.id)&&f.swing>0&&f.charge>0&&dist(f,e)<({sahur:190,eggkimchi:177,shade:173,tralalero:195})[f.id]){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.86){damage(s,e,({sahur:8,eggkimchi:7,shade:6.8,tralalero:9})[f.id],f,f.id);f.charge=0;f.swing=0;fx(s,f.id==='eggkimchi'?'slap':f.id==='sahur'?'batSwing':f.id==='shade'?'clap':'slam',e.x,e.y,{color:HERO_BY_ID[f.id].color,tx:e.x,ty:e.y});}}if(f.id==='utti'&&f.charge>0&&dist(f,e)<172){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.85){damage(s,e,9.0,f,'돌진 찍기');f.charge=0;f.contact=.72;fx(s,'slam',e.x,e.y,{color:'#ff7bac'});}}if(f.id==='ddak'&&f.swing>0&&f.charge>0&&dist(f,e)<165){let ga=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ga-f.chargeDir),Math.cos(ga-f.chargeDir)))<.85){damage(s,e,7.3,f,'다이아 검베기');f.swing=0;f.charge=0;fx(s,'sword',e.x,e.y,{color:'#25dfff'});}}if(f.atkTimer<=0)basic(s,f,e);if(!s.finished&&f.ultTimer<=0)superMove(s,f,e);
+    if(['sahur','eggkimchi','shade','tralalero'].includes(f.id)&&f.swing>0&&f.charge>0&&dist(f,e)<({sahur:230,eggkimchi:210,shade:205,tralalero:240})[f.id]){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.86){damage(s,e,({sahur:8,eggkimchi:7,shade:6.8,tralalero:9})[f.id],f,f.id);f.charge=0;f.swing=0;fx(s,f.id==='eggkimchi'?'slap':f.id==='sahur'?'batSwing':f.id==='shade'?'clap':'slam',e.x,e.y,{color:HERO_BY_ID[f.id].color,tx:e.x,ty:e.y});}}if(f.id==='utti'&&f.charge>0&&dist(f,e)<210){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.85){damage(s,e,9.0,f,'돌진 찍기');f.charge=0;f.contact=.72;fx(s,'slam',e.x,e.y,{color:'#ff7bac'});}}if(f.id==='ddak'&&f.swing>0&&f.charge>0&&dist(f,e)<195){let ga=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ga-f.chargeDir),Math.cos(ga-f.chargeDir)))<.85){damage(s,e,7.3,f,'다이아 검베기');f.swing=0;f.charge=0;fx(s,'sword',e.x,e.y,{color:'#25dfff'});}}if(f.atkTimer<=0)basic(s,f,e);if(!s.finished&&f.ultTimer<=0)superMove(s,f,e);
   }
  }
  if(s.finished)return s;
