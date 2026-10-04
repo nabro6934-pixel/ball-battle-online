@@ -588,7 +588,7 @@ async function initProfile(){
   const v=await socialCall('register',saved||{});
   profile=v.profile;profileCred=v.credentials;
   putStore('localStorage','ballbattle_profile',JSON.stringify(profileCred));
-  setTimeout(()=>{refreshHeader();showFirstSetup()},50);return profile
+  setTimeout(()=>{refreshHeader();showFirstSetup();if(profile.nicknameNotice)alert(profile.nicknameNotice)},50);return profile
  })();
  try{return await profilePromise}catch(e){profilePromise=null;profileAuthHelp(e);throw e}
 }
@@ -622,7 +622,7 @@ async function renderSocial(){socialMsg('');socialContent.innerHTML='<p class="m
  await initProfile();if(activeSocial==='gacha'){openGacha();return}if(activeSocial==='collection'){openCollection();return}if(activeSocial==='clan'){await renderClans();return}if(activeSocial==='board'){
  let r=await fetch(socialBase()+'/leaderboard');if(!r.ok)throw Error('리더보드를 불러올 수 없어요.');let v=await r.json();$('#socialTitle').textContent='🏆 온라인 리더보드';socialContent.innerHTML='<p class="micro">실제 온라인 3점 선승 경기의 승패만 순위에 반영돼요.</p><div class="socialRows">'+(v.players||[]).map((u,i)=>`<div class="socialRow"><b>${i+1}위</b>${infoUser(u)}<span>${u.wins}승<br><small>${u.losses}패</small></span></div>`).join('')+'</div>';return
  }let v=await socialRefresh();if(activeSocial==='profile'){
- $('#socialTitle').textContent='👤 내 프로필';socialContent.innerHTML=`<div class="socialRow">${infoUser(profile)}<b>🪙 ${profile.coins}코인</b></div><div class="scoreCols"><span>${profile.wins}승</span><span>${profile.losses}패</span><span>${profile.wins+profile.losses}경기</span></div><h3>닉네임 수정</h3><input id="editNick" maxlength="14" placeholder="2~14글자" value="${escapeHTML(profile.nick)}"><h3>프로필 캐릭터 선택</h3><div class="avatarChoices">${H.filter(h=>profile.owned.includes(h.id)).map(h=>`<button data-avatar="${h.id}" class="${h.id===profile.avatar?'selected':''}" title="${escapeHTML(h.name)}"><img src="${heroImg(h.id)}" alt="${escapeHTML(h.name)}"></button>`).join('')}</div><button class="primary" id="saveProfile">💾 프로필 저장</button><p class="micro">내 친구 코드: <span class="friendCode">${profile.tag}</span><br>같은 브라우저에서 다시 접속하면 프로필이 유지돼요.</p>`;
+ $('#socialTitle').textContent='👤 내 프로필';socialContent.innerHTML=`<div class="socialRow">${infoUser(profile)}<b>🪙 ${profile.coins}코인</b></div><div class="scoreCols"><span>${profile.wins}승</span><span>${profile.losses}패</span><span>${profile.wins+profile.losses}경기</span></div>${profile.nicknameNotice?`<p class="socialError">${escapeHTML(profile.nicknameNotice)}</p>`:''}<h3>닉네임 수정</h3><input id="editNick" maxlength="14" placeholder="2~14글자" value="${escapeHTML(profile.nick)}"><h3>프로필 캐릭터 선택</h3><div class="avatarChoices">${H.filter(h=>profile.owned.includes(h.id)).map(h=>`<button data-avatar="${h.id}" class="${h.id===profile.avatar?'selected':''}" title="${escapeHTML(h.name)}"><img src="${heroImg(h.id)}" alt="${escapeHTML(h.name)}"></button>`).join('')}</div><button class="primary" id="saveProfile">💾 프로필 저장</button><p class="micro">내 친구 코드: <span class="friendCode">${profile.tag}</span><br>같은 브라우저에서 다시 접속하면 프로필이 유지돼요.</p>`;
  let av=profile.avatar;socialContent.querySelectorAll('[data-avatar]').forEach(b=>b.onclick=()=>{av=b.dataset.avatar;socialContent.querySelectorAll('[data-avatar]').forEach(x=>x.classList.toggle('selected',x===b))});$('#saveProfile').onclick=async()=>{try{let n=$('#editNick').value;await socialCall('update',{...profileCred,nick:n,avatar:av});await renderSocial()}catch(e){socialMsg(e.message)}};return
  }
  const friendList=[...v.friends].sort((a,b)=>{

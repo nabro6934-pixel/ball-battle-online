@@ -15,6 +15,43 @@ try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&
 function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
 function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';return u}
 for(const u of profiles.values())migrate(u);
+const NICKNAME_TAKEN='이미 사용 중인 닉네임입니다. 다른 닉네임을 시도해 주세요.';
+function cleanNickname(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
+function nicknameKey(value){return cleanNickname(value).toLowerCase()}
+function nicknameOwner(nick,exceptId){const key=nicknameKey(nick);return [...profiles.values()].find(u=>u.id!==exceptId&&nicknameKey(u.nick)===key)}
+function availableNickname(base,exceptId,reserved=new Set()){
+ let name=cleanNickname(base),suffix=1;
+ while(!name||nicknameOwner(name,exceptId)||reserved.has(nicknameKey(name))){const tail='_'+(++suffix);name=Array.from(cleanNickname(base)||'플레이어').slice(0,14-tail.length).join('')+tail;}
+ return name;
+}
+function newProfile(id,secret,tag){return {id,secret,tag,nick:availableNickname('플레이어_'+tag),avatar:'pizza',wins:0,losses:0,coins:0,owned:starter(),setupDone:false,friends:[],requests:[],createdAt:Date.now(),nickClaimedAt:Date.now()}}
+function updateNickname(u,value,avatar){
+ const nick=cleanNickname(value);
+ if(Array.from(nick).length<2||Array.from(nick).length>14||/[<>\p{Cc}\p{Cf}]/u.test(nick))throw Error('닉네임은 2~14글자로 입력하세요.');
+ if(nicknameOwner(nick,u.id))throw authError('NICKNAME_TAKEN',NICKNAME_TAKEN);
+ if(nicknameKey(u.nick)!==nicknameKey(nick))u.nickClaimedAt=Date.now();
+ u.nick=nick;u.nickKey=nicknameKey(nick);delete u.nicknameNotice;
+ if(HERO_IDS.has(avatar))u.avatar=avatar;u.setupDone=true;
+}
+// Earliest surviving nickname claim wins. Old snapshots without timestamps use array order for ties.
+function repairDuplicateNicknames(backups=[]){
+ const history=new Map();
+ for(const row of backups){const all=Array.isArray(row.data)?row.data:JSON.parse(row.data);const time=Date.parse(row.saved_at)||0;
+  all.forEach((u,order)=>{if(!u?.id||!u.nick)return;const key=u.id+'|'+nicknameKey(u.nick);if(!history.has(key))history.set(key,{time,order});});
+ }
+ const original=[...profiles.values()],now=Date.now();
+ const claim=(u,order)=>{const old=history.get(u.id+'|'+nicknameKey(u.nick));return {u,order,time:Number(u.nickClaimedAt)>0?Number(u.nickClaimedAt):(old?.time||Infinity),tie:old?.order??order}};
+ const ordered=original.map(claim).sort((a,b)=>a.time-b.time||a.tie-b.tie||a.order-b.order);
+ const reserved=new Set(original.filter(u=>u.setupDone||u.nick!=='새 플레이어').map(u=>nicknameKey(u.nick))),seen=new Set();let renamed=0;
+ for(const {u,time} of ordered){const key=nicknameKey(u.nick);const placeholder=!u.setupDone&&u.nick==='새 플레이어';
+  if(placeholder||!key||seen.has(key)){
+   const old=u.nick;u.nick=availableNickname(placeholder?'플레이어_'+u.tag:u.nick,u.id,reserved);u.nickClaimedAt=now;renamed++;
+   if(!placeholder)u.nicknameNotice='기존 닉네임 “'+old+'”은 먼저 사용한 계정이 유지합니다. 임시 닉네임 “'+u.nick+'”으로 변경됐어요. 프로필에서 다른 닉네임을 정해 주세요.';
+  }else if(!u.nickClaimedAt)u.nickClaimedAt=Number.isFinite(time)?time:now;
+  u.nickKey=nicknameKey(u.nick);seen.add(u.nickKey);reserved.add(u.nickKey);
+ }
+ return renamed;
+}
 function persist(){
  const snapshot=JSON.stringify([...profiles.values()]);
  if(dbPool){
@@ -71,12 +108,32 @@ async function initStorage(){
   console.log('Initial profiles imported to PostgreSQL:',profiles.size);
  }
  dbPool=p;
+ const nicknameBackups=await p.query('SELECT data,saved_at FROM ball_battle_backups ORDER BY saved_at ASC,id ASC');
+ const renamed=repairDuplicateNicknames(nicknameBackups.rows);
+ const client=await p.connect();
+ try{
+  await client.query('BEGIN');
+  await client.query("INSERT INTO ball_battle_state(id,data) VALUES('profiles',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[JSON.stringify([...profiles.values()])]);
+  await client.query(`CREATE OR REPLACE FUNCTION ball_battle_unique_nicknames() RETURNS trigger LANGUAGE plpgsql AS $fn$
+   BEGIN
+    IF NEW.id='profiles' AND EXISTS (
+     SELECT lower(regexp_replace(normalize(btrim(item->>'nick'),NFKC),'\\s+',' ','g'))
+     FROM jsonb_array_elements(NEW.data) AS entries(item)
+     GROUP BY lower(regexp_replace(normalize(btrim(item->>'nick'),NFKC),'\\s+',' ','g')) HAVING count(*)>1
+    ) THEN RAISE EXCEPTION '${NICKNAME_TAKEN}' USING ERRCODE='23505'; END IF;
+    RETURN NEW;
+   END; $fn$`);
+  await client.query('DROP TRIGGER IF EXISTS ball_battle_unique_nicknames_guard ON ball_battle_state');
+  await client.query('CREATE TRIGGER ball_battle_unique_nicknames_guard BEFORE INSERT OR UPDATE OF data ON ball_battle_state FOR EACH ROW EXECUTE FUNCTION ball_battle_unique_nicknames()');
+  await client.query('COMMIT');
+ }catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}
+ console.log('Unique nicknames enforced; duplicate/default names updated:',renamed);
  const cr=await p.query("SELECT data FROM ball_battle_state WHERE id='clans'");
  if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
  console.log('Clans restored from PostgreSQL:',clans.size);
 }
 function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],clanId:u.clanId||null,setupDone:!!u.setupDone}}
-function privateUser(u){return {...publicUser(u),versus:u.versus||{}}}
+function privateUser(u){return {...publicUser(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -99,14 +156,14 @@ async function recoverOldProfile(id,secret){
    if(old.secret!==secret)throw authError('PROFILE_SECRET_MISMATCH','백업에 있는 프로필의 인증 키가 일치하지 않아요.');
    const u=migrate({...old});
    if(profileLookup(u.tag))throw Error('백업 프로필 코드가 이미 사용 중이에요.');
-   profiles.set(id,u);persist();
+   profiles.set(id,u);repairDuplicateNicknames();persist();
    console.log('Legacy profile restored from backup');
    return u;
  }
  // No surviving database record for this legacy key. Preserve its ID and secret,
  // while issuing a clean starter profile without modifying any other account.
  let tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));
- const u={id,secret,tag,nick:'새 플레이어',avatar:'pizza',wins:0,losses:0,coins:0,owned:starter(),setupDone:false,friends:[],requests:[]};
+ const u=newProfile(id,secret,tag);
  profiles.set(id,u);persist();
  console.log('Legacy login re-registered (no prior database record)');
  return u;
@@ -306,13 +363,12 @@ const server=http.createServer((req,res)=>{
           if(!m.id||!m.secret)throw authError('PROFILE_CREDENTIALS_INVALID','저장된 로그인 정보가 완전하지 않아요.');
           u=profiles.has(String(m.id))?migrate(getProfile(m)):await recoverOldProfile(String(m.id),String(m.secret));
         }
-        else{let id=crypto.randomBytes(12).toString('hex'),tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));u={id,tag,secret:crypto.randomBytes(32).toString('hex'),nick:'새 플레이어',avatar:'pizza',wins:0,losses:0,coins:0,owned:starter(),setupDone:false,friends:[],requests:[]};profiles.set(id,u);persist()}
+        else{let id=crypto.randomBytes(12).toString('hex'),tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));u=newProfile(id,crypto.randomBytes(32).toString('hex'),tag);profiles.set(id,u);persist()}
         await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
       if(m.action==='update'){
-        const nick=String(m.nick||'').normalize('NFKC').trim();if(nick.length<2||Array.from(nick).length>14||/[<>\x00-\x1f]/.test(nick))throw Error('닉네임은 2~14글자로 입력하세요.');
-        u.nick=nick;if(HERO_IDS.has(m.avatar))u.avatar=m.avatar;u.setupDone=true;persist()
+        updateNickname(u,m.nick,m.avatar);persist()
       }else if(m.action==='draw'){
         const count=Number(m.count);if(count!==1&&count!==10)throw Error('1회 또는 10회만 뽑을 수 있어요.');
         const price=count===1?100:900;if(u.coins<price)throw Error('코인이 부족해요.');
@@ -333,7 +389,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v9',storage:dbPool?'postgres':'unavailable',waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v9',storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
