@@ -20,13 +20,13 @@ const HEROES=[
  {id:'lilago',name:'릴라고',color:'#2487f6',shade:'#eacb40',hp:154,speed:253,atk:'초장거리 연속 주먹',ult:'추적 10연속 찌르기',blurb:'사거리가 긴 주먹 공격. 궁극기는 적을 추적해 최대 10번 찌른다.',basic:'주먹 4.1 피해 · 빠른 연사',super:'10회 추적 찌르기 · 접근 시 적중'},
  {id:'eggkimchi',name:'가지김치',color:'#ae4c83',shade:'#ec8127',hp:163,speed:244,atk:'싸대기',ult:'5초 빨강 저주',blurb:'근접 싸대기로 공격하고, 궁극기 접촉 시 상대를 붉게 만들고 둔화·침묵·약한 지속 피해를 건다.',basic:'싸대기 범위 177 · 7 피해',super:'5초 저주 · 둔화/침묵/초당 2'},
  {id:'filter',name:'필터 낀 병신',color:'#f9abbe',shade:'#684e7d',hp:169,speed:259,atk:'영구 반사 똥',ult:'똥 동시 폭발',blurb:'1초마다 1피해짜리 영구 반사 똥을 추가한다. 궁극기로 전부 폭발시켜 둔화시킨다.',basic:'1초마다 영구 반사 똥 하나 · 접촉 시 1 피해',super:'전부 폭발 · 개수에 비례해 광역 피해와 둔화'},
- {id:'icecookie',name:'빙신쿠키',color:'#88d8fc',shade:'#196cbe',hp:222,speed:291,atk:'회전 방망이',ult:'빙결 장판',blurb:'몸 주위로 야구 방망이를 돌려 접촉 타격. 궁극기는 주변 적을 얼려 이동과 공격을 모두 막는다.',basic:'범위 166 · 회전 피해 6.5',super:'범위 빙결 3초 · 이동/공격 봉쇄'},
+ {id:'icecookie',name:'빙신쿠키',color:'#88d8fc',shade:'#196cbe',hp:222,speed:291,atk:'회전 방망이',ult:'빙결 장판',blurb:'몸 주위로 야구 방망이를 돌려 접촉 타격. 궁극기는 주변 적을 얼려 이동과 공격을 모두 막는다.',basic:'범위 237 · 회전 피해 10.2',super:'범위 빙결 3초 · 이동/공격 봉쇄'},
  {id:'zeta',name:'제타',color:'#e5eefa',shade:'#2b5fd4',hp:174,speed:261,atk:'전방위 Z 발사',ult:'쓰레기통 봉인',blurb:'여러 방향으로 Z를 발사. 궁극기는 무작위 지연 후 쓰레기통을 흔들며 강한 피해를 주고 둔화시킨다.',basic:'8방향 Z · 2.1 피해',super:'무작위 지연 · 29 피해 + 둔화'},
- {id:'shade',name:'노란고아 셰이드',color:'#ffcf42',shade:'#e95ea2',hp:151,speed:267,atk:'양손 박수',ult:'4초 그림자 회피',blurb:'박수 사이에 끼인 상대를 때린다. 궁극기 4초간 모든 공격을 회피하면서 자신은 공격할 수 있다.',basic:'박수 범위 173 · 적중 시 6.8',super:'4초 공격 회피 · 공격 가능'},
+ {id:'shade',name:'노란고아 셰이드',color:'#ffcf42',shade:'#e95ea2',hp:180,speed:284,atk:'양손 박수',ult:'4초 그림자 회피',blurb:'박수 사이에 끼인 상대를 때린다. 궁극기 4초간 모든 공격을 회피하면서 자신은 공격할 수 있다.',basic:'박수 범위 173 · 적중 시 6.8',super:'4초 공격 회피 · 공격 가능'},
  {id:'moai',name:'모아이',color:'#91919a',shade:'#b2b6bd',hp:77.4,speed:252,atk:'회전 충돌',ult:'남은 체력 65%',blurb:'체력이 낮지만 1회 부활하여 빨갛게 변하고 강력한 딸피 글자를 원형 발사한다.',basic:'회전 충돌 · 부활 1회',super:'상대 현재 체력 65% 감소'} ,{"id": "medicine", "name": "약먹으러가자", "color": "#35cfff", "shade": "#40345e", "hp": 160, "speed": 250, "atk": "알약 3×3 투척", "ult": "왕복 알약 폭풍", "blurb": "알약 3개씩 3연사. 궁극기는 사방으로 날아갔다 돌아오는 알약으로 왕복 피해.", "basic": "3발 × 3연사 · 알약당 2.1", "super": "12방향 왕복 알약 · 12초"},
  {"id": "alvin", "name": "앨빈", "color": "#ffd95a", "shade": "#40345e", "hp": 165, "speed": 255, "atk": "긴 칼 휘두르기", "ult": "전방위 칼날", "blurb": "긴 칼을 계속 휘두르고 궁극기로 사방에 칼을 던진다.", "basic": "긴 칼 범위 245 · 6 피해", "super": "12방향 칼날 · 11초"},
  {"id": "lea", "name": "레아급", "color": "#cd8bf1", "shade": "#40345e", "hp": 184, "speed": 270, "atk": "지속 포스필드", "ult": "5초 변신", "blurb": "주변 포스필드로 지속 피해. 5초 동안 상대의 모습과 공격을 복사하고 피해가 1.5배.", "basic": "범위 125 · 초당 5 피해", "super": "5초 공격 복사 · 피해 1.5배 · 14초"},
- {"id": "pogo6974", "name": "포고하는 6974년생", "color": "#ff9c35", "shade": "#40345e", "hp": 207, "speed": 284, "atk": "전방위 가시", "ult": "영구 코너 지대", "blurb": "사방으로 가시 발사. 궁극기는 코너 한 곳에 영구 장판을 만들고 그곳에 있던 적을 5초 가둔다.", "basic": "12방향 가시 · 2.2 피해", "super": "영구 코너 장판 · 초당 6 피해 · 13초"},
+ {"id": "pogo6974", "name": "포고하는 6974년생", "color": "#ff9c35", "shade": "#40345e", "hp": 207, "speed": 284, "atk": "전방위 가시", "ult": "영구 코너 지대", "blurb": "사방으로 가시 발사. 궁극기는 코너 한 곳에 영구 장판을 만들고 그곳에 있던 적을 5초 가둔다.", "basic": "16방향 가시 · 3.65 피해", "super": "영구 코너 장판 · 초당 9 피해 · 10초"},
  {"id": "zetaseungju", "name": "제타승주", "color": "#ff81bb", "shade": "#40345e", "hp": 150, "speed": 275, "atk": "뽀뽀 커브볼", "ult": "은신 기습", "blurb": "뽀뽀 5개를 곡선으로 동시에 발사. 은신 후 접촉하면 순간적으로 큰 피해.", "basic": "커브볼 5발 · 각 2.6 피해", "super": "최대 5초 은신 · 접촉 32 피해 · 14초"},
  {"id": "b67", "name": "67B", "color": "#ffcf56", "shade": "#40345e", "hp": 163, "speed": 252, "atk": "67 숫자 사격", "ult": "분신 두 개", "blurb": "총으로 67 숫자를 발사. 궁극기는 현재 체력의 20%를 가진 분신 두 개를 소환한다.", "basic": "67 탄환 · 5.2 피해 · 0.65초", "super": "현재 체력 20% 분신 × 2 · 15초"}
 ];
@@ -76,7 +76,7 @@ function basic(s,f,e){let d=dist(f,e),id=attackId(f);fx(s,'shot',f.x,f.y,{side:f
  if(id==='medicine'){pillBurst(s,f,e);f.pillBurst={left:2,next:s.t+.16};f.atkTimer=1.45;}
  if(id==='alvin'){f.atkTimer=.55;f.swing=.5;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&dist(f,q)<245)damage(s,q,6,f,'긴 칼');fx(s,'blade',f.x,f.y,{tx:e.x,ty:e.y,reach:245});}
  if(id==='lea')f.atkTimer=.25;
- if(id==='pogo6974'){for(let j=0;j<12;j++)radial(s,f,'spike',f.spin+j*Math.PI/6,460,2.2,11,2.8);f.atkTimer=1.1;}
+ if(id==='pogo6974'){for(let j=0;j<16;j++)radial(s,f,'spike',f.spin+j*Math.PI/8,510,3.65,12,3.1);f.atkTimer=.82;}
  if(id==='zetaseungju'){for(let j=-2;j<=2;j++)fire(s,f,e,'kiss',j*.14,460,2.6,{r:14,life:2.8});f.atkTimer=.95;}
  if(id==='b67'){fire(s,f,e,'number67',0,620,5.2,{r:14,life:2.8});f.atkTimer=.65;f.swing=.2;f.chargeDir=Math.atan2(e.y-f.y,e.x-f.x);}
 
