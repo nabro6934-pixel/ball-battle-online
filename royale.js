@@ -8,7 +8,7 @@ function radial(s,f,howMany,n=2.7){for(let i=0;i<howMany;i++){let a=2*Math.PI*i/
 function fire(s,f,e){let h=f.id,dir=Math.atan2(e.y-f.y,e.x-f.x);
  if(h==='zeta'||(h==='moai'&&f.reborn)){radial(s,f,h==='zeta'?8:7,h==='zeta'?2.3:3.5);f.attack=.95;return}
  if(['icecookie','shade','eggkimchi','sahur','tralalero','utti','ddak'].includes(h)){
-  if(dist(f,e)<(h==='shade'?90:100)){damage(s,e,({'icecookie':6,'shade':6.8,'eggkimchi':7,'sahur':8,'tralalero':8,'utti':7.2,'ddak':7})[h],f);s.fx.push({type:'melee',x:e.x,y:e.y,t:s.t})}
+  const meleeRange=({icecookie:175,shade:165,eggkimchi:170,sahur:190,tralalero:205,utti:175,ddak:165})[h]; if(dist(f,e)<meleeRange){damage(s,e,({'icecookie':6,'shade':6.8,'eggkimchi':7,'sahur':8,'tralalero':8,'utti':7.2,'ddak':7})[h],f);s.fx.push({type:'melee',x:e.x,y:e.y,t:s.t})}
   f.attack=h==='icecookie'?.8:1.0;return;
  }
  const count=h==='nice'||h==='duo'?3:h==='darryl'?5:h==='pogo'||h==='rico'?2:1;
@@ -16,7 +16,7 @@ function fire(s,f,e){let h=f.id,dir=Math.atan2(e.y-f.y,e.x-f.x);
  for(let i=0;i<count;i++){let off=(i-(count-1)/2)*.17,a=dir+off;const bullet={owner:f.sid,x:f.x+Math.cos(a)*f.r,y:f.y+Math.sin(a)*f.r,vx:Math.cos(a)*(h==='lilago'?720:495),vy:Math.sin(a)*(h==='lilago'?720:495),life:h==='filter'?180:3,damage:d,r:h==='filter'?13:10,type:h,hitTime:0,bounces:h==='rico'?3:h==='filter'?200:0};s.bullets.push(bullet);}
  f.attack=h==='filter'?1:h==='lilago'?.46:.86;
 }
-function superSkill(s,f,e){const id=f.id;f.super=13+Math.random()*2;f.superRequest=false;
+function superCooldown(id){return ({spyger:10,tralalero:10.8,lilago:10.4,filter:10.8,icecookie:12,ddak:11,hoit:11,gaybi:11.5,sahur:15,eggkimchi:12,zeta:15.5,shade:16.5,utti:15}[id]||13)+Math.random()*1.2}\nfunction superSkill(s,f,e){const id=f.id;f.super=superCooldown(id);f.superRequest=false;
  if(id==='shade'){f.invul=4;return}
  if(id==='sahur'){if(e&&dist(f,e)<450){e.mute=5;e.dot=5;e.dotSource=f.sid;e.stun=Math.max(e.stun,1)}return}
  if(id==='spyger'){f.zone={x:e?e.x:f.x,y:e?e.y:f.y,life:5,rad:190};return}
