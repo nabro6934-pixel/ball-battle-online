@@ -25,7 +25,7 @@ const HEROES=[
  {id:'shade',name:'노란고아 셰이드',color:'#ffcf42',shade:'#e95ea2',hp:180,speed:284,atk:'양손 박수',ult:'4초 그림자 회피',blurb:'박수 사이에 끼인 상대를 때린다. 궁극기 4초간 모든 공격을 회피하면서 자신은 공격할 수 있다.',basic:'박수 범위 173 · 적중 시 6.8',super:'4초 공격 회피 · 공격 가능'},
  {id:'moai',name:'모아이',color:'#91919a',shade:'#b2b6bd',hp:77.4,speed:252,atk:'회전 충돌',ult:'남은 체력 65%',blurb:'체력이 낮지만 1회 부활하여 빨갛게 변하고 강력한 딸피 글자를 원형 발사한다.',basic:'회전 충돌 · 부활 1회',super:'상대 현재 체력 65% 감소'} ,{"id": "medicine", "name": "약먹으러가자", "color": "#35cfff", "shade": "#40345e", "hp": 160, "speed": 250, "atk": "알약 3×3 투척", "ult": "왕복 알약 폭풍", "blurb": "알약 3개씩 3연사. 궁극기는 사방으로 날아갔다 돌아오는 알약으로 왕복 피해.", "basic": "3발 × 3연사 · 알약당 2.1", "super": "12방향 왕복 알약 · 12초"},
  {"id": "alvin", "name": "앨빈", "color": "#ffd95a", "shade": "#40345e", "hp": 165, "speed": 255, "atk": "긴 칼 휘두르기", "ult": "전방위 칼날", "blurb": "긴 칼을 계속 휘두르고 궁극기로 사방에 칼을 던진다.", "basic": "긴 칼 범위 245 · 6 피해", "super": "12방향 칼날 × 5회 · 11초"},
- {"id": "lea", "name": "레아급", "color": "#cd8bf1", "shade": "#40345e", "hp": 184, "speed": 270, "atk": "지속 포스필드", "ult": "5초 변신", "blurb": "주변 포스필드로 적을 3초간 끌어당겨 행동을 봉쇄하며 지속 피해. 5초 동안 상대의 모습과 공격을 복사하고 피해가 1.5배.", "basic": "범위 155 · 초당 7.5 피해 · 3초 흡인/행동 봉쇄", "super": "5초 공격 복사 · 피해 1.5배 · 14초"},
+ {"id": "lea", "name": "레아급", "color": "#cd8bf1", "shade": "#40345e", "hp": 184, "speed": 270, "atk": "지속 포스필드", "ult": "5초 변신", "blurb": "주변 포스필드로 적을 2초간 끌어당겨 행동을 봉쇄한 뒤 밀어낸다. 밀쳐져 충돌하면 6 피해. 5초 동안 상대의 모습과 공격을 복사하고 피해가 1.5배.", "basic": "범위 155 · 초당 7.5 피해 · 2초 흡인/행동 봉쇄 · 밀치기 충돌 6", "super": "5초 공격 복사 · 피해 1.5배 · 14초"},
  {"id": "pogo6974", "name": "포고하는 6974년생", "color": "#ff9c35", "shade": "#40345e", "hp": 207, "speed": 284, "atk": "전방위 가시", "ult": "영구 코너 지대", "blurb": "사방으로 가시 발사. 궁극기는 코너 한 곳에 영구 장판을 만들고 그곳에 있던 적을 5초 가둔다.", "basic": "16방향 가시 · 7.3 피해", "super": "확장 코너 장판 · 초당 9 피해 · 10초"},
  {"id": "zetaseungju", "name": "제타승주", "color": "#ff81bb", "shade": "#40345e", "hp": 150, "speed": 275, "atk": "뽀뽀 커브볼", "ult": "은신 기습", "blurb": "뽀뽀 5개를 곡선으로 동시에 발사. 은신 후 접촉하면 순간적으로 큰 피해.", "basic": "커브볼 5발 · 각 2.6 피해", "super": "최대 5초 은신 · 접촉 32 피해 · 14초"},
  {"id": "b67", "name": "67B", "color": "#ffcf56", "shade": "#40345e", "hp": 163, "speed": 252, "atk": "67 숫자 사격", "ult": "분신 두 개", "blurb": "총으로 67 숫자를 발사. 궁극기는 본체 최대 체력과 공격력의 30%를 가진 분신 두 개를 소환한다.", "basic": "67 탄환 · 5.2 피해 · 0.65초", "super": "체력/공격력 30% 분신 × 2 · 15초"}
@@ -147,8 +147,14 @@ function updateSuper(s,f,e,dt){let u=f.ultActive;if(!u)return;u.elapsed+=dt;let 
  }
  if(u.waves>=max){if(u.type==='utti'&&u.elapsed<5)return;if(u.type==='utti'){f.airborne=0;f.invul=0}f.ultActive=null;}
 }
+function knockImpact(s,f){const k=f.knockback;if(!k||k.hit||s.t>=k.until)return;k.hit=true;damage(s,f,6,s.actors[k.side],'포스필드 충돌');fx(s,'slam',f.x,f.y,{color:'#cd8bf1'});}
 function held(s,f){return f.forceHold&&s.t<f.forceHold.until&&entities(s).some(q=>(q.entityId||'actor'+q.side)===f.forceHold.source&&q.hp>0)}
 function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt));s.t+=dt;let [a,b]=s.actors;if(royale&&s.actors.filter(f=>f.hp>0).length<=1){end(s,s.actors.find(f=>f.hp>0)?.side??0);return s;}
+ for(const q of entities(s))if(q.forceHold&&s.t>=q.forceHold.until){
+  const src=entities(s).find(f=>(f.entityId||'actor'+f.side)===q.forceHold.source&&f.hp>0);
+  q.forceHold=null;
+  if(src&&q.hp>0){const angle=Math.atan2(q.y-src.y,q.x-src.x);q.knockback={vx:Math.cos(angle)*640,vy:Math.sin(angle)*640,until:s.t+.45,side:src.side,hit:false};q.forceImmuneUntil=s.t+1;q.charge=q.swing=0;fx(s,'ring',src.x,src.y,{radius:194,color:'#cd8bf1'});}
+ }
  for(const f of entities(s)){
   if(f.hp<=0||attackId(f)!=='lea'||f.mute>0||f.freeze>0||held(s,f))continue;
   const key=f.entityId||'actor'+f.side;
@@ -156,7 +162,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
    if(q.side===f.side||q.hp<=0)continue;
    q.forceEntries=q.forceEntries||{};
    if(dist(f,q)>=155+q.r){delete q.forceEntries[key];continue;}
-   if(!q.forceEntries[key]&&q.invul<=0&&q.airborne<=0){q.forceEntries[key]=true;q.forceHold={source:key,until:s.t+3};q.charge=0;q.swing=0;fx(s,'ring',q.x,q.y,{radius:55,color:'#cd8bf1'});}
+   if(!q.forceEntries[key]&&!(q.forceImmuneUntil>s.t)&&q.invul<=0&&q.airborne<=0){q.forceEntries[key]=true;q.forceHold={source:key,until:s.t+2};q.charge=0;q.swing=0;fx(s,'ring',q.x,q.y,{radius:55,color:'#cd8bf1'});}
   }
  }
  for(const f of entities(s)){
@@ -165,9 +171,10 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
   f.atkTimer-=dt;f.ultTimer-=dt;f.charge=Math.max(0,f.charge-dt);f.swing=Math.max(0,f.swing-dt);f.chargeCooldown=Math.max(0,f.chargeCooldown-dt);f.stun=Math.max(0,f.stun-dt);f.freeze=Math.max(0,f.freeze-dt);if(f.iceBreak&&f.freeze<=1e-8){const src=s.actors[f.iceBreak.source];f.iceBreak=null;damage(s,f,30,src,'얼음 파괴');fx(s,'iceShatter',f.x,f.y,{color:'#75dfff'});}f.realm=Math.max(0,f.realm-dt);f.slow=Math.max(0,f.slow-dt);if(f.curse>0){f.curse=Math.max(0,f.curse-dt);damage(s,f,3*dt,s.actors[f.curseSource??e.side],'붉은 저주')}f.contact=Math.max(0,f.contact-dt);f.invul=Math.max(0,f.invul-dt);f.mute=Math.max(0,f.mute-dt);f.binSeal=Math.max(0,(f.binSeal||0)-dt);if(f.shock>0){f.shock=Math.max(0,f.shock-dt);damage(s,f,3*dt,s.actors[f.shockSource??e.side],'감전');}if(f.airborne>0){f.airborne=Math.max(0,f.airborne-dt);f.x=clamp(e.x,L+f.r,R-f.r);f.y=clamp(e.y,T+f.r,B-f.r);if(f.marker){f.marker.x+=clamp(e.x-f.marker.x,-185*dt,185*dt);f.marker.y+=clamp(e.y-f.marker.y,-185*dt,185*dt)}}f.boost=Math.max(0,f.boost-dt);if(f.poison>0){f.poison=Math.max(0,f.poison-dt);damage(s,f,2.6*dt,s.actors[f.poisonSource??e.side],'독');}f.spin+=dt*2;
   if(f.pillBurst&&!held(s,f)&&f.stun<=0&&f.mute<=0&&s.t>=f.pillBurst.next){pillBurst(s,f,e);f.pillBurst.next+=.16;if(--f.pillBurst.left<=0)f.pillBurst=null;}if(attackId(f)==='lea'&&!held(s,f)&&f.mute<=0&&f.freeze<=0)for(const q of entities(s))if(q.side!==f.side&&q.hp>0&&dist(f,q)<155+q.r)damage(s,q,7.5*dt,f,'포스필드');
   if(f.ultActive&&!held(s,f))updateSuper(s,f,e,dt);if(s.finished)break;
-  if(!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&f.airborne<=0){if(f.charge>0){let goal=Math.atan2(e.y-f.y,e.x-f.x);let diff=Math.atan2(Math.sin(goal-f.chargeDir),Math.cos(goal-f.chargeDir));f.chargeDir+=clamp(diff,-1.6*dt,1.6*dt);const speed=attackId(f)==='utti'?660:attackId(f)==='ddak'?650:460;f.vx=Math.cos(f.chargeDir)*speed;f.vy=Math.sin(f.chargeDir)*speed;}else if(attackId(f)==='utti'){f.vx*=.996;f.vy*=.996;}
-    const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:HERO_BY_ID[attackId(f)].speed*(f.boost>0?1.8:1.14))*(f.slow>0?f.slowPower:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}
+  if(!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&f.airborne<=0){const knocked=f.knockback&&s.t<f.knockback.until;if(!knocked&&f.charge>0){let goal=Math.atan2(e.y-f.y,e.x-f.x);let diff=Math.atan2(Math.sin(goal-f.chargeDir),Math.cos(goal-f.chargeDir));f.chargeDir+=clamp(diff,-1.6*dt,1.6*dt);const speed=attackId(f)==='utti'?660:attackId(f)==='ddak'?650:460;f.vx=Math.cos(f.chargeDir)*speed;f.vy=Math.sin(f.chargeDir)*speed;}else if(!knocked&&attackId(f)==='utti'){f.vx*=.996;f.vy*=.996;}
+    if(knocked){f.vx=f.knockback.vx;f.vy=f.knockback.vy;}else{f.knockback=null;const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:HERO_BY_ID[attackId(f)].speed*(f.boost>0?1.8:1.14))*(f.slow>0?f.slowPower:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}}
     f.x+=f.vx*dt;f.y+=f.vy*dt;
+    if(knocked&&(f.x<L+f.r||f.x>R-f.r||f.y<T+f.r||f.y>B-f.r)){knockImpact(s,f);f.knockback.until=s.t;}
     if(f.x<L+f.r){f.x=L+f.r;f.vx=Math.abs(f.vx)}if(f.x>R-f.r){f.x=R-f.r;f.vx=-Math.abs(f.vx)}
     if(f.y<T+f.r){f.y=T+f.r;f.vy=Math.abs(f.vy)}if(f.y>B-f.r){f.y=B-f.r;f.vy=-Math.abs(f.vy)}
     if(['sahur','eggkimchi','shade','tralalero'].includes(attackId(f))&&f.swing>0&&f.charge>0&&dist(f,e)<({sahur:230,eggkimchi:210,shade:205,tralalero:240})[attackId(f)]){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.86){damage(s,e,({sahur:8,eggkimchi:7,shade:6.8,tralalero:9})[attackId(f)],f,attackId(f));f.charge=0;f.swing=0;fx(s,attackId(f)==='eggkimchi'?'slap':attackId(f)==='sahur'?'batSwing':attackId(f)==='shade'?'clap':'slam',e.x,e.y,{color:HERO_BY_ID[attackId(f)].color,tx:e.x,ty:e.y});}}if(attackId(f)==='utti'&&f.charge>0&&dist(f,e)<210){let ag=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ag-f.chargeDir),Math.cos(ag-f.chargeDir)))<.85){damage(s,e,9.0,f,'돌진 찍기');f.charge=0;f.contact=.72;fx(s,'slam',e.x,e.y,{color:'#ff7bac'});}}if(attackId(f)==='ddak'&&f.swing>0&&f.charge>0&&dist(f,e)<195){let ga=Math.atan2(e.y-f.y,e.x-f.x);if(Math.abs(Math.atan2(Math.sin(ga-f.chargeDir),Math.cos(ga-f.chargeDir)))<.85){damage(s,e,7.3,f,'다이아 검베기');f.swing=0;f.charge=0;fx(s,'sword',e.x,e.y,{color:'#25dfff'});}}if(f.atkTimer<=0&&!(e.stealth>0))basic(s,f,e);if(!s.finished&&!f.isClone&&f.ultTimer<=0&&!(e.stealth>0))superMove(s,f,e);
@@ -176,7 +183,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
  if(s.finished)return s;
  const bodies=entities(s);for(let ai=0;ai<bodies.length;ai++)for(let bi=ai+1;bi<bodies.length;bi++){const a=bodies[ai],b=bodies[bi];if(a.hp<=0||b.hp<=0||a.side===b.side)continue;
  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
- if(d<a.r+b.r){let nx=dx/d,ny=dy/d,push=(a.r+b.r-d)/2;a.x-=nx*push;a.y-=ny*push;b.x+=nx*push;b.y+=ny*push;
+ if(d<a.r+b.r){if(a.knockback?.side!==b.side)knockImpact(s,a);if(b.knockback?.side!==a.side)knockImpact(s,b);let nx=dx/d,ny=dy/d,push=(a.r+b.r-d)/2;a.x-=nx*push;a.y-=ny*push;b.x+=nx*push;b.y+=ny*push;
   let impulse=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(impulse<0){a.vx+=impulse*nx;a.vy+=impulse*ny;b.vx-=impulse*nx;b.vy-=impulse*ny}
   if(a.airborne<=0&&b.airborne<=0){
     for(const [f,e] of [[a,b],[b,a]]){
