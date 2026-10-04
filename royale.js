@@ -16,7 +16,8 @@ function fire(s,f,e){let h=f.id,dir=Math.atan2(e.y-f.y,e.x-f.x);
  for(let i=0;i<count;i++){let off=(i-(count-1)/2)*.17,a=dir+off;const bullet={owner:f.sid,x:f.x+Math.cos(a)*f.r,y:f.y+Math.sin(a)*f.r,vx:Math.cos(a)*(h==='lilago'?720:495),vy:Math.sin(a)*(h==='lilago'?720:495),life:h==='filter'?180:3,damage:d,r:h==='filter'?13:10,type:h,hitTime:0,bounces:h==='rico'?3:h==='filter'?200:0};s.bullets.push(bullet);}
  f.attack=h==='filter'?1:h==='lilago'?.46:.86;
 }
-function superCooldown(id){return ({spyger:10,tralalero:10.8,lilago:10.4,filter:10.8,icecookie:12,ddak:11,hoit:11,gaybi:11.5,sahur:15,eggkimchi:12,zeta:15.5,shade:16.5,utti:15}[id]||13)+Math.random()*1.2}\nfunction superSkill(s,f,e){const id=f.id;f.super=superCooldown(id);f.superRequest=false;
+function superCooldown(id){return ({spyger:10,tralalero:10.8,lilago:10.4,filter:10.8,icecookie:12,ddak:11,hoit:11,gaybi:11.5,sahur:15,eggkimchi:12,zeta:15.5,shade:16.5,utti:15}[id]||13)+Math.random()*1.2}
+function superSkill(s,f,e){const id=f.id;f.super=superCooldown(id);f.superRequest=false;
  if(id==='shade'){f.invul=4;return}
  if(id==='sahur'){if(e&&dist(f,e)<450){e.mute=5;e.dot=5;e.dotSource=f.sid;e.stun=Math.max(e.stun,1)}return}
  if(id==='spyger'){f.zone={x:e?e.x:f.x,y:e?e.y:f.y,life:5,rad:190};return}
