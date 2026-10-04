@@ -346,6 +346,28 @@ const CLIENT_ENGINE=fs.readFileSync(path.join(__dirname,'engine.js'),'utf8');
 GAME_HTML=GAME_HTML.replace(/<script>\s*\/\* Shared deterministic battle engine[\s\S]*?<\/script>/,()=>'<script>'+CLIENT_ENGINE+'</script>');
 // Royale UI v10.4: only transparent WHITE text and original-scale compact Royale picker.
 GAME_HTML=GAME_HTML.replace('</head>', '<style>'+ "\n/* Royale menu only: unobstructed WHITE labels, transparent controls. */\n.overlayContent:has(#royaleCode),\n.overlayContent:has(#royaleRoomError){ color:#fff; }\n.overlayContent:has(#royaleCode) :is(.eyebrow,h2,h2 em,h3,p,.micro),\n.overlayContent:has(#royaleRoomError) :is(.eyebrow,h2,h2 em,h3,p,.micro,.socialRow,.socialRow b,.socialRow small,.subLinks){\n  color:#fff!important;\n  background:transparent!important;\n  box-shadow:none!important;\n  text-shadow:0 2px 5px #000c,0 0 1px #000!important\n}\n.overlayContent:has(#royaleCode) button:not(.pick),\n.overlayContent:has(#royaleRoomError) button:not(.pick){\n  background:transparent!important;\n  border:0!important;\n  box-shadow:none!important;\n  color:#fff!important;\n  font-weight:850;\n  text-shadow:0 2px 5px #000e!important;\n  padding:8px 11px!important;\n}\n.overlayContent:has(#royaleCode) button:not(.pick):hover,\n.overlayContent:has(#royaleRoomError) button:not(.pick):hover{\n  color:#e0f4ff!important;\n  text-decoration:underline\n}\n.overlayContent:has(#royaleCode) #royaleCode{\n  background:#09182f!important;color:#fff!important;\n  border:1px solid #7da9da!important\n}\n/* Royale character picker only: restores small, uniform 3-card selection. */\n.overlayContent:has(#royaleRoomError) .pickGrid{\n  display:grid!important;\n  grid-template-columns:repeat(3,minmax(0,1fr))!important;\n  width:min(100%,462px)!important;\n  max-width:462px!important;\n  margin:10px auto!important;\n  gap:8px!important;\n  max-height:42vh!important;\n  overflow-y:auto!important;\n  align-items:stretch\n}\n.overlayContent:has(#royaleRoomError) .pickGrid .pick{\n  display:flex!important;flex-direction:column;align-items:center;\n  justify-content:flex-start;\n  min-width:0!important;min-height:0!important;\n  padding:6px 5px 8px!important;\n  border-radius:12px!important;\n  overflow:hidden!important;\n  background:#192946\n}\n.overlayContent:has(#royaleRoomError) .pickGrid .pick img{\n  display:block!important;\n  width:min(82px,96%)!important;\n  height:76px!important;max-height:76px!important;\n  max-width:100%!important;\n  object-fit:contain!important;\n  border:0!important;border-radius:0!important;\n  background:transparent!important;\n  margin:0 auto 5px!important;\n  filter:drop-shadow(0 3px 5px #0007)\n}\n.overlayContent:has(#royaleRoomError) .pickGrid .pick strong{\n  color:#fff!important;\n  font-size:11px!important;\n  line-height:1.3!important;\n  min-height:0!important;\n  overflow-wrap:anywhere\n}\n@media(max-width:650px){\n  .overlayContent:has(#royaleRoomError) .pickGrid{\n    width:min(100%,345px)!important;\n    gap:5px!important;\n    max-height:36vh!important\n  }\n  .overlayContent:has(#royaleRoomError) .pickGrid .pick{\n    padding:5px 3px 6px!important\n  }\n  .overlayContent:has(#royaleRoomError) .pickGrid .pick img{\n    width:min(60px,97%)!important;\n    height:56px!important;max-height:56px!important\n  }\n  .overlayContent:has(#royaleRoomError) .pickGrid .pick strong{\n    font-size:10px!important\n  }\n}\n" +'</style></head>');
+
+// Mobile battle layout compatibility patch (safe-area, portrait and landscape).
+// Applied to the generated page, leaving the original game file and profile data intact.
+GAME_HTML=GAME_HTML.replace('</head>', `<style id="mobile-battle-layout-fix">
+@media (max-width: 900px), (pointer: coarse) {
+  html, body { width:100%; max-width:100%; overflow-x:hidden !important; }
+  *, *::before, *::after { box-sizing:border-box; }
+  canvas { display:block; max-width:100% !important; height:auto !important; object-fit:contain; }
+  .overlay, .overlayContent, [role="dialog"] { max-width:100vw !important; max-height:100dvh; }
+  .overlayContent, [role="dialog"] { overflow-y:auto; overscroll-behavior:contain; }
+  button, input, select { touch-action:manipulation; }
+}
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
+  canvas { max-height:calc(100dvh - 58px) !important; width:auto; margin-inline:auto; }
+  .overlayContent, [role="dialog"] { max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+}
+@media (orientation: portrait) and (max-width: 650px) {
+  canvas { width:100% !important; max-width:100vw !important; }
+  .pickGrid { max-width:100%; }
+}
+</style></head>`);
+
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
