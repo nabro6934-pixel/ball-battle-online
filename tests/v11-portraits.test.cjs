@@ -8,15 +8,15 @@ const ctx={fs,path,Buffer,__dirname:root};vm.createContext(ctx);
 const start=server.indexOf('const originalPortraitIds='),end=server.indexOf('let GAME_HTML=',start);
 vm.runInContext(server.slice(start,end)+';this.loaded=spriteImages',ctx);
 for(const [id,name] of Object.entries(expected)){
- const data=fs.readFileSync(path.join(root,'portraits',id+'.jpg'));
- assert.equal(manifest[id].source,name,'correct original file for '+id);
+ const data=fs.readFileSync(path.join(root,'portraits',id+'.webp'));
+ assert.equal(manifest[id].source,name,'correct original file for '+id);assert.equal(manifest[id].transparent,true);assert(manifest[id].transparentPixels>100000);assert.equal(data.toString('ascii',12,16),'VP8X');assert(data[20]&16,'real alpha channel for '+id);
  assert.equal(crypto.createHash('sha256').update(data).digest('hex'),manifest[id].sha256,'exact original bytes for '+id);
  assert.equal(embedded[id],ctx.loaded[id],'offline and online image identical for '+id);
- assert.deepEqual(Buffer.from(embedded[id].split(',')[1],'base64'),data,'no conversion or redraw for '+id);
+ assert.deepEqual(Buffer.from(embedded[id].split(',')[1],'base64'),data,'exact deployed transparent asset for '+id);
 }
 assert.equal(new Set(Object.values(manifest).map(m=>m.sha256)).size,9,'nine distinct portraits');
 for(const s of html.split('<script>').slice(1).map(t=>t.split('</script>')[0]))new Function(s);
-// Even if a stale packed thumbnail is present, it must never replace a full-resolution JPEG.
+// Even if a stale packed thumbnail is present, it must never replace a full-resolution WebP.
 const marker='(async function loadTrueCharacterArt(){',a=html.indexOf(marker),b=html.indexOf('})();',a)+5;
-let decompressed=0;const env={IMAGES:{...embedded},PACKED_NEW_SPRITES:Object.fromEntries(Object.keys(expected).map(id=>[id,'invalid'])),DecompressionStream:class{constructor(){decompressed++;throw Error('original must remain')}},app:{screen:'battle'},console:{warn(){}}};vm.createContext(env);
-Promise.resolve(vm.runInContext(html.slice(a,b),env)).then(()=>{assert.equal(decompressed,0);for(const id of Object.keys(expected))assert.equal(env.IMAGES[id],embedded[id]);console.log('PASS 9 original portrait bindings, exact bytes, online/offline equality, original resolution and stale-thumbnail protection');}).catch(err=>{console.error(err);process.exitCode=1});
+let decompressed=0;const env={IMAGES:{...embedded},PACKED_NEW_SPRITES:Object.fromEntries(Object.keys(expected).map(id=>[id,'invalid'])),DecompressionStream:class{constructor(){decompressed++;throw Error('cutout must remain')}},app:{screen:'battle'},console:{warn(){}}};vm.createContext(env);
+Promise.resolve(vm.runInContext(html.slice(a,b),env)).then(()=>{assert.equal(decompressed,0);for(const id of Object.keys(expected))assert.equal(env.IMAGES[id],embedded[id]);console.log('PASS 9 original portrait bindings, real alpha, exact bytes, online/offline equality, full resolution and stale-thumbnail protection');}).catch(err=>{console.error(err);process.exitCode=1});

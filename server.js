@@ -322,7 +322,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
-// JPEG originals remain byte-for-byte unchanged; older HD WebP assets remain available.
+// Background-extracted WebP files retain real alpha; older HD assets remain available.
 const originalPortraitIds=['medicine','alvin','lea','pogo6974','zetaseungju','b67','darryl','cheon','duo'];
 const hdIds=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
 const spriteImages=Object.fromEntries(hdIds.map(id=>{
@@ -333,9 +333,9 @@ const spriteImages=Object.fromEntries(hdIds.map(id=>{
  return [id,'data:image/webp;base64,'+b64];
 }));
 for(const id of originalPortraitIds){
- const data=fs.readFileSync(path.join(__dirname,'portraits',id+'.jpg'));
- if(data.length<1000||data.subarray(0,3).toString('hex')!=='ffd8ff')throw Error('Damaged or missing original portrait: '+id);
- spriteImages[id]='data:image/jpeg;base64,'+data.toString('base64');
+ const data=fs.readFileSync(path.join(__dirname,'portraits',id+'.webp'));
+ if(data.length<1000||data.toString('ascii',0,4)!=='RIFF'||data.toString('ascii',8,12)!=='WEBP'||data.toString('ascii',12,16)!=='VP8X'||!(data[20]&16))throw Error('Damaged or missing original portrait: '+id);
+ spriteImages[id]='data:image/webp;base64,'+data.toString('base64');
 }
 let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
@@ -350,7 +350,7 @@ const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
   if(req.method==='GET'&&url.pathname==='/download'){
- res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="ball_battle_v11_1.html"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="ball_battle_v11_2.html"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
  res.end(GAME_HTML);return;
 }
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
@@ -395,7 +395,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v11.1',portraitVersion:'original-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v11.2',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

@@ -1,38 +1,101 @@
 {
   "medicine": {
     "source": "1000009545.png",
-    "sha256": "f4fab1721c8a4b6609cb198e9d230a8a7dcf469c7a9646b2093f7be86f9efeef"
+    "sha256": "68841d24e4156d4b80ee95b6a63f5ae763b49648560de66bc2f10d9c77bc061a",
+    "originalSha256": "f4fab1721c8a4b6609cb198e9d230a8a7dcf469c7a9646b2093f7be86f9efeef",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 361450,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "alvin": {
     "source": "1000009546.png",
-    "sha256": "5af2935987106d871ce0059e0a2db36d4c8833f535e7d1db0f74ed28c699f0b8"
+    "sha256": "3a28d47e8c864d4ac2e5a33bbe8ba452894944ea77038867b685b75820044e1f",
+    "originalSha256": "5af2935987106d871ce0059e0a2db36d4c8833f535e7d1db0f74ed28c699f0b8",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 455416,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "lea": {
     "source": "1000009544.png",
-    "sha256": "4dba57313c5f5694d3d3d10c8bfb1fd375d463e349217d3f8c837f4ec7f220d6"
+    "sha256": "bba0444a0e51f770b7cf915fd4180612e97f1fa97ed66b2319abc90b13a33fac",
+    "originalSha256": "4dba57313c5f5694d3d3d10c8bfb1fd375d463e349217d3f8c837f4ec7f220d6",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 972563,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "pogo6974": {
     "source": "1000009541.png",
-    "sha256": "c5ed0ebf653e5f4a811da7141d0dd4cffbf2a9fd263d6ac2c841ef3a3738b99f"
+    "sha256": "d86e33d7706c64d7823eac97235de303096e86d75aaaa7536118adbea966cd45",
+    "originalSha256": "c5ed0ebf653e5f4a811da7141d0dd4cffbf2a9fd263d6ac2c841ef3a3738b99f",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 520444,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "zetaseungju": {
     "source": "1000009543.png",
-    "sha256": "9dff79684478417b85dc120f8ab9e4aee536d4f08de7beea642322afbc98ec71"
+    "sha256": "147296a218910582150957116927077f5710e6f659a5d62bcb864f28d7fcd978",
+    "originalSha256": "9dff79684478417b85dc120f8ab9e4aee536d4f08de7beea642322afbc98ec71",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 288596,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "b67": {
     "source": "1000009542.png",
-    "sha256": "a2954db4d461eaa6a6505e1e844075eb8ff4fd66206fce32d335a637f64ad69c"
+    "sha256": "94426a3a2e60eabc49ca20bb4d3e14e8220cd921a0b5a7d3fd3565817328899b",
+    "originalSha256": "a2954db4d461eaa6a6505e1e844075eb8ff4fd66206fce32d335a637f64ad69c",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 423577,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "darryl": {
     "source": "1000009491.png",
-    "sha256": "0c6988f9f707495e384526de4dfb499f456f50b9def41d5ab272c881a495043e"
+    "sha256": "1acff6db95866c6c021dc98862aa296ff4da363a68e5d19b31c15528c0c3fa5c",
+    "originalSha256": "0c6988f9f707495e384526de4dfb499f456f50b9def41d5ab272c881a495043e",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 553918,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "cheon": {
     "source": "1000009488.png",
-    "sha256": "c291611f43e53e481a0a413c35a641ce8fa7d8e798f0f8fe7bd9dfe5a8d512a2"
+    "sha256": "1fc64185dc94cd16f5ed9526318674f23fef6d933c62f0143f4915e2a4f4d665",
+    "originalSha256": "c291611f43e53e481a0a413c35a641ce8fa7d8e798f0f8fe7bd9dfe5a8d512a2",
+    "format": "webp",
+    "transparent": true,
+    "width": 1254,
+    "height": 1254,
+    "transparentPixels": 306162,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   },
   "duo": {
     "source": "1000009493.png",
-    "sha256": "042f27d90e47e1e9b0af95097627846050d88ff9405ad899f8180624fd12fae9"
+    "sha256": "3b5ba9031171b653364cb89d7edd56134856fc5540c97d1eb3d40619e7d136a0",
+    "originalSha256": "042f27d90e47e1e9b0af95097627846050d88ff9405ad899f8180624fd12fae9",
+    "format": "webp",
+    "transparent": true,
+    "width": 1121,
+    "height": 1403,
+    "transparentPixels": 546210,
+    "prompt": "Remove only surrounding black background; preserve character, lettering, black clothing and outlines; real transparent RGBA alpha."
   }
 }
