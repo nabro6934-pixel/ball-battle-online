@@ -274,10 +274,10 @@ const spriteImages=Object.fromEntries(hdIds.map(id=>{
   throw new Error('Damaged or missing high-resolution portrait: '+id);
  return [id,'data:image/webp;base64,'+b64];
 }));
-const GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
+let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
-if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');
+if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');\n// Keep the live URL's browser/offline battle logic identical to the server engine.\nconst CLIENT_ENGINE=fs.readFileSync(path.join(__dirname,'engine.js'),'utf8');\nGAME_HTML=GAME_HTML.replace(/<script>\\/\\* Shared deterministic battle engine[\\s\\S]*?<\\/script>/,()=>'<script>'+CLIENT_ENGINE+'</script>');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
