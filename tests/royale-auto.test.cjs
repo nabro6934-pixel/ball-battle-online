@@ -25,4 +25,4 @@ assert(calls.some(c=>c[0]==='fillText'&&c[1]==='🏏'),'shared bat visual render
 assert(calls.some(c=>c[0]==='fillText'&&c[1]==='👊'),'shared fist projectile rendered');
 assert(!html.includes('royale_input'),'no manual movement packets');
 assert(!html.includes('royale_super'),'no manual ultimate packets');
-console.log('PASS all 21 fighters: automatic movement, attacks and ultimates, normal stats/radius, shared multi-player rendering and visible props');
+console.log('PASS all 27 fighters: automatic movement, attacks and ultimates, normal stats/radius, shared multi-player rendering and visible props');

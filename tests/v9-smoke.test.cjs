@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 const E=require('../engine.js'),R=require('../royale.js');
-assert.equal(E.HEROES.length,21,'21 playable fighters');
+assert.equal(E.HEROES.length,27,'27 playable fighters');
 const required=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
 assert(required.every(id=>E.HERO_BY_ID[id]),'all 9 new heroes must exist');
 const ids=E.HEROES.map(h=>h.id);let combats=0;
@@ -36,4 +36,4 @@ assert(server.includes("INSERT INTO ball_battle_backups"),'previous profiles bac
 assert(server.includes("ball_battle_clan_backups"),'clan backups');
 assert(server.includes("m.reward"),'clan rewards');
 assert(server.includes("profiles.set(u.id"),'restore saved player profiles');
-console.log('PASS',combats,'21-player battle combinations,',royaleCount,'royale counts 3-10, lobby syntax, backup checks');
+console.log('PASS',combats,'27-player battle combinations,',royaleCount,'royale counts 3-10, lobby syntax, backup checks');

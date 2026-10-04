@@ -38,7 +38,7 @@ assert(src.includes('data:image/webp;base64,'));
  const info=vm.runInContext('({GAME_HTML,profiles,sessions,matchStats})',ctx);
  const match=info.GAME_HTML.match(/const IMAGES=(\{[\s\S]*?\});/);
  assert(match,'sprite injection must preserve images');
- const imgs=JSON.parse(match[1]);assert.equal(Object.keys(imgs).length,21);
+ const imgs=JSON.parse(match[1]);assert.equal(Object.keys(imgs).length,27);
  for(const id of ids)assert(imgs[id].startsWith('data:image/webp;base64,'));
  const users=[0,1].map(i=>({id:'player_'+i,secret:'sec_'+i,tag:'AAAA'+i,
  nick:'player '+i,avatar:'pizza',owned:['pizza','eggkimchi','zeta'],wins:3,losses:1,
