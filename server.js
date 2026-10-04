@@ -278,7 +278,8 @@ let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
 if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');
-// Keep the live URL's browser/offline battle logic identical to the server engine.\nconst CLIENT_ENGINE=fs.readFileSync(path.join(__dirname,'engine.js'),'utf8');
+// Keep the live URL's browser/offline battle logic identical to the server engine.
+const CLIENT_ENGINE=fs.readFileSync(path.join(__dirname,'engine.js'),'utf8');
 GAME_HTML=GAME_HTML.replace(/<script>\/\* Shared deterministic battle engine[\s\S]*?<\/script>/,()=>'<script>'+CLIENT_ENGINE+'</script>');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
