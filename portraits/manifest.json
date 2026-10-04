@@ -1,0 +1,38 @@
+{
+  "medicine": {
+    "source": "1000009545.png",
+    "sha256": "f4fab1721c8a4b6609cb198e9d230a8a7dcf469c7a9646b2093f7be86f9efeef"
+  },
+  "alvin": {
+    "source": "1000009546.png",
+    "sha256": "5af2935987106d871ce0059e0a2db36d4c8833f535e7d1db0f74ed28c699f0b8"
+  },
+  "lea": {
+    "source": "1000009544.png",
+    "sha256": "4dba57313c5f5694d3d3d10c8bfb1fd375d463e349217d3f8c837f4ec7f220d6"
+  },
+  "pogo6974": {
+    "source": "1000009541.png",
+    "sha256": "c5ed0ebf653e5f4a811da7141d0dd4cffbf2a9fd263d6ac2c841ef3a3738b99f"
+  },
+  "zetaseungju": {
+    "source": "1000009543.png",
+    "sha256": "9dff79684478417b85dc120f8ab9e4aee536d4f08de7beea642322afbc98ec71"
+  },
+  "b67": {
+    "source": "1000009542.png",
+    "sha256": "a2954db4d461eaa6a6505e1e844075eb8ff4fd66206fce32d335a637f64ad69c"
+  },
+  "darryl": {
+    "source": "1000009491.png",
+    "sha256": "0c6988f9f707495e384526de4dfb499f456f50b9def41d5ab272c881a495043e"
+  },
+  "cheon": {
+    "source": "1000009488.png",
+    "sha256": "c291611f43e53e481a0a413c35a641ce8fa7d8e798f0f8fe7bd9dfe5a8d512a2"
+  },
+  "duo": {
+    "source": "1000009493.png",
+    "sha256": "042f27d90e47e1e9b0af95097627846050d88ff9405ad899f8180624fd12fae9"
+  }
+}
