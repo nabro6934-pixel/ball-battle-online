@@ -6,6 +6,7 @@ const PORT=Number(process.env.PORT)||3000;
 const sessions=new Map(),rooms=new Map(),codes=new Map(),royales=new Map(),royaleCodes=new Map();
 const queue=[];
 const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
+const progression=require('./progression').create(engine.HEROES);
 const TIMEOUT=18000;
 const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
 const profiles=new Map(), clans=new Map();
@@ -13,7 +14,7 @@ let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
 function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
-function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';return u}
+function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';return progression.migrate(u)}
 for(const u of profiles.values())migrate(u);
 const NICKNAME_TAKEN='이미 사용 중인 닉네임입니다. 다른 닉네임을 시도해 주세요.';
 function cleanNickname(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
@@ -132,8 +133,8 @@ async function initStorage(){
  if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
  console.log('Clans restored from PostgreSQL:',clans.size);
 }
-function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],clanId:u.clanId||null,setupDone:!!u.setupDone}}
-function privateUser(u){return {...publicUser(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
+function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
+function privateUser(u){return {...publicUser(u),...progression.privateFields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -174,8 +175,9 @@ function newOffer(u){const a=[...new Set((u?.owned||[]).filter(x=>HERO_IDS.has(x
 function sendPicks(r){r.phase='pick';r.picks=[null,null];r.angles=[null,null];r.offers=r.players.map(id=>newOffer(profileForSession(sessions.get(id))));r.updated=Date.now();r.players.forEach((id,side)=>send(sessions.get(id),'pick_phase',{offers:r.offers[side],round:r.round,scores:r.scores}))}
 
 const CLAN_MISSIONS=[{need:3,reward:35,label:'쉬움 · 온라인 승리 3회'},{need:8,reward:90,label:'보통 · 온라인 승리 8회'},{need:20,reward:220,label:'어려움 · 온라인 승리 20회'}];
-function clanPublic(c){if(!c)return null;const mission=CLAN_MISSIONS[c.stage%3];return {id:c.id,name:c.name,desc:c.desc,owner:c.owner,memberCount:c.members.length,maxMembers:100,members:c.members.map(id=>profiles.get(id)).filter(Boolean).map(u=>({id:u.id,nick:u.nick,avatar:u.avatar,tag:u.tag,wins:u.wins||0,coins:u.coins||0})),invitedCount:(c.invited||[]).length,stage:c.stage,completed:c.completed,progress:c.progress,mission,participants:Object.keys(c.participation||{}).length,rankScore:(c.completed||0)*100+Object.values(c.participation||{}).reduce((a,b)=>a+b,0),createdAt:c.createdAt}}
-function allClanList(q=''){return [...clans.values()].filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(b.completed||0)-(a.completed||0)||b.members.length-a.members.length).map(clanPublic)}
+function clanPublic(c){if(!c)return null;const mission=CLAN_MISSIONS[c.stage%3];return {id:c.id,name:c.name,desc:c.desc,owner:c.owner,memberCount:c.members.length,maxMembers:100,members:c.members.map(id=>profiles.get(id)).filter(Boolean).map(u=>({id:u.id,nick:u.nick,avatar:u.avatar,tag:u.tag,wins:u.wins||0,coins:u.coins||0,totalTrophies:progression.total(u)})),invitedCount:(c.invited||[]).length,stage:c.stage,completed:c.completed,progress:c.progress,mission,participants:Object.keys(c.participation||{}).length,rankScore:(c.completed||0)*100+Object.values(c.participation||{}).reduce((a,b)=>a+b,0),createdAt:c.createdAt,totalTrophies:cTrophies(c)}}
+function cTrophies(c){return c.members.reduce((n,id)=>n+progression.total(profiles.get(id)||{}),0)}
+function allClanList(q=''){return [...clans.values()].filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>cTrophies(b)-cTrophies(a)||(b.completed||0)-(a.completed||0)||b.members.length-a.members.length).map(clanPublic)}
 function saveClanAndProfiles(){if(!dbPool)throw Error('데이터베이스에 연결할 수 없어요.');const people=JSON.stringify([...profiles.values()]);const groups=JSON.stringify([...clans.values()]);dbSaveChain=dbSaveChain.catch(e=>console.error('Previous save:',e.message)).then(async()=>{
  const client=await dbPool.connect();try{await client.query('BEGIN');await client.query("INSERT INTO ball_battle_state(id,data) VALUES('profiles',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[people]);await client.query("INSERT INTO ball_battle_state(id,data) VALUES('clans',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[groups]);await client.query('COMMIT')}catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}});dbSaveChain.catch(e=>console.error('CLAN+PROFILE DATABASE SAVE FAILED',e.message));return dbSaveChain}
 function clanContribution(u){if(!u?.clanId)return;const c=clans.get(u.clanId);if(!c||!c.members.includes(u.id))return;c.progress=(c.progress||0)+1;c.participation=c.participation||{};c.participation[u.id]=(c.participation[u.id]||0)+1;const m=CLAN_MISSIONS[c.stage%3];if(c.progress>=m.need){let people=Object.keys(c.participation);for(const id of people){const v=profiles.get(id);if(v&&v.clanId===c.id){v.coins+=m.reward;}}c.completed=(c.completed||0)+1;c.stage=(c.stage+1)%3;c.progress=0;c.participation={};}saveClanAndProfiles()}
@@ -202,10 +204,11 @@ function clanAction(u,m){
  return {changed:!['get','search'].includes(act),clan:clanPublic(clans.get(u.clanId)),invites:[...clans.values()].filter(x=>(x.invited||[]).includes(u.id)).map(clanPublic),ranking:allClanList().slice(0,50),search:allClanList(String(m.q||'')).slice(0,50)}
 }
 
+function recordRound(r,w){r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w});}
 function matchStats(r,w){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
-  if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+100;clanContribution(u)}
+  if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+100;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
   const rival=users[1-i];if(rival){const v=u.versus[rival.id]||{wins:0,losses:0};v.wins=(v.wins||0)+(i===w?1:0);v.losses=(v.losses||0)+(i===w?0:1);u.versus[rival.id]=v;}
  }persist();
@@ -222,7 +225,7 @@ function leave(s,msg='상대 플레이어가 나갔습니다.'){
  let i=queue.indexOf(s.id);if(i>=0)queue.splice(i,1);
  const r=roomOf(s);s.room=null;s.side=null;if(!r)return;
  if(r.players.length===2 && r.phase!=='complete' && r.phase!=='waiting'){
-   const winner=1-r.players.indexOf(s.id);matchStats(r,winner);
+   const winner=1-r.players.indexOf(s.id);if(r.phase==='battle')recordRound(r,winner);matchStats(r,winner);
    let survivor=sessions.get(r.players[winner]);send(survivor,'forfeit_win',{winner,scores:r.scores,message:'상대가 나가서 부전승! +100코인',opponent:publicUser(profileForSession(s))});
  }
  rooms.delete(r.id);if(r.code)codes.delete(r.code);if(r.timer)clearInterval(r.timer);
@@ -230,20 +233,20 @@ function leave(s,msg='상대 플레이어가 나갔습니다.'){
 }
 function identify(sid){let s=sessions.get(sid);if(!s){s={id:sid,stream:null,room:null,side:null,seen:Date.now(),nick:'플레이어'};sessions.set(sid,s)}s.seen=Date.now();return s}
 function validSid(s){return typeof s==='string'&&/^[a-zA-Z0-9_-]{12,90}$/.test(s)}
-function newRoom(first,second=null,code=null){const id=`m${++roomSeq}`;let r={id,players:[first.id],code,phase:'waiting',picks:[null,null],angles:[null,null],scores:[0,0],round:1,sim:null,timer:null,count:0,updated:Date.now(),acks:new Set(),offers:[[],[]],statsDone:false};rooms.set(id,r);first.room=id;first.side=0;if(code)codes.set(code,id);if(second)addSecond(r,second);return r}
+function newRoom(first,second=null,code=null){const id=`m${++roomSeq}`;let r={id,players:[first.id],code,phase:'waiting',picks:[null,null],angles:[null,null],scores:[0,0],round:1,sim:null,timer:null,count:0,updated:Date.now(),acks:new Set(),offers:[[],[]],statsDone:false,history:[[],[]]};rooms.set(id,r);first.room=id;first.side=0;if(code)codes.set(code,id);if(second)addSecond(r,second);return r}
 function addSecond(r,p){if(r.players.length>1)throw Error('already full');r.players.push(p.id);p.room=r.id;p.side=1;r.phase='pick';r.updated=Date.now();r.players.forEach((id,side)=>send(sessions.get(id),'matched',{side,code:null,round:r.round,scores:r.scores,opponent:publicUser(profileForSession(sessions.get(r.players[1-side]))||{nick:'플레이어',tag:'-',avatar:'pizza'})}));sendPicks(r);}
 function nextCode(){let c;do{c=Array.from({length:6},()=>('ABCDEFGHJKLMNPQRSTUVWXYZ23456789')[crypto.randomInt(0,32)]).join('')}while(codes.has(c));return c}
 function stopTimer(r){if(r.timer)clearInterval(r.timer);r.timer=null}
 function prepareAim(r){r.phase='aim';r.angles=[null,null];r.acks.clear();both(r,'aim',{heroes:r.picks,round:r.round,scores:r.scores});}
 function prepareNext(r){r.round++;sendPicks(r)}
-function startCombat(r){r.phase='battle';r.updated=Date.now();let seed=crypto.randomBytes(4).readUInt32BE(0);r.sim=engine.create(r.picks,r.angles,seed);r.count=0;
- both(r,'start',{heroes:r.picks,angles:r.angles,scores:r.scores,round:r.round});
+function startCombat(r){r.phase='battle';r.updated=Date.now();let seed=crypto.randomBytes(4).readUInt32BE(0);r.levels=r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0);r.sim=engine.create(r.picks,r.angles,seed,r.levels);r.count=0;
+ both(r,'start',{heroes:r.picks,levels:r.levels,angles:r.angles,scores:r.scores,round:r.round});
  stopTimer(r);r.timer=setInterval(()=>{
    if(!rooms.has(r.id)||r.phase!=='battle'){stopTimer(r);return}
    for(let i=0;i<2&&!r.sim.finished;i++)engine.tick(r.sim,1/60);
    r.count++;
    both(r,'frame',{state:r.sim});
-   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage});}
+   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,trophyRewards:r.trophyRewards||[]});}
  },1000/30);
 }
 
@@ -288,7 +291,7 @@ function royaleAction(s,m){
   if(r.phase!=='lobby'||r.players.length<3||r.players.length>10)throw Error('3명 이상 10명 이하에서 시작할 수 있어요.');
   for(const id of r.players)if(!r.picks[id])r.picks[id]=r.offers[id][0];
   r.phase='battle';
-  r.sim=royaleEngine.create(r.players.map(id=>{const p=sessions.get(id),v=profileForSession(p);return {sid:id,hero:r.picks[id],nick:v.nick,avatar:v.avatar}}));
+  r.sim=royaleEngine.create(r.players.map(id=>{const p=sessions.get(id),v=profileForSession(p);return {sid:id,hero:r.picks[id],level:v.levels?.[r.picks[id]]||0,nick:v.nick,avatar:v.avatar}}));
   for(const id of r.players)send(sessions.get(id),'royale_start',{code:r.code,state:r.sim});
   r.timer=setInterval(()=>{
     if(!royales.has(r.id)||!r.sim||r.phase!=='battle'){clearInterval(r.timer);return}
@@ -326,7 +329,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;
  const r=roomOf(s);if(!r||r.players.length!==2)throw Error('상대를 찾은 후 진행할 수 있어요.');const side=s.side;
  if(type==='pick'){if(r.phase!=='pick'||!r.offers[side].includes(m.hero)||!(profileForSession(s)?.owned||[]).includes(m.hero))throw Error('캐릭터를 선택할 수 없는 상태예요.');r.picks[side]=m.hero;send(s,'pick_ok',{hero:m.hero});send(sessions.get(r.players[1-side]),'opponent_picked');if(r.picks.every(Boolean))prepareAim(r);return}
  if(type==='ready'){if(r.phase!=='aim')throw Error('지금은 각도를 정할 수 없어요.');if(!Number.isFinite(m.angle))throw Error('올바른 각도를 입력하세요.');r.angles[side]=Math.min(70,Math.max(-70,m.angle));send(s,'ready_ok');send(sessions.get(r.players[1-side]),'opponent_ready');if(r.angles.every(x=>x!==null))startCombat(r);return}
- if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
+ if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.history=[[],[]];r.trophyRewards=[];r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
@@ -376,15 +379,18 @@ GAME_HTML=GAME_HTML.replace('</head>', `<style id="mobile-battle-layout-fix">
 }
 </style></head>`);
 
+GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">/g,'').replace('</head>','<link rel="stylesheet" href="/arena-ui.css?v=12"></head>');
+
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
   if(req.method==='GET'&&url.pathname==='/download'){
- res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="ball_battle_v11_2.html"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+ res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="ball_battle_v12.html"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
  res.end(GAME_HTML);return;
 }
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
-  if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0)).slice(0,50).map(publicUser)})}
+  if(req.method==='GET'&&url.pathname==='/arena-ui.css'){res.writeHead(200,{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache'});res.end(fs.readFileSync(path.join(__dirname,'arena-ui.css')));return}
+  if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>progression.total(b)-progression.total(a)||(b.wins||0)-(a.wins||0)).slice(0,50).map(publicUser)})}
 
   if(req.method==='POST'&&url.pathname==='/clans'){
    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>8192){req.destroy();return}body+=part});req.on('end',async()=>{
@@ -403,6 +409,8 @@ const server=http.createServer((req,res)=>{
         await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
+      const advanced=progression.action(u,m,profiles);
+      if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
         updateNickname(u,m.nick,m.avatar);persist()
       }else if(m.action==='draw'){
@@ -411,8 +419,7 @@ const server=http.createServer((req,res)=>{
         u.coins-=price;const drawn=[],newIds=[];for(let i=0;i<count;i++){const id=[...HERO_IDS][crypto.randomInt(HERO_IDS.size)];drawn.push(id);if(!u.owned.includes(id)){u.owned.push(id);newIds.push(id)}}
         persist();await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),drawn,newIds});
       }else if(m.action==='cpu_win'){
-        const now=Date.now();if(now-(u.lastCpuWin||0)<30000)throw Error('CPU 승리 보상이 너무 빨라요.');
-        u.lastCpuWin=now;u.coins+=100;persist();
+        throw Error('봇 테스트는 보상이 없는 연습 모드예요.');
       }else if(m.action==='request'){
         let v=profileLookup(m.tag);if(!v||v.id===u.id)throw Error('해당 친구 코드를 찾을 수 없어요.');if((u.friends||[]).includes(v.id))throw Error('이미 친구예요.');if(!(v.requests||[]).includes(u.id))v.requests.push(u.id);persist()
       }else if(m.action==='accept'){
@@ -425,7 +432,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v11.6',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v12.0',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

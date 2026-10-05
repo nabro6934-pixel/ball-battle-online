@@ -2,7 +2,7 @@
 'use strict';
 const E=require('./engine.js'),W=1400,H=950,arena=E.forArena(W,H);
 function create(players,seed=Date.now()){
- const s=arena.create(players.map(p=>p.hero),players.map(()=>0),seed);
+ const s=arena.create(players.map(p=>p.hero),players.map(()=>0),seed,players.map(p=>p.level||0));
  s.placements=[];s.lastTick=Date.now();
  s.actors.forEach((a,i)=>Object.assign(a,{sid:players[i].sid,name:players[i].nick,avatar:players[i].avatar,kills:0,alive:true,rank:0}));
  return s;
