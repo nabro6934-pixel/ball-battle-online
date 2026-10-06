@@ -48,5 +48,30 @@
     "id": "flex-inst",
     "title": "Flex (Inst.)",
     "url": "/music/flex-inst.mp3"
+  },
+  {
+    "id": "cheon-song",
+    "title": "천도련급이라네",
+    "url": "/music/cheon-song.mp3"
+  },
+  {
+    "id": "moai-memory",
+    "title": "모아이가 생각나네",
+    "url": "/music/moai-memory.mp3"
+  },
+  {
+    "id": "cyprus-808",
+    "title": "Cyprus 808",
+    "url": "/music/cyprus-808.mp3"
+  },
+  {
+    "id": "v-on-da-beat",
+    "title": "V on da beat",
+    "url": "/music/v-on-da-beat.mp3"
+  },
+  {
+    "id": "9-pointer",
+    "title": "9 pointer",
+    "url": "/music/9-pointer.mp3"
   }
 ]
