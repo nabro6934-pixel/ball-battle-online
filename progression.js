@@ -3,7 +3,7 @@ const crypto=require('node:crypto');
 const COSTS=[500,1000,2000,3000,5000];
 const RANKS=[[3000,'사파이어'],[1600,'에메랄드'],[1000,'다이아'],[700,'골드'],[300,'실버'],[100,'브론즈'],[0,'입문']];
 const ADMIN_TAG='6E2C5BF4';
-const PATCH={id:'patch-filter-contact-v15-3',kind:'patch',title:'밸런스 패치 · 필터 똥 피해 50% 감소',body:'필터 낀 병신의 똥 접촉 피해가 처음 피해의 50%로 줄었어요. 0레벨 8 → 4, 5레벨 16 → 8 피해입니다. 발사 간격, 크기와 궁극기 폭발 피해는 동일합니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T19:02:00Z')};
+const PATCH={id:'patch-filter-size-v15-4',kind:'patch',title:'밸런스 패치 · 필터 똥 크기 30% 감소',body:'필터 낀 병신의 똥 접촉 피해가 처음 피해의 50%로 줄었어요. 0레벨 8 → 4, 5레벨 16 → 8 피해입니다. 똥의 표시 크기와 접촉 판정 범위가 이전 크기의 70%로 줄었어요. 발사 간격과 궁극기 폭발 피해는 동일합니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T19:05:00Z')};
 const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
 function create(heroes){
  const ids=new Set(heroes.map(h=>h.id));
