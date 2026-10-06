@@ -3,7 +3,7 @@ const crypto=require('node:crypto');
 const COSTS=[500,1000,2000,3000,5000];
 const RANKS=[[3000,'사파이어'],[1600,'에메랄드'],[1000,'다이아'],[700,'골드'],[300,'실버'],[100,'브론즈'],[0,'입문']];
 const ADMIN_TAG='6E2C5BF4';
-const PATCH={id:'patch-season1-v13',kind:'patch',title:'Lil_Ago Arena · Season 1',body:'궁극기는 PC 스페이스바 / 버튼, 모바일 버튼으로 직접 사용해요. 봇 배틀은 양쪽 자동입니다. 정상 온라인 경기 승리: 10코인, 50XP, 10트로피. 부전승에는 XP가 없어요. 시즌 패스는 100XP당 1티어, 30티어까지 총 3000XP입니다. 무료 25코인 / 프리미엄 50코인과 무료 특별 보상을 받아보세요. 일일 퀘스트, 출석 보상, 전투 통계와 새로운 로딩 화면이 추가됐어요. 관리자 캐릭터 선물 중복은 500코인으로 지급됩니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T17:00:00Z')};
+const PATCH={id:'patch-new-heroes-v15',kind:'patch',title:'Season 1 · 신캐릭터 5명 등장!',body:'중2병 가오 앨빈, 키프, 천도현이, 그린페이스, 헬창게이가 추가됐어요. 앨빈은 면역을 관통하는 추적 5연타, 키프는 맵 전체 5초 화상, 천도현이는 방귀 스프레이와 2초 전방위 난사, 그린페이스는 하트 5연발과 5초 변신, 헬창게이는 영구 회전 나비와 무작위 맵 절반 광선을 사용합니다. 헬창게이 광선은 0레벨 상대 100/자신 50 피해, 5레벨 상대 200/자신 100 피해입니다. 상점 뽑기와 관리자 선물, 모든 유저의 봇 테스트에서 만나보세요.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T18:31:00Z')};
 const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
 function create(heroes){
  const ids=new Set(heroes.map(h=>h.id));
