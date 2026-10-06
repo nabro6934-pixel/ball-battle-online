@@ -12,9 +12,9 @@ window.createSeasonUI=function(api){
  function setImpact(value){impact=value;try{localStorage.setItem('arena_impact',value?'on':'off')}catch{} }
  async function runLoading(ms=5000,kind='battle'){
   if(['battle','royaleBattle'].includes(app.screen)||kind==='battle')return false;
-  const token=++loadToken;app.loading=true;app.loadingKind=kind;music.setLobby(kind==='boot'&&app.screen==='home');loading.hidden=false;loading.classList.remove('arriving');void loading.offsetWidth;loading.classList.add('arriving');loading.querySelector('.loadTrack i').style.animationDuration=ms+'ms';
+  const token=++loadToken;app.loading=true;app.loadingKind=kind;music.setScreen(app.screen);loading.hidden=false;loading.classList.remove('arriving');void loading.offsetWidth;loading.classList.add('arriving');loading.querySelector('.loadTrack i').style.animationDuration=ms+'ms';
   const start=performance.now();await new Promise(resolve=>{function step(){if(token!==loadToken){resolve();return}const n=Math.min(100,Math.floor((performance.now()-start)/ms*100));loading.querySelector('#loadPercent').textContent=n+'%';if(n>=100){resolve();return}setTimeout(step,40)}step()});
-  if(token!==loadToken)return false;loading.hidden=true;app.loading=false;app.loadingKind=null;music.setLobby(app.screen==='home');return true;
+  if(token!==loadToken)return false;loading.hidden=true;app.loading=false;app.loadingKind=null;music.setScreen(app.screen);return true;
  }
  function cancelLoading(){loadToken++;app.loading=false;loading.hidden=true;}
  function actorState(){const s=app.screen==='royaleBattle'?app.royaleData:app.combat;return {s,side:app.screen==='royaleBattle'?s?.actors.findIndex(a=>a.sid===app.session):(app.online?app.side:0)};}

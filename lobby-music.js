@@ -17,11 +17,12 @@
  function reject(e){if(e?.name==='NotAllowedError')blocked=true;notify()}
  function next(){const t=choose();if(t)select(t.id);else{audio.pause();current=null;notify()}}
  function setLobby(value){lobby=!!value;if(!lobby){audio.pause();audio.currentTime=0;notify()}else play()}
+ function setScreen(screen){setLobby(!['battle','royaleBattle'].includes(screen))}
  function update(values){if('enabled'in values)settings.enabled=!!values.enabled;if('volume'in values)settings.volume=clamp(values.volume);if('effects'in values)settings.effects=clamp(values.effects);if('allowed'in values)settings.allowed=values.allowed===null?null:[...new Set(values.allowed)].filter(id=>tracks.some(t=>t.id===id));audio.volume=settings.volume;save();play()}
  function unlock(){if(audio.paused||blocked)play()}
  audio.addEventListener('ended',()=>{if(lobby&&settings.enabled)next()});audio.addEventListener('playing',()=>{if(!shouldPlay())audio.pause();notify()});audio.addEventListener('pause',notify);audio.addEventListener('error',()=>{if(current)failed.add(current.id);if(lobby)next();else notify()});
  doc.addEventListener('visibilitychange',()=>{if(doc.hidden){audio.pause();notify()}else play()});doc.addEventListener('pointerdown',unlock,{passive:true});doc.addEventListener('keydown',unlock);doc.addEventListener('touchend',unlock,{passive:true});doc.addEventListener('click',unlock);
  const ready=options.tracks?Promise.resolve(options.tracks):(options.fetch||fetch)('/music/tracks.json').then(r=>{if(!r.ok)throw Error('음악 목록을 불러오지 못했어요.');return r.json()});
  ready.then(list=>{tracks=list;const t=choose();if(t)select(t.id);else notify()}).catch(()=>{blocked=true;notify()});
- return {ready,snapshot,setLobby,update,select,next,unlock,subscribe(fn){listeners.push(fn);fn(snapshot());return()=>{listeners=listeners.filter(x=>x!==fn)}},effectsVolume:()=>settings.effects};
+ return {ready,snapshot,setLobby,setScreen,update,select,next,unlock,subscribe(fn){listeners.push(fn);fn(snapshot());return()=>{listeners=listeners.filter(x=>x!==fn)}},effectsVolume:()=>settings.effects};
 });
