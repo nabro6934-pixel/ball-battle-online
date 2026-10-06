@@ -1,6 +1,10 @@
 /* Season 1 screens and non-obstructing combat controls. */
 window.createSeasonUI=function(api){
  const {app,E,H,HM,heroImg,esc,modal,content,title,call,auth,profile,refresh,toast,music}=api;
+ const mobile=()=>navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<900;
+ function orient(){const rotated=mobile()&&innerHeight>innerWidth;document.body.classList.toggle('virtualLandscape',rotated);document.body.classList.toggle('mobileLandscape',mobile());document.body.style.setProperty('--arena-view-width',(rotated?innerHeight:innerWidth)+'px');document.body.style.setProperty('--arena-view-height',(rotated?innerWidth:innerHeight)+'px');}
+ orient();window.addEventListener('resize',orient);window.addEventListener('orientationchange',orient);
+ document.addEventListener('pointerdown',async()=>{if(!mobile())return;try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();await screen.orientation?.lock?.('landscape');}catch{}orient();},{once:true});
  let loadToken=0,pending=false,lastReady=new Set(),lastImpact=0,questBusy=false;
  const dock=document.createElement('div');dock.className='ultDock';dock.hidden=true;document.querySelector('.panelFooter').before(dock);
  const loading=document.createElement('div');loading.className='seasonLoading';loading.hidden=true;loading.innerHTML=`<div class="loadingScene"><img class="loadingArt" src="/loading-season1.png" alt="Lil_Ago Arena Season 1"><div class="loadingActor actorCactus"></div><div class="loadingActor actorKoala"></div><div class="loadingActor actorMoai"></div><div class="loadingSparkles">✦　　✧　　　✦　　　　　✧</div><div class="loadingSteam"></div></div><div class="loadPanel"><strong>Lil_Ago Arena</strong><span id="loadCaption">Season 1 · 아레나 준비 중</span><div class="loadTrack"><i></i></div><small id="loadPercent">0%</small></div>`;document.body.append(loading);
@@ -8,6 +12,7 @@ window.createSeasonUI=function(api){
  let impact=getSavedImpact();function getSavedImpact(){try{return localStorage.getItem('arena_impact')!=='off'}catch{return true}}
  function setImpact(value){impact=value;try{localStorage.setItem('arena_impact',value?'on':'off')}catch{} }
  async function runLoading(ms=5000,kind='battle'){
+  if(['battle','royaleBattle'].includes(app.screen)||kind==='battle')return false;
   const token=++loadToken;app.loading=true;app.loadingKind=kind;music.setLobby(false);loading.hidden=false;loading.classList.remove('arriving');void loading.offsetWidth;loading.classList.add('arriving');loading.querySelector('.loadTrack i').style.animationDuration=ms+'ms';
   const start=performance.now();await new Promise(resolve=>{function step(){if(token!==loadToken){resolve();return}const n=Math.min(100,Math.floor((performance.now()-start)/ms*100));loading.querySelector('#loadPercent').textContent=n+'%';if(n>=100){resolve();return}setTimeout(step,40)}step()});
   if(token!==loadToken)return false;loading.hidden=true;app.loading=false;app.loadingKind=null;music.setLobby(app.screen==='home');return true;
