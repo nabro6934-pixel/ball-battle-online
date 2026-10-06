@@ -16,4 +16,4 @@ function tick(s,dt=.05){
  if(s.finished){const winner=s.actors[s.winner];winner.rank=1;if(!s.placements.some(p=>p.sid===winner.sid))s.placements.push({sid:winner.sid,rank:1,name:winner.name});s.winner=winner.sid;}
  return s;
 }
-module.exports={create,tick,W,H};
+module.exports={create,tick,W,H,useUltimate:arena.useUltimate};

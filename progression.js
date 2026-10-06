@@ -3,7 +3,7 @@ const crypto=require('node:crypto');
 const COSTS=[500,1000,2000,3000,5000];
 const RANKS=[[3000,'사파이어'],[1600,'에메랄드'],[1000,'다이아'],[700,'골드'],[300,'실버'],[100,'브론즈'],[0,'입문']];
 const ADMIN_TAG='6E2C5BF4';
-const PATCH={id:'patch-v12',kind:'patch',title:'시즌 12 · 새로운 아레나',body:'캐릭터 강화 0~5레벨, 우편함, 캐릭터 트로피와 랭크가 추가됐어요. 강화는 기본 체력·피해의 20%씩 증가해 레벨 5에서 2배입니다. 온라인 3점 선승 경기 승리 시 사용한 캐릭터들에게 총 10트로피를 지급합니다. 봇 테스트에서는 모든 캐릭터와 레벨을 자유롭게 선택할 수 있어요.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-05T17:30:00Z')};
+const PATCH={id:'patch-season1-v13',kind:'patch',title:'Lil_Ago Arena · Season 1',body:'궁극기는 PC 스페이스바 / 버튼, 모바일 버튼으로 직접 사용해요. 봇 배틀은 양쪽 자동입니다. 정상 온라인 경기 승리: 10코인, 50XP, 10트로피. 부전승에는 XP가 없어요. 시즌 패스는 100XP당 1티어, 30티어까지 총 3000XP입니다. 무료 25코인 / 프리미엄 50코인과 무료 특별 보상을 받아보세요. 일일 퀘스트, 출석 보상, 전투 통계와 새로운 로딩 화면이 추가됐어요. 관리자 캐릭터 선물 중복은 500코인으로 지급됩니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T17:00:00Z')};
 const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
 function create(heroes){
  const ids=new Set(heroes.map(h=>h.id));
@@ -38,7 +38,7 @@ function create(heroes){
   }
   if(m.action==='mail_read'||m.action==='mail_claim'){
    const item=u.mail.find(x=>x.id===m.mailId);if(!item)throw Error('우편을 찾지 못했어요.');item.read=true;
-   if(m.action==='mail_claim'&&!item.claimed){item.claimed=true;u.coins+=int(item.coins,1e7);for(const id of item.heroes||[])if(ids.has(id)&&!u.owned.includes(id))u.owned.push(id);migrate(u);}
+   if(m.action==='mail_claim'&&!item.claimed){item.claimed=true;u.coins+=int(item.coins,1e7);for(const id of new Set(item.heroes||[]))if(ids.has(id)){if(!u.owned.includes(id))u.owned.push(id);else u.coins+=500;}if(item.premium){require('./season').grantPremium(u);}migrate(u);}
    return {changed:true};
   }
   if(m.action==='admin_users'){
@@ -52,16 +52,16 @@ function create(heroes){
    const title=String(m.title||'관리자 선물').trim().slice(0,100),body=String(m.body||'우편함에서 보상을 받아주세요!').trim().slice(0,3000);
    const nonce=String(m.requestId||'');if(!/^[a-zA-Z0-9_-]{12,90}$/.test(nonce))throw Error('새 지급 요청으로 다시 시도해 주세요.');
    u.sentGifts=u.sentGifts||{};
-   const fingerprint=JSON.stringify([m.scope,m.tag,coins,m.heroes,title,body]);
+   const fingerprint=JSON.stringify([m.scope,m.tag,coins,m.heroes,title,body,!!m.premium]);
    if(u.sentGifts[nonce]){if(u.sentGifts[nonce].fingerprint!==fingerprint)throw Error('중복 요청의 내용이 달라요.');return {sent:u.sentGifts[nonce].count,duplicate:true};}
    const recipients=m.scope==='all'?[...profiles.values()]:[...profiles.values()].filter(v=>v.tag===String(m.tag||'').trim().toUpperCase());
    if(!recipients.length)throw Error('친구 코드에 해당하는 유저가 없어요.');
-   const mailId=crypto.randomUUID();for(const v of recipients){migrate(v);v.mail.unshift({id:mailId,kind:coins||m.heroes.length?'gift':'patch',title,body,coins,heroes:[...new Set(m.heroes)],read:false,claimed:false,createdAt:Date.now()});}
+   const mailId=crypto.randomUUID();for(const v of recipients){migrate(v);v.mail.unshift({id:mailId,kind:coins||m.heroes.length||m.premium?'gift':'patch',title,body,coins,premium:!!m.premium,heroes:[...new Set(m.heroes)],read:false,claimed:false,createdAt:Date.now()});}
    u.sentGifts[nonce]={fingerprint,count:recipients.length};return {changed:true,sent:recipients.length,recipients:recipients.map(v=>v.id)};
   }
   return null;
  }
- function privateFields(u){migrate(u);return {levels:u.levels,trophies:u.trophies,totalTrophies:total(u),isAdmin:admin(u),mail:u.mail,unreadMail:u.mail.filter(m=>!m.read).length,upgradeCosts:COSTS};}
+ function privateFields(u){migrate(u);return {levels:u.levels,trophies:u.trophies,totalTrophies:total(u),isAdmin:admin(u),mail:u.mail,unreadMail:u.mail.filter(m=>!m.read).length,upgradeCosts:COSTS,...require('./season').fields(u)};}
  return {migrate,admin,total,trophies,action,privateFields,COSTS};
 }
 module.exports={create,COSTS,RANKS,ADMIN_TAG};
