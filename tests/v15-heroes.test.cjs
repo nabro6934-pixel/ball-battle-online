@@ -13,6 +13,9 @@ for(const lv of [0,5]){
 let s=setup('gymgay'),f=s.actors[0],e=s.actors[1];f.ultTimer=0;E.useUltimate(s,0);const half=f.ultActive.half;f.x=half===0?800:200;e.x=half===0?800:200;run(s,.8);assert.equal(e.hp,10000);e.x=half===0?530:470;run(s,.1);assert.equal(e.hp,9900);assert.equal(f.hp,10000);
 // Five separate hearts, a five-second transformation, and radial mask projectiles.
 s=setup('greenface');f=s.actors[0];f.atkTimer=0;E.tick(s,.01);assert.equal(s.bullets.filter(p=>p.type==='greenheart').length,1);run(s,.5);assert.equal(s.bullets.filter(p=>p.type==='greenheart').length,5);assert.equal(f.heartBurst,null);f.ultTimer=0;E.useUltimate(s,0);run(s,4.9);assert.equal(f.ultActive.type,'greenface');assert(s.bullets.some(p=>p.type==='greenmask'));run(s,.2);assert.equal(f.ultActive,null);
+// Hearts keep their velocity when the target moves; gas follows the moving caster.
+s=setup('greenface');f=s.actors[0];e=s.actors[1];f.atkTimer=0;E.tick(s,.01);const heart=s.bullets.find(p=>p.type==='greenheart'),hv=[heart.vx,heart.vy];assert.equal(heart.homing,false);e.y+=200;E.tick(s,.05);assert.deepEqual([heart.vx,heart.vy],hv);
+s=setup('cheondohyun');f=s.actors[0];e=s.actors[1];f.x=200;f.y=200;e.x=600;e.y=200;f.atkTimer=0;E.tick(s,.01);f.atkTimer=Infinity;f.x=400;f.y=400;e.x=630;e.y=400;E.tick(s,.3);assert.equal(s.attackAreas[0].x,f.x);assert.equal(s.attackAreas[0].y,f.y);assert(e.hp<10000,'moving spray hits at the new caster position');
 // Wide horizontal word contact counts even outside the old circular hit radius.
 s=setup('edgyalvin');f=s.actors[0];e=s.actors[1];f.atkTimer=0;f.x=200;f.y=300;e.x=600;e.y=300;E.tick(s,.01);let word=s.bullets.find(p=>p.type==='alvinword');assert.equal(word.halfWidth,80);word.x=e.x-100;word.y=e.y;word.vx=word.vy=0;E.tick(s,.01);assert.equal(e.hp,9993);
 // Sprays and fire wedges use their actual trapezoid bounds, including wider far edges.
