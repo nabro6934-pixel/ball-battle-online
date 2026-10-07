@@ -16,8 +16,8 @@
  function play(){if(!shouldPlay()){audio.pause();notify();return}if(!current||!usable().some(t=>t.id===current.id)){const t=choose();if(t)select(t.id);return}let promise;try{promise=audio.play()}catch(e){reject(e);return}if(promise?.then)promise.then(()=>{blocked=false;if(!shouldPlay())audio.pause();notify()}).catch(reject);}
  function reject(e){if(e?.name==='NotAllowedError')blocked=true;notify()}
  function next(){const t=choose();if(t)select(t.id);else{audio.pause();current=null;notify()}}
- function setLobby(value){lobby=!!value;if(!lobby){audio.pause();audio.currentTime=0;notify()}else play()}
- function setScreen(screen){setLobby(!['battle','royaleBattle'].includes(screen))}
+ function setLobby(value,{reset=false}={}){lobby=!!value;if(!lobby){audio.pause();if(reset)audio.currentTime=0;notify()}else play()}
+ function setScreen(screen){const combat=['battle','royaleBattle'].includes(screen);setLobby(!combat,{reset:combat})}
  function update(values){if('enabled'in values)settings.enabled=!!values.enabled;if('volume'in values)settings.volume=clamp(values.volume);if('effects'in values)settings.effects=clamp(values.effects);if('allowed'in values)settings.allowed=values.allowed===null?null:[...new Set(values.allowed)].filter(id=>tracks.some(t=>t.id===id));audio.volume=settings.volume;save();play()}
  function unlock(){if(audio.paused||blocked)play()}
  audio.addEventListener('ended',()=>{if(lobby&&settings.enabled)next()});audio.addEventListener('playing',()=>{if(!shouldPlay())audio.pause();notify()});audio.addEventListener('pause',notify);audio.addEventListener('error',()=>{if(current)failed.add(current.id);if(lobby)next();else notify()});
