@@ -9,6 +9,7 @@ const queue=[];
 const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const progression=require('./progression').create(engine.HEROES);
 const season=require('./season').create(engine.HEROES);
+const cosmetics=require('./cosmetics');
 const TIMEOUT=18000;
 const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
 const profiles=new Map(), clans=new Map();
@@ -16,7 +17,7 @@ let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
 function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
-function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);return progression.migrate(u)}
+function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);progression.migrate(u);return cosmetics.migrate(u)}
 for(const u of profiles.values())migrate(u);
 const NICKNAME_TAKEN='이미 사용 중인 닉네임입니다. 다른 닉네임을 시도해 주세요.';
 function cleanNickname(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
@@ -135,8 +136,8 @@ async function initStorage(){
  if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
  console.log('Clans restored from PostgreSQL:',clans.size);
 }
-function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
-function privateUser(u){return {...publicUser(u),...progression.privateFields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
+function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
+function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...cosmetics.fields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -313,6 +314,14 @@ function royaleAction(s,m){
 }
 
 function action(s,m){s.seen=Date.now();let type=m.action;
+ if(type==='emote'){
+  const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
+  const rr=royales.get(s.royale),r=roomOf(s);let recipients,side;
+  if(rr&&rr.phase==='battle'){side=rr.sim.actors.findIndex(a=>a.sid===s.id);recipients=rr.players;}
+  else if(r&&r.phase==='battle'){side=s.side;recipients=r.players;}
+  else throw Error('전투 중에만 핀을 사용할 수 있어요.');
+  const pin=cosmetics.emote(u,s,m);for(const id of recipients)send(sessions.get(id),'emote',{...pin,side,sid:rr?s.id:undefined});return;
+ }
  if(type.startsWith('royale_'))return royaleAction(s,m);
  if(type==='bind'){let u=getProfile({id:m.profileId,secret:m.secret});migrate(u);if(s.profile&&s.profile!==u.id)throw Error('대전 중 프로필을 변경할 수 없어요.');s.profile=u.id;send(s,'profile_bound',{profile:privateUser(u)});return}
  if(type==='leave'){leave(s,'상대 플레이어가 매치를 종료했습니다.');send(s,'left');return}
@@ -419,7 +428,7 @@ const server=http.createServer((req,res)=>{
         await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
-      const advanced=season.action(u,m,profiles)||progression.action(u,m,profiles);
+      const advanced=cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
       if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
         updateNickname(u,m.nick,m.avatar);persist()
@@ -442,7 +451,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v15.6',portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v16.0',profileIcons:32,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

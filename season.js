@@ -29,7 +29,7 @@ function create(heroes){const ids=heroes.map(h=>h.id),valid=new Set(ids);
    if(track==='free'&&tier===30){const missing=ids.filter(id=>!u.owned.includes(id));if(!missing.length)reward.coins+=1000;else{if(!missing.includes(m.hero))throw Error('받을 미보유 캐릭터를 선택해 주세요.');u.owned.push(m.hero);reward.hero=m.hero;}}
    if(track==='free'&&tier===20){const extra=randomHero(u);reward={...reward,...extra,coins:reward.coins+(extra.coins||0)};}
    if(track==='free'&&tier===10)reward.coins+=900;
-   u.coins+=reward.coins;u.season.claimed.push(key);return {changed:true,reward};
+   u.coins+=reward.coins;u.season.claimed.push(key);const pin=require('./cosmetics').passPin(track,tier);if(pin){require('./cosmetics').migrate(u);reward.pin=pin.id;}return {changed:true,reward};
   }
   return null;
  }

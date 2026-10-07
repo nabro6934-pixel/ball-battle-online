@@ -43,7 +43,7 @@ const crypto=require('node:crypto');
  assert(writes>=2,'restorations persisted');
  const html=fs.readFileSync(path.join(__dirname,'..','game.html'),'utf8');
  const scripts=html.split('<script>').slice(1).map(v=>v.split('</script>')[0]);
- assert.equal(scripts.length,2,'expected engine and UI scripts');
+ assert.equal(scripts.length,3,'expected music initialization, engine and UI scripts');
  scripts.forEach(src=>{new Function(src);});
  assert(html.includes('profileAuthHelp(e)'));
  console.log('PASS existing data recovery, secret protection, missing accounts, SQL writes, HTML syntax');
