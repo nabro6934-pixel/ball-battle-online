@@ -9,10 +9,10 @@ assert.equal(E.HEROES.length,36);
 }
 for(const level of [0,5])for(const casualty of ['main','partner']){
  const s=still(E.create(['grannyduo','pizza'],[0,0],44,[level,0])),f=s.actors[0],q=s.clones[0];assert.equal(f.hp,level?80:40);assert.equal(q.hp,f.hp);step(s,150);assert.equal(f.ultTimer,7);f.ultTimer=0;assert.equal(E.useUltimate(s,0),false);
- hit(s,casualty==='main'?f:q,999);assert(!s.finished);assert(f.awakened);assert.equal(f.hp,level?200:100);assert(!s.clones.some(x=>x.isCompanion&&x.hp>0));assert.equal(f.ultTimer,7);f.ultTimer=0;assert(E.useUltimate(s,0));step(s,61);assert.equal(f.ultActive,null);
+ hit(s,casualty==='main'?f:q,999);assert(!s.finished);assert(f.awakened);assert.equal(f.hp,level?200:100);assert(!s.clones.some(x=>x.isCompanion&&x.hp>0));assert.equal(f.ultTimer,7);f.ultTimer=0;f.atkTimer=0;step(s);assert(s.bullets.some(b=>b.type==='grannylaser'&&b.damage===(level?4:2)));assert(E.useUltimate(s,0));step(s,61);assert.equal(f.ultActive,null);
 }
 {
- const s=still(E.create(['grannyduo','pizza']));const f=s.actors[0];f.atkTimer=0;step(s);assert(s.bullets.some(b=>b.text==='도현아'&&b.damage===.8));s.clones[0].hp=1;hit(s,s.clones[0],2);f.atkTimer=0;step(s);assert(s.bullets.some(b=>b.type==='grannylaser'&&b.damage===4));
+ const s=still(E.create(['grannyduo','pizza']));const f=s.actors[0];f.atkTimer=0;step(s);assert(s.bullets.some(b=>b.text==='도현아'&&b.damage===.8));s.clones[0].hp=1;hit(s,s.clones[0],2);f.atkTimer=0;step(s);assert(s.bullets.some(b=>b.type==='grannylaser'&&b.damage===2));
 }
 for(const level of [0,5]){
  const s=still(E.create(['fries','pizza'],[0,0],42,[level,0])),f=s.actors[0];f.ultTimer=0;assert(E.useUltimate(s,0));assert.equal(f.shield,null);assert.equal(s.sauceZones.length,1);const z=s.sauceZones[0];assert.deepEqual([z.x,z.y],[f.x,f.y]);const hp=f.hp;hit(s,f,10);assert.equal(f.hp,hp-10,'sauce ultimate does not absorb damage');f.x+=250;assert.notEqual(z.x,f.x,'sauce stays on the floor where cast');step(s,101);assert.equal(s.sauceZones.length,0);assert.equal(f.ultActive,null);

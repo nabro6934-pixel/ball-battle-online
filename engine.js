@@ -36,7 +36,7 @@ const HEROES=[
 {"id": "greenface", "name": "그린페이스", "color": "#39e655", "shade": "#0a7130", "hp": 172, "speed": 274, "atk": "직선 초록 하트 5연발", "ult": "복면 변신 난사", "blurb": "평상시에는 복면 모습으로 초록 하트 5개를 연발한다. 궁극기는 5초간 인물 모습으로 변신해 복면을 전방위로 던진 뒤 원래 복면 모습으로 돌아온다.", "basic": "하트 5연발 · 하트당 2.8 피해 · 1.5초", "super": "5초 변신 · 12방향 복면 · 복면당 1.7 피해 · 14초"},
 {"id": "gymgay", "name": "헬창게이", "color": "#ffdc65", "shade": "#41345f", "hp": 205, "speed": 242, "atk": "영구 회전 나비", "ult": "맵 절반 광선 폭격", "blurb": "주위를 도는 나비를 소환해 유지한다. 궁극기는 무작위 왼쪽 또는 오른쪽 절반 전체를 광선으로 채운다. 닿은 상대는 100 피해, 본인이 닿으면 50 피해를 한 번 받는다.", "basic": "영구 회전 나비 6마리 · 접촉 3.2 피해 · 0.5초 간격", "super": "무작위 맵 절반 · 100 피해 · 자신 50 피해 · 18초"},
 {"id": "fidgetspino", "name": "피젯스피노", "color": "#ff91ce", "shade": "#8a245d", "hp": 170, "speed": 265, "atk": "영구 회전 피젯스피너", "ult": "불꽃 고속 회전", "blurb": "몸 주위를 영구 회전하는 스피너가 적을 밀친다. 궁극기는 5초간 빨라지며 불길을 남기고, 몸에 충돌한 적은 두 배 화상을 입는다.", "basic": "회전 스피너 3개 · 반경 184 · 4 피해 · 0.5초 간격 · 밀침", "super": "5초 고속 회전 · 불길 3초 화상 · 초당 12 / 몸 충돌 24"},
-{"id": "grannyduo", "name": "도현이 집압 편의점 알바 할머니 듀오", "color": "#f14ccc", "shade": "#6634a0", "hp": 40, "speed": 248, "atk": "도현아 속사포 / 각성 레이저", "ult": "각성 레이저 2배 연사", "blurb": "처음부터 각각 체력 40의 할머니 두 명이 함께 싸운다. 한 명이 쓰러지면 체력 100으로 각성하고 전방위 레이저를 발사한다. 각성 전에는 궁극기를 충전하거나 사용할 수 없다.", "basic": "각각 체력 40 · 직선 글자당 0.8 피해 · 각성 후 체력 100 / 레이저당 4", "super": "각성 후에만 사용 · 3초간 레이저 발사 속도 2배"},
+{"id": "grannyduo", "name": "도현이 집압 편의점 알바 할머니 듀오", "color": "#f14ccc", "shade": "#6634a0", "hp": 40, "speed": 248, "atk": "도현아 속사포 / 각성 레이저", "ult": "각성 레이저 2배 연사", "blurb": "처음부터 각각 체력 40의 할머니 두 명이 함께 싸운다. 한 명이 쓰러지면 체력 100으로 각성하고 전방위 레이저를 발사한다. 각성 전에는 궁극기를 충전하거나 사용할 수 없다.", "basic": "각각 체력 40 · 직선 글자당 0.8 피해 · 각성 후 체력 100 / 레이저당 2", "super": "각성 후에만 사용 · 3초간 레이저 발사 속도 2배"},
 {"id": "fries", "name": "도현이 정액 감튀", "color": "#ffe687", "shade": "#9c7320", "hp": 175, "speed": 245, "atk": "흰 액체 스프레이", "ult": "원형 소스 장판", "blurb": "흰 액체를 뿌려 적을 2초 동안 느리게 한다. 궁극기는 자신의 위치에 원형 소스를 뿌린다. 소스는 바닥에 5초간 남고, 닿은 적의 이동 속도를 20% 낮춘다.", "basic": "3갈래 액체 · 각각 3 피해 · 2초간 35% 둔화", "super": "반경 180 원형 소스 · 5초 유지 · 접촉한 적 20% 둔화"},
 {"id": "meatman", "name": "채끝살 맨", "color": "#bc8dff", "shade": "#54308a", "hp": 195, "speed": 275, "atk": "접촉 벽 찍기", "ult": "점프 기절 · 연속 찍기", "blurb": "발사체 없이 접촉한 적을 벽으로 밀어 찍는다. 기본 쿨타임은 2초. 궁극기는 적의 현재 지점으로 뛰어 명중하면 3초 기절시키고 3초간 접촉 찍기 쿨타임을 없앤다.", "basic": "접촉 벽 찍기 · 12 피해 · 2초 쿨타임", "super": "지점 점프 · 16 피해 · 3초 기절 · 찍기 쿨타임 해제"}
 ];
@@ -55,7 +55,7 @@ function initializeNewHeroes(s){for(const f of s.actors){
 }}
 function newBasic(s,f,e){
  if(f.id==='fidgetspino'){f.atkTimer=.5;return true;}
- if(f.id==='grannyduo'){if(!f.awakened){fire(s,f,e,'word',0,620,.8,{r:15,life:2,text:'도현아',homing:false});f.atkTimer=.16;}else{for(let j=0;j<12;j++)radial(s,f,'grannylaser',f.spin+j*Math.PI/6,780,4,9,1.7);f.atkTimer=f.ultActive?.type==='grannyduo'?.175:.35;}return true;}
+ if(f.id==='grannyduo'){if(!f.awakened){fire(s,f,e,'word',0,620,.8,{r:15,life:2,text:'도현아',homing:false});f.atkTimer=.16;}else{for(let j=0;j<12;j++)radial(s,f,'grannylaser',f.spin+j*Math.PI/6,780,2,9,1.7);f.atkTimer=f.ultActive?.type==='grannyduo'?.175:.35;}return true;}
  if(f.id==='fries'){for(let j=-1;j<=1;j++)fire(s,f,e,'whitespray',j*.15,480,3,{r:12,life:1});f.atkTimer=.85;return true;}
  if(f.id==='meatman'){f.atkTimer=.3;return true;}return false;
 }
