@@ -10,9 +10,11 @@ const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const progression=require('./progression').create(engine.HEROES);
 const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
+const profiles=new Map(), clans=new Map();
+const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics});
 const TIMEOUT=18000;
 const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
-const profiles=new Map(), clans=new Map();
+
 let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
@@ -230,6 +232,7 @@ function both(r,evt,data){r.players.forEach(id=>send(sessions.get(id),evt,data))
 function roomOf(s){return s?.room&&rooms.get(s.room)}
 function leave(s,msg='상대 플레이어가 나갔습니다.'){
  if(!s)return;
+ multiplayer.leave(s);
  if(s.royale)royaleLeave(s);
  let i=queue.indexOf(s.id);if(i>=0)queue.splice(i,1);
  const r=roomOf(s);s.room=null;s.side=null;if(!r)return;
@@ -274,7 +277,7 @@ function royaleLeave(s){
 function royaleAction(s,m){
  let type=m.action;const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
  if(type==='royale_create'||type==='royale_join'){
-  if(s.royale)royaleLeave(s);if(s.room)leave(s);
+  leave(s);
   const code=String(m.code||'').normalize('NFKC').trim().toLocaleLowerCase('ko-KR');
   if(!code||Array.from(code).length>28||/[<>\x00-\x1f]/.test(code))throw Error('로얄 방 이름을 1~28자로 입력하세요.');
   let r=royales.get(royaleCodes.get(code));
@@ -318,7 +321,7 @@ function royaleAction(s,m){
  throw Error('알 수 없는 로얄 명령입니다.');
 }
 
-function action(s,m){s.seen=Date.now();let type=m.action;
+function action(s,m){s.seen=Date.now();let type=m.action;if(multiplayer.action(s,m))return;
  if(type==='emote'){
   const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
   const rr=royales.get(s.royale),r=roomOf(s);let recipients,side;
@@ -404,6 +407,9 @@ GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">
 
 GAME_HTML=GAME_HTML.replace(/\+10코인/g,'+50코인').replace(/정상 승리: 10코인/g,'정상 승리: 50코인');
 GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다.</p><div class=\"socialRows\">'","+'</h2><p>'+(win?'🪙 승리 보상 +50코인':'우승자에게 50코인이 지급됩니다.')+'</p><div class=\"socialRows\">'").replace("$('#royaleHomeBtn').onclick=home;}break;","$('#royaleHomeBtn').onclick=home;refreshPlayer();}break;");
+GAME_HTML=GAME_HTML.replace("?{code:a.code}:{}","?{code:a.code}:a.action==='multi_queue'?{mode:a.mode}:{}");
+const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(serveMedia(req,res,url.pathname))return;
@@ -458,11 +464,12 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v16.0',profileIcons:32,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v17.0',multiplayer:multiplayer.counts(),profileIcons:32,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
     res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','Access-Control-Allow-Origin':'*','X-Accel-Buffering':'no'});s.stream=res;send(s,'hello',{status:'ok',side:s.side,room:s.room});
+    multiplayer.resume(s);
     if(s.royale){let rr=royales.get(s.royale);if(rr){if(rr.phase==='lobby')sendRoyaleLobby(rr);else{send(s,'royale_start',{loadMs:Math.max(0,(rr.loadingUntil||0)-Date.now()),code:rr.code,state:rr.sim});send(s,'royale_state',{state:rr.sim});if(rr.phase==='complete')send(s,'royale_end',{state:rr.sim,winner:rr.sim?.winner,placements:rr.sim?.placements});}}}
     let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{resume:true,side:s.side,code:r.code||null,scores:r.scores,round:r.round});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),scores:r.scores,round:r.round});if(['battle','loading','between','complete'].includes(r.phase))send(s,'start',{loadMs:Math.max(0,(r.loadingUntil||0)-Date.now()),levels:r.levels,heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage,stats:r.sim?.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[]});}}
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
