@@ -357,6 +357,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(multiplayer.action(s
 }
 // Bind originals by stable character ID, never by roster or upload index.
 // Background-extracted WebP files retain real alpha; older HD assets remain available.
+const NEW_HERO_ASSETS=require('./new-heroes-assets');
 const originalPortraitIds=['medicine','alvin','lea','pogo6974','zetaseungju','b67','darryl','cheon','duo','edgyalvin','kip','cheondohyun','greenface','greenface_mask','gymgay'];
 const hdIds=['sahur','spyger','tralalero','lilago','eggkimchi','filter','icecookie','zeta','shade'];
 const spriteImages=Object.fromEntries(hdIds.map(id=>{
@@ -371,6 +372,7 @@ for(const id of originalPortraitIds){
  if(data.length<1000||data.toString('ascii',0,4)!=='RIFF'||data.toString('ascii',8,12)!=='WEBP'||data.toString('ascii',12,16)!=='VP8X'||!(data[20]&16))throw Error('Damaged or missing original portrait: '+id);
  spriteImages[id]='data:image/webp;base64,'+data.toString('base64');
 }
+for(const [id,b64] of Object.entries(NEW_HERO_ASSETS.portraits))spriteImages[id]='data:image/webp;base64,'+b64;
 let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
@@ -408,10 +410,21 @@ GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">
 GAME_HTML=GAME_HTML.replace(/\+10코인/g,'+50코인').replace(/정상 승리: 10코인/g,'정상 승리: 50코인');
 GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다.</p><div class=\"socialRows\">'","+'</h2><p>'+(win?'🪙 승리 보상 +50코인':'우승자에게 50코인이 지급됩니다.')+'</p><div class=\"socialRows\">'").replace("$('#royaleHomeBtn').onclick=home;}break;","$('#royaleHomeBtn').onclick=home;refreshPlayer();}break;");
 GAME_HTML=GAME_HTML.replace("?{code:a.code}:{}","?{code:a.code}:a.action==='multi_queue'?{mode:a.mode}:{}");
+// Season 1 additions: 36 heroes, original portraits and new player icons.
+GAME_HTML=GAME_HTML.replace(/프로필 아이콘 32개/g,'프로필 아이콘 '+engine.HEROES.length+'개');
+GAME_HTML=GAME_HTML.replace("if(f.isClone)ctx.globalAlpha=.65;","if(f.isClone&&!f.isCompanion)ctx.globalAlpha=.65;").replace("f.isClone?'분신':","f.isClone?(f.isCompanion?'할머니 듀오':'분신'):");
+GAME_HTML=GAME_HTML.replace("const appearance=f.morphId||f.id;","if(f.ultActive?.type==='meatman'&&!f.ultActive.landed)ctx.translate(0,-Math.sin(Math.min(1,f.ultActive.elapsed/.45)*Math.PI)*90);const appearance=f.morphId||f.id;");
+const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
-GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
+  if(['GET','HEAD'].includes(req.method)){
+    const icon=/^\/cosmetics\/icons\/([a-z_]+)\.webp$/.exec(url.pathname),art=/^\/character-art\/([a-z_]+)\.webp$/.exec(url.pathname);
+    const b64=icon?NEW_HERO_ASSETS.icons[icon[1]]:art?NEW_HERO_ASSETS.portraits[art[1]]:null;
+    if(b64){const bytes=Buffer.from(b64,'base64');res.writeHead(200,{'Content-Type':'image/webp','Content-Length':bytes.length,'Cache-Control':'public, max-age=86400'});res.end(req.method==='HEAD'?undefined:bytes);return;}
+    if(url.pathname==='/cosmetics-ui.js'){res.writeHead(200,{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end(fs.readFileSync(path.join(__dirname,'cosmetics-ui.js'),'utf8').replace(/32개/g,engine.HEROES.length+'개'));return;}
+  }
   if(serveMedia(req,res,url.pathname))return;
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
   if(req.method==='GET'&&url.pathname==='/download'){
@@ -464,7 +477,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v17.0',multiplayer:multiplayer.counts(),profileIcons:32,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v18.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
@@ -490,4 +503,5 @@ initStorage().then(()=>{
 async function shutdown(){try{await dbSaveChain;await dbPool?.end()}catch(e){console.error('Shutdown storage flush:',e.message)}process.exit(0)}
 process.on('SIGTERM',shutdown);
 process.on('SIGINT',shutdown);
+
 
