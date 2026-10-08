@@ -4,7 +4,7 @@
  let saved={};try{saved=JSON.parse(storage.getItem('ballbattle_audio_v1')||'{}')}catch{}
  const clamp=v=>Math.max(0,Math.min(1,Number(v)));
  const settings={enabled:saved.enabled!==false,volume:Number.isFinite(saved.volume)?clamp(saved.volume):.35,effects:Number.isFinite(saved.effects)?clamp(saved.effects):1,allowed:Array.isArray(saved.allowed)?saved.allowed:null};
- let tracks=[],current=null,lobby=false,blocked=false,failed=new Set(),listeners=[];
+ let tracks=[],current=null,lobby=false,blocked=false,combatWas=false,failed=new Set(),listeners=[];
  audio.preload='auto';audio.volume=settings.volume;
  const usable=()=>tracks.filter(t=>(settings.allowed===null||settings.allowed.includes(t.id))&&!failed.has(t.id));
  const notify=()=>listeners.forEach(fn=>fn(snapshot()));
@@ -17,7 +17,7 @@
  function reject(e){if(e?.name==='NotAllowedError')blocked=true;notify()}
  function next(){const t=choose();if(t)select(t.id);else{audio.pause();current=null;notify()}}
  function setLobby(value,{reset=false}={}){lobby=!!value;if(!lobby){audio.pause();if(reset)audio.currentTime=0;notify()}else play()}
- function setScreen(screen){const combat=['battle','royaleBattle'].includes(screen);setLobby(!combat,{reset:combat})}
+ function setScreen(screen){const combat=['battle','royaleBattle'].includes(screen),finished=combatWas&&!combat;combatWas=combat;if(finished){lobby=true;next();}else setLobby(!combat,{reset:combat})}
  function update(values){if('enabled'in values)settings.enabled=!!values.enabled;if('volume'in values)settings.volume=clamp(values.volume);if('effects'in values)settings.effects=clamp(values.effects);if('allowed'in values)settings.allowed=values.allowed===null?null:[...new Set(values.allowed)].filter(id=>tracks.some(t=>t.id===id));audio.volume=settings.volume;save();play()}
  function unlock(){if(audio.paused||blocked)play()}
  audio.addEventListener('ended',()=>{if(lobby&&settings.enabled)next()});audio.addEventListener('playing',()=>{if(!shouldPlay())audio.pause();notify()});audio.addEventListener('pause',notify);audio.addEventListener('error',()=>{if(current)failed.add(current.id);if(lobby)next();else notify()});
@@ -26,3 +26,4 @@
  ready.then(list=>{tracks=list;const t=choose();if(t)select(t.id);else notify()}).catch(()=>{blocked=true;notify()});
  return {ready,snapshot,setLobby,setScreen,update,select,next,unlock,subscribe(fn){listeners.push(fn);fn(snapshot());return()=>{listeners=listeners.filter(x=>x!==fn)}},effectsVolume:()=>settings.effects};
 });
+
