@@ -207,11 +207,16 @@ function clanAction(u,m){
  return {changed:!['get','search'].includes(act),clan:clanPublic(clans.get(u.clanId)),invites:[...clans.values()].filter(x=>(x.invited||[]).includes(u.id)).map(clanPublic),ranking:allClanList().slice(0,50),search:allClanList(String(m.q||'')).slice(0,50)}
 }
 
+function royaleWinCoins(r){
+ if(!r.sim?.finished||r.rewardedSim===r.sim||!r.players.includes(r.sim.winner))return;
+ r.rewardedSim=r.sim;const u=profileForSession(sessions.get(r.sim.winner));if(!u)return;
+ migrate(u);u.coins=(u.coins||0)+50;persist();
+}
 function recordRound(r,w){r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w});}
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
-  if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+10;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=progression.trophies(u,history);clanContribution(u)}
+  if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
   if(!forfeit)season.record(u,r.history?.[i]||[],i===w);
   const rival=users[1-i];if(rival){const v=u.versus[rival.id]||{wins:0,losses:0};v.wins=(v.wins||0)+(i===w?1:0);v.losses=(v.losses||0)+(i===w?0:1);u.versus[rival.id]=v;}
@@ -230,7 +235,7 @@ function leave(s,msg='상대 플레이어가 나갔습니다.'){
  const r=roomOf(s);s.room=null;s.side=null;if(!r)return;
  if(r.players.length===2 && r.phase!=='complete' && r.phase!=='waiting'){
    const winner=1-r.players.indexOf(s.id);if(r.phase==='battle')recordRound(r,winner);matchStats(r,winner,true);
-   let survivor=sessions.get(r.players[winner]);send(survivor,'forfeit_win',{winner,scores:r.scores,message:'상대가 나가서 부전승! +10코인',opponent:publicUser(profileForSession(s))});
+   let survivor=sessions.get(r.players[winner]);send(survivor,'forfeit_win',{winner,scores:r.scores,message:'상대가 나가서 부전승! +50코인',opponent:publicUser(profileForSession(s))});
  }
  rooms.delete(r.id);if(r.code)codes.delete(r.code);if(r.timer)clearInterval(r.timer);
  for(const id of r.players){let o=sessions.get(id);if(o&&o.id!==s.id){o.room=null;o.side=null;if(r.phase==='complete'||r.phase==='waiting')send(o,'opponent_left',{message:msg})}}
@@ -303,7 +308,7 @@ function royaleAction(s,m){
     royaleEngine.tick(r.sim,.065);
     const state=r.sim;
     for(const id of r.players)send(sessions.get(id),'royale_state',{state});
-    if(state.finished){clearInterval(r.timer);r.timer=null;r.phase='complete';for(const id of r.players)send(sessions.get(id),'royale_end',{state,winner:state.winner,placements:state.placements});}
+    if(state.finished){clearInterval(r.timer);r.timer=null;r.phase='complete';royaleWinCoins(r);for(const id of r.players)send(sessions.get(id),'royale_end',{state,winner:state.winner,placements:state.placements});}
   },65);},0);
   return;
  }
@@ -397,6 +402,8 @@ GAME_HTML=GAME_HTML.replace('</head>', `<style id="mobile-battle-layout-fix">
 
 GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">/g,'').replace('</head>','<link rel="stylesheet" href="/arena-ui.css?v=12"></head>');
 
+GAME_HTML=GAME_HTML.replace(/\+10코인/g,'+50코인').replace(/정상 승리: 10코인/g,'정상 승리: 50코인');
+GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다.</p><div class=\"socialRows\">'","+'</h2><p>'+(win?'🪙 승리 보상 +50코인':'우승자에게 50코인이 지급됩니다.')+'</p><div class=\"socialRows\">'").replace("$('#royaleHomeBtn').onclick=home;}break;","$('#royaleHomeBtn').onclick=home;refreshPlayer();}break;");
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(serveMedia(req,res,url.pathname))return;
@@ -476,3 +483,4 @@ initStorage().then(()=>{
 async function shutdown(){try{await dbSaveChain;await dbPool?.end()}catch(e){console.error('Shutdown storage flush:',e.message)}process.exit(0)}
 process.on('SIGTERM',shutdown);
 process.on('SIGINT',shutdown);
+
