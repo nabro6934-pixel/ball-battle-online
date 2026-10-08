@@ -3,6 +3,7 @@ const crypto=require('node:crypto');
 const COSTS=[500,1000,2000,3000,5000];
 const RANKS=[[3000,'사파이어'],[1600,'에메랄드'],[1000,'다이아'],[700,'골드'],[300,'실버'],[100,'브론즈'],[0,'입문']];
 const ADMIN_TAG='6E2C5BF4';
+const SEASON_UPDATE={id:'season1-heroes-balance-20261009-v18-2',kind:'patch',title:'10월 9일 업데이트 · 신캐 4종 & 밸런스 패치',body:'■ 신규 캐릭터 & 프로필 아이콘 4종\n피젯스피노: 몸 주위를 회전하는 스피너로 공격하고 밀쳐냅니다. 궁극기는 5초간 고속 회전하며 불길을 남깁니다.\n도현이 집압 편의점 알바 할머니 듀오: 할머니 두 명이 함께 싸우고, 한 명이 쓰러지면 각성해 전방위 레이저를 발사합니다. 각성 후 궁극기는 3초간 레이저 연사 속도 2배입니다.\n도현이 정액 감튀: 일반 공격은 적을 느리게 만드는 흰 액체 스프레이입니다. 궁극기는 원형 소스 장판을 만듭니다.\n채끝살 맨: 접촉한 적을 벽에 찍어 누르며 기본 쿨타임은 2초입니다. 궁극기는 적 위치로 점프해 착지 시 3초간 기절시키고 연속으로 찍어 누릅니다.\n각 캐릭터의 프로필 아이콘도 추가됐습니다. 미보유 캐릭터는 봇 테스트에서 자유롭게 체험할 수 있어요.\n\n■ 밸런스 변경 (0레벨 기준)\n피젯스피노: 스피너 회전 반경 92 → 184. 불길 피해 초당 4 → 12, 궁극기 중 몸 접촉 화상 초당 8 → 24.\n할머니 듀오: 각성 전 각각 체력 100 → 40 (5레벨 각각 80). 글자 피해 1 → 0.8, 각성 레이저 피해 5 → 4. 각성 전 일반 공격은 유도하지 않고 직선으로 날아갑니다. 각성 후 체력은 100 (5레벨 200)으로 유지됩니다.\n감튀: 보호막 궁극기는 원형 소스 장판으로 교체됐습니다. 사용한 위치에 반경 180의 소스가 5초간 남고, 닿은 적은 이동 속도가 20% 줄어듭니다. 자신과 같은 팀은 느려지지 않습니다.\n\n■ 편의 기능 & 버그 수정\n봇 테스트에서 메인 메뉴로 돌아와도 2대2·3대3·4인 배틀로얄이 유지됩니다.\n1대1 랜덤 매칭에 매칭 취소 버튼이 추가됐습니다.\n캐릭터 선택·매칭 중에는 로비 음악이 계속 재생되고, 전투 종료 후에는 다른 음악을 랜덤으로 재생합니다.\n\n웹은 새로고침, 안드로이드 앱은 완전히 종료한 뒤 다시 열면 적용됩니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-08T18:08:23Z')};
 const PATCH={id:'patch-filter-size-v15-4',kind:'patch',title:'밸런스 패치 · 필터 똥 크기 30% 감소',body:'필터 낀 병신의 똥 접촉 피해가 처음 피해의 50%로 줄었어요. 0레벨 8 → 4, 5레벨 16 → 8 피해입니다. 똥의 표시 크기와 접촉 판정 범위가 이전 크기의 70%로 줄었어요. 발사 간격과 궁극기 폭발 피해는 동일합니다.',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-06T19:05:00Z')};
 const MOBILE_RELEASE={id:'mobile-app-release-v1',kind:'patch',title:'모바일 앱 출시!',body:'Lil_Ago Arena를 이제 안드로이드 앱으로 플레이할 수 있어요!\n\n■ 설치 방법\n휴대폰 브라우저에서 아래 주소를 열어 APK를 다운로드하세요. 다운로드한 파일을 열고, 설치 안내에 따라 해당 브라우저의 「이 출처의 앱 설치 허용」을 켜면 설치할 수 있어요.\nhttps://ball-battle-online-john.onrender.com/android/Lil_Ago_Arena-Android-v1.apk\n\n■ 지원 환경\nAndroid 8.0 이상에서 이용 가능한 직접 설치용 테스트 앱입니다. 인터넷 연결이 필요하며, 현재 iPhone용 앱과 Google Play 등록 버전은 제공되지 않습니다.\n\n■ 앱 기능\n세로 화면으로 게임을 즐길 수 있어요. 로비·캐릭터 선택·매칭 중에는 음악이 재생되고, 전투가 시작되면 꺼집니다. 앱을 잠깐 나가면 음악이 일시 정지되고, 돌아오면 멈춘 부분부터 이어서 재생됩니다.\n\n■ 업데이트와 계정\n게임 업데이트는 앱에도 적용됩니다. 업데이트 후 앱을 완전히 종료했다가 다시 열어주세요. 앱 아이콘이나 안드로이드 기능을 바꿀 때는 새 APK 설치가 필요할 수 있어요. 브라우저의 계정 정보는 앱으로 자동 이전되지 않으므로, 앱에서 사용하는 친구 코드를 확인해 주세요.\n\n이미 앱을 설치했다면 이번 음악 수정은 새 APK 없이 적용돼요. 테스트 버전이므로 기기별 문제를 발견하면 관리자에게 알려주세요!',coins:0,heroes:[],read:false,claimed:false,createdAt:Date.parse('2026-10-07T05:43:24Z')};
 const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
@@ -17,6 +18,7 @@ function create(heroes){
   u.mail=Array.isArray(u.mail)?u.mail:[];
   if(!u.mail.some(m=>m.id===PATCH.id))u.mail.unshift({...PATCH,heroes:[]});
   if(!u.mail.some(m=>m.id===MOBILE_RELEASE.id))u.mail.unshift({...MOBILE_RELEASE,heroes:[]});
+  if(!u.mail.some(m=>m.id===SEASON_UPDATE.id))u.mail.unshift({...SEASON_UPDATE,heroes:[]});
   if(admin(u)){u.owned=[...ids];for(const id of ids)u.levels[id]=5;}
   return u;
  }

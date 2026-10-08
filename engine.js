@@ -36,8 +36,8 @@ const HEROES=[
 {"id": "greenface", "name": "그린페이스", "color": "#39e655", "shade": "#0a7130", "hp": 172, "speed": 274, "atk": "직선 초록 하트 5연발", "ult": "복면 변신 난사", "blurb": "평상시에는 복면 모습으로 초록 하트 5개를 연발한다. 궁극기는 5초간 인물 모습으로 변신해 복면을 전방위로 던진 뒤 원래 복면 모습으로 돌아온다.", "basic": "하트 5연발 · 하트당 2.8 피해 · 1.5초", "super": "5초 변신 · 12방향 복면 · 복면당 1.7 피해 · 14초"},
 {"id": "gymgay", "name": "헬창게이", "color": "#ffdc65", "shade": "#41345f", "hp": 205, "speed": 242, "atk": "영구 회전 나비", "ult": "맵 절반 광선 폭격", "blurb": "주위를 도는 나비를 소환해 유지한다. 궁극기는 무작위 왼쪽 또는 오른쪽 절반 전체를 광선으로 채운다. 닿은 상대는 100 피해, 본인이 닿으면 50 피해를 한 번 받는다.", "basic": "영구 회전 나비 6마리 · 접촉 3.2 피해 · 0.5초 간격", "super": "무작위 맵 절반 · 100 피해 · 자신 50 피해 · 18초"},
 {"id": "fidgetspino", "name": "피젯스피노", "color": "#ff91ce", "shade": "#8a245d", "hp": 170, "speed": 265, "atk": "영구 회전 피젯스피너", "ult": "불꽃 고속 회전", "blurb": "몸 주위를 영구 회전하는 스피너가 적을 밀친다. 궁극기는 5초간 빨라지며 불길을 남기고, 몸에 충돌한 적은 두 배 화상을 입는다.", "basic": "회전 스피너 3개 · 반경 184 · 4 피해 · 0.5초 간격 · 밀침", "super": "5초 고속 회전 · 불길 3초 화상 · 초당 12 / 몸 충돌 24"},
-{"id": "grannyduo", "name": "도현이 집압 편의점 알바 할머니 듀오", "color": "#f14ccc", "shade": "#6634a0", "hp": 100, "speed": 248, "atk": "도현아 속사포 / 각성 레이저", "ult": "각성 레이저 2배 연사", "blurb": "처음부터 체력 100의 할머니 두 명이 함께 싸운다. 한 명이 쓰러지면 체력 100으로 각성하고 전방위 레이저를 발사한다. 각성 전에는 궁극기를 충전하거나 사용할 수 없다.", "basic": "각각 체력 100 · 글자당 0.8 피해 · 각성 후 12방향 레이저당 4", "super": "각성 후에만 사용 · 3초간 레이저 발사 속도 2배"},
-{"id": "fries", "name": "도현이 정액 감튀", "color": "#ffe687", "shade": "#9c7320", "hp": 175, "speed": 245, "atk": "흰 액체 스프레이", "ult": "40% 체력 보호막", "blurb": "흰 액체를 뿌려 적을 2초 동안 느리게 한다. 궁극기는 최대 체력의 40%만큼 피해를 흡수하는 보호막을 5초간 얻는다.", "basic": "3갈래 액체 · 각각 3 피해 · 2초간 35% 둔화", "super": "5초 보호막 · 최대 체력 40% 흡수"},
+{"id": "grannyduo", "name": "도현이 집압 편의점 알바 할머니 듀오", "color": "#f14ccc", "shade": "#6634a0", "hp": 40, "speed": 248, "atk": "도현아 속사포 / 각성 레이저", "ult": "각성 레이저 2배 연사", "blurb": "처음부터 각각 체력 40의 할머니 두 명이 함께 싸운다. 한 명이 쓰러지면 체력 100으로 각성하고 전방위 레이저를 발사한다. 각성 전에는 궁극기를 충전하거나 사용할 수 없다.", "basic": "각각 체력 40 · 직선 글자당 0.8 피해 · 각성 후 체력 100 / 레이저당 4", "super": "각성 후에만 사용 · 3초간 레이저 발사 속도 2배"},
+{"id": "fries", "name": "도현이 정액 감튀", "color": "#ffe687", "shade": "#9c7320", "hp": 175, "speed": 245, "atk": "흰 액체 스프레이", "ult": "원형 소스 장판", "blurb": "흰 액체를 뿌려 적을 2초 동안 느리게 한다. 궁극기는 자신의 위치에 원형 소스를 뿌린다. 소스는 바닥에 5초간 남고, 닿은 적의 이동 속도를 20% 낮춘다.", "basic": "3갈래 액체 · 각각 3 피해 · 2초간 35% 둔화", "super": "반경 180 원형 소스 · 5초 유지 · 접촉한 적 20% 둔화"},
 {"id": "meatman", "name": "채끝살 맨", "color": "#bc8dff", "shade": "#54308a", "hp": 195, "speed": 275, "atk": "접촉 벽 찍기", "ult": "점프 기절 · 연속 찍기", "blurb": "발사체 없이 접촉한 적을 벽으로 밀어 찍는다. 기본 쿨타임은 2초. 궁극기는 적의 현재 지점으로 뛰어 명중하면 3초 기절시키고 3초간 접촉 찍기 쿨타임을 없앤다.", "basic": "접촉 벽 찍기 · 12 피해 · 2초 쿨타임", "super": "지점 점프 · 16 피해 · 3초 기절 · 찍기 쿨타임 해제"}
 ];
 const HERO_BY_ID=Object.fromEntries(HEROES.map(x=>[x.id,x]));
@@ -62,7 +62,7 @@ function newBasic(s,f,e){
 function newSuper(s,f,e){
  if(f.id==='fidgetspino'){f.ultTimer=f.ultCooldown=14;f.ultActive={type:f.id,elapsed:0};return true;}
  if(f.id==='grannyduo'){f.ultTimer=f.ultCooldown=12;f.ultActive={type:f.id,elapsed:0};f.atkTimer=Math.min(f.atkTimer,.175);return true;}
- if(f.id==='fries'){f.ultTimer=f.ultCooldown=14;f.shield={amount:+(f.max*.4).toFixed(2),until:s.t+5};f.ultActive={type:f.id,elapsed:0};return true;}
+ if(f.id==='fries'){f.ultTimer=f.ultCooldown=14;f.shield=null;s.sauceZones=s.sauceZones||[];s.sauceZones.push({x:f.x,y:f.y,r:180,owner:f.side,until:s.t+5});f.ultActive={type:f.id,elapsed:0};fx(s,'ring',f.x,f.y,{radius:180,color:'#fff2c5'});return true;}
  if(f.id==='meatman'){f.ultTimer=f.ultCooldown=15;f.ultActive={type:f.id,elapsed:0,landed:false,fromX:f.x,fromY:f.y,tx:e.x,ty:e.y};fx(s,'ring',e.x,e.y,{radius:90,color:'#bb8bff'});return true;}return false;
 }
 function updateFourSuper(s,f,e,dt){const u=f.ultActive;if(!['fidgetspino','grannyduo','fries','meatman'].includes(u.type))return false;u.elapsed+=dt;
@@ -71,6 +71,7 @@ function updateFourSuper(s,f,e,dt){const u=f.ultActive;if(!['fidgetspino','grann
 }
 function newPassives(s,dt){
  s.flameTrails=s.flameTrails||[];s.flameTrails=s.flameTrails.filter(z=>s.t<z.until);
+ s.sauceZones=(s.sauceZones||[]).filter(z=>s.t<z.until);
  for(const f of entities(s)){if(f.hp<=0)continue;if(f.shield&&s.t>=f.shield.until)f.shield=null;
  if(f.id==='fidgetspino'&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&!held(s,f)){
   const hot=f.ultActive?.type==='fidgetspino';if(hot&&s.t>=(f.nextTrail||0)){f.nextTrail=s.t+.12;s.flameTrails.push({x:f.x,y:f.y,r:32,owner:f.side,until:s.t+2.5});}
@@ -254,7 +255,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
   if(f.pillBurst&&!held(s,f)&&f.stun<=0&&f.mute<=0&&s.t>=f.pillBurst.next){pillBurst(s,f,e);f.pillBurst.next+=.16;if(--f.pillBurst.left<=0)f.pillBurst=null;}if(attackId(f)==='lea'&&!held(s,f)&&f.mute<=0&&f.freeze<=0)for(const q of entities(s))if(enemies(s,q.side,f.side)&&q.hp>0&&dist(f,q)<155+q.r)damage(s,q,7.5*dt,f,'포스필드');
   if(f.ultActive&&!held(s,f))updateSuper(s,f,e,dt);if(s.finished)break;
   if(!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&f.airborne<=0&&!(f.ultActive?.type==='meatman'&&!f.ultActive.landed)){const knocked=f.knockback&&s.t<f.knockback.until;if(!knocked&&f.charge>0){let goal=Math.atan2(e.y-f.y,e.x-f.x);let diff=Math.atan2(Math.sin(goal-f.chargeDir),Math.cos(goal-f.chargeDir));f.chargeDir+=clamp(diff,-1.6*dt,1.6*dt);const speed=attackId(f)==='utti'?660:attackId(f)==='ddak'?650:460;f.vx=Math.cos(f.chargeDir)*speed;f.vy=Math.sin(f.chargeDir)*speed;}else if(!knocked&&attackId(f)==='utti'){f.vx*=.996;f.vy*=.996;}
-    if(knocked){f.vx=f.knockback.vx;f.vy=f.knockback.vy;}else{f.knockback=null;const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:HERO_BY_ID[attackId(f)].speed*(f.boost>0?1.8:1.14))*(f.slow>0?f.slowPower:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}}
+    if(knocked){f.vx=f.knockback.vx;f.vy=f.knockback.vy;}else{f.knockback=null;const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:HERO_BY_ID[attackId(f)].speed*(f.boost>0?1.8:1.14))*Math.min(f.slow>0?f.slowPower:1,(s.sauceZones||[]).some(z=>s.t<z.until&&enemies(s,f.side,z.owner)&&dist(f,z)<=z.r+f.r)?.8:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}}
     f.x+=f.vx*dt;f.y+=f.vy*dt;
     if(knocked&&(f.x<L+f.r||f.x>R-f.r||f.y<T+f.r||f.y>B-f.r)){knockImpact(s,f);f.knockback.until=s.t;}
     if(f.x<L+f.r){f.x=L+f.r;f.vx=Math.abs(f.vx)}if(f.x>R-f.r){f.x=R-f.r;f.vx=-Math.abs(f.vx)}
