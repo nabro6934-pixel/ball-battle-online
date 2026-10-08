@@ -412,6 +412,7 @@ GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다
 GAME_HTML=GAME_HTML.replace("?{code:a.code}:{}","?{code:a.code}:a.action==='multi_queue'?{mode:a.mode}:{}");
 // Season 1 additions: 36 heroes, original portraits and new player icons.
 GAME_HTML=GAME_HTML.replace(/프로필 아이콘 32개/g,'프로필 아이콘 '+engine.HEROES.length+'개');
+GAME_HTML=GAME_HTML.replace(/캐릭터 32명/g,'캐릭터 '+engine.HEROES.length+'명').replace(/32인 수집 배틀/g,engine.HEROES.length+'인 수집 배틀');
 GAME_HTML=GAME_HTML.replace("if(f.isClone)ctx.globalAlpha=.65;","if(f.isClone&&!f.isCompanion)ctx.globalAlpha=.65;").replace("f.isClone?'분신':","f.isClone?(f.isCompanion?'할머니 듀오':'분신'):");
 GAME_HTML=GAME_HTML.replace("const appearance=f.morphId||f.id;","if(f.ultActive?.type==='meatman'&&!f.ultActive.landed)ctx.translate(0,-Math.sin(Math.min(1,f.ultActive.elapsed/.45)*Math.PI)*90);const appearance=f.morphId||f.id;");
 const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8');
