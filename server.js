@@ -10,8 +10,11 @@ const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const progression=require('./progression').create(engine.HEROES);
 const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
+const mastery=require('./mastery')(engine.HEROES);
 const profiles=new Map(), clans=new Map();
-const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics});
+const parties=require('./parties')({sessions,profiles,send,publicUser,profile:profileForSession,busy:s=>!!(queue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
+const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics,mastery,parties});
+const liveFeatures=require('./live-features')({sessions,profiles,clans,rooms,royales,multiplayer,engine,profile:profileForSession,send,save:saveClanAndProfiles,busy:s=>!!(queue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
 const TIMEOUT=18000;
 const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
 
@@ -19,7 +22,7 @@ let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
 function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
-function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);progression.migrate(u);return cosmetics.migrate(u)}
+function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);progression.migrate(u);mastery.migrate(u);return cosmetics.migrate(u)}
 for(const u of profiles.values())migrate(u);
 const NICKNAME_TAKEN='이미 사용 중인 닉네임입니다. 다른 닉네임을 시도해 주세요.';
 function cleanNickname(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
@@ -138,8 +141,8 @@ async function initStorage(){
  if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
  console.log('Clans restored from PostgreSQL:',clans.size);
 }
-function publicUser(u){return {id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
-function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...cosmetics.fields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
+function publicUser(u){return {...mastery.publicFields(u),id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
+function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...mastery.fields(u),...cosmetics.fields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -180,7 +183,7 @@ function newOffer(u){const a=[...new Set((u?.owned||[]).filter(x=>HERO_IDS.has(x
 function sendPicks(r){r.phase='pick';r.picks=[null,null];r.angles=[null,null];r.offers=r.players.map(id=>newOffer(profileForSession(sessions.get(id))));r.updated=Date.now();r.players.forEach((id,side)=>send(sessions.get(id),'pick_phase',{offers:r.offers[side],round:r.round,scores:r.scores}))}
 
 const CLAN_MISSIONS=[{need:3,reward:20,label:'쉬움 · 온라인 승리 3회'},{need:8,reward:60,label:'보통 · 온라인 승리 8회'},{need:20,reward:150,label:'어려움 · 온라인 승리 20회'}];
-function clanPublic(c){if(!c)return null;const mission=CLAN_MISSIONS[c.stage%3];return {id:c.id,name:c.name,desc:c.desc,owner:c.owner,memberCount:c.members.length,maxMembers:100,members:c.members.map(id=>profiles.get(id)).filter(Boolean).map(u=>({id:u.id,nick:u.nick,avatar:u.avatar,tag:u.tag,wins:u.wins||0,coins:u.coins||0,totalTrophies:progression.total(u)})),invitedCount:(c.invited||[]).length,stage:c.stage,completed:c.completed,progress:c.progress,mission,participants:Object.keys(c.participation||{}).length,rankScore:(c.completed||0)*100+Object.values(c.participation||{}).reduce((a,b)=>a+b,0),createdAt:c.createdAt,totalTrophies:cTrophies(c)}}
+function clanPublic(c){if(!c)return null;const mission=CLAN_MISSIONS[c.stage%3];return {id:c.id,name:c.name,desc:c.desc,owner:c.owner,memberCount:c.members.length,maxMembers:100,members:c.members.map(id=>profiles.get(id)).filter(Boolean).map(u=>({...mastery.publicFields(u),id:u.id,nick:u.nick,avatar:u.avatar,tag:u.tag,wins:u.wins||0,coins:u.coins||0,totalTrophies:progression.total(u)})),invitedCount:(c.invited||[]).length,stage:c.stage,completed:c.completed,progress:c.progress,mission,participants:Object.keys(c.participation||{}).length,rankScore:(c.completed||0)*100+Object.values(c.participation||{}).reduce((a,b)=>a+b,0),createdAt:c.createdAt,totalTrophies:cTrophies(c),boss:liveFeatures.view(c)}}
 function cTrophies(c){return c.members.reduce((n,id)=>n+progression.total(profiles.get(id)||{}),0)}
 function allClanList(q=''){return [...clans.values()].filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>cTrophies(b)-cTrophies(a)||(b.completed||0)-(a.completed||0)||b.members.length-a.members.length).map(clanPublic)}
 function saveClanAndProfiles(){if(!dbPool)throw Error('데이터베이스에 연결할 수 없어요.');const people=JSON.stringify([...profiles.values()]);const groups=JSON.stringify([...clans.values()]);dbSaveChain=dbSaveChain.catch(e=>console.error('Previous save:',e.message)).then(async()=>{
@@ -214,13 +217,13 @@ function royaleWinCoins(r){
  r.rewardedSim=r.sim;const u=profileForSession(sessions.get(r.sim.winner));if(!u)return;
  migrate(u);u.coins=(u.coins||0)+50;persist();
 }
-function recordRound(r,w){r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w});}
+function recordRound(r,w){r.totalStats=r.totalStats||[{damage:0,received:0,kills:0,ultUses:0},{damage:0,received:0,kills:0,ultUses:0}];for(let i=0;i<2;i++){const f=r.sim?.actors?.[i];if(f){const v=r.totalStats[i];v.hero=f.id;v.name=profileForSession(sessions.get(r.players[i]))?.nick||'플레이어';v.damage+=r.sim.damage[i]||0;v.received+=f.received||0;v.kills+=f.kills||0;v.ultUses+=f.ultUses||0;}}r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w,damage:r.sim?.damage?.[i]||0,kills:r.sim?.actors?.[i]?.kills||0});}
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
   if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
-  if(!forfeit)season.record(u,r.history?.[i]||[],i===w);
+  if(!forfeit)season.record(u,r.history?.[i]||[],i===w);const bonus=mastery.record(u,r.history?.[i]||[],i===w,forfeit);r.rewards=r.rewards||{};r.rewards[r.players[i]]={coins:i===w?50:0,trophies:i===w?10:0,xp:i===w&&!forfeit?50+bonus.firstWinXP:0,firstWinXP:bonus.firstWinXP};
   const rival=users[1-i];if(rival){const v=u.versus[rival.id]||{wins:0,losses:0};v.wins=(v.wins||0)+(i===w?1:0);v.losses=(v.losses||0)+(i===w?0:1);u.versus[rival.id]=v;}
  }persist();
 }
@@ -232,7 +235,7 @@ function both(r,evt,data){r.players.forEach(id=>send(sessions.get(id),evt,data))
 function roomOf(s){return s?.room&&rooms.get(s.room)}
 function leave(s,msg='상대 플레이어가 나갔습니다.'){
  if(!s)return;
- multiplayer.leave(s);
+ liveFeatures.leave(s);multiplayer.leave(s);parties.disconnected(s);
  if(s.royale)royaleLeave(s);
  let i=queue.indexOf(s.id);if(i>=0)queue.splice(i,1);
  const r=roomOf(s);s.room=null;s.side=null;if(!r)return;
@@ -258,7 +261,7 @@ function startCombat(r){r.phase='loading';r.loadingUntil=Date.now();r.updated=Da
    for(let i=0;i<2&&!r.sim.finished;i++)engine.tick(r.sim,1/60);
    r.count++;
    both(r,'frame',{state:r.sim});
-   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,stats:r.sim.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[]});}
+   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,stats:r.phase==='complete'?r.totalStats:r.sim.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}
  },1000/30);},0);
 }
 
@@ -321,7 +324,7 @@ function royaleAction(s,m){
  throw Error('알 수 없는 로얄 명령입니다.');
 }
 
-function action(s,m){s.seen=Date.now();let type=m.action;if(multiplayer.action(s,m))return;
+function action(s,m){s.seen=Date.now();let type=m.action;if(liveFeatures.raids.has(s.id)&&['royale_super','multi_super','ultimate'].includes(type)){liveFeatures.action(s,{action:'raid_super'});return;}if(liveFeatures.action(s,m))return;if(liveFeatures.raids.has(s.id)&&!['leave','bind'].includes(type))throw Error('보스전을 먼저 종료하세요.');if(liveFeatures.watchers.has(s.id)&&!['leave','bind'].includes(type))throw Error('관전을 먼저 종료하세요.');if(multiplayer.action(s,m))return;
  if(type==='emote'){
   const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
   const rr=royales.get(s.royale),r=roomOf(s);let recipients,side;
@@ -352,7 +355,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(multiplayer.action(s
  if(type==='ultimate'){if(r.phase!=='battle'||!engine.useUltimate(r.sim,side))throw Error('궁극기를 아직 사용할 수 없어요.');both(r,'frame',{state:r.sim});return;}
  if(type==='pick'){if(r.phase!=='pick'||!r.offers[side].includes(m.hero)||!(profileForSession(s)?.owned||[]).includes(m.hero))throw Error('캐릭터를 선택할 수 없는 상태예요.');r.picks[side]=m.hero;send(s,'pick_ok',{hero:m.hero});send(sessions.get(r.players[1-side]),'opponent_picked');if(r.picks.every(Boolean))prepareAim(r);return}
  if(type==='ready'){if(r.phase!=='aim')throw Error('지금은 각도를 정할 수 없어요.');if(!Number.isFinite(m.angle))throw Error('올바른 각도를 입력하세요.');r.angles[side]=Math.min(70,Math.max(-70,m.angle));send(s,'ready_ok');send(sessions.get(r.players[1-side]),'opponent_ready');if(r.angles.every(x=>x!==null))startCombat(r);return}
- if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.history=[[],[]];r.trophyRewards=[];r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
+ if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
@@ -376,6 +379,7 @@ for(const [id,b64] of Object.entries(NEW_HERO_ASSETS.portraits))spriteImages[id]
 let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
+for(const edit of JSON.parse(fs.readFileSync(path.join(__dirname,'game-ui-patches.json'),'utf8'))){if(!GAME_HTML.includes(edit.from))throw Error('Game UI patch target missing');GAME_HTML=GAME_HTML.replace(edit.from,()=>edit.to);}
 if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');
 GAME_HTML=GAME_HTML.replace('${escapeHTML(m.body)}</p>', "${escapeHTML(m.body)}</p>${m.id==='mobile-app-release-v1'?'<a href=\"/android/Lil_Ago_Arena-Android-v1.apk\" class=\"primary\">안드로이드 앱 다운로드</a>':''}");
 // Keep the live URL's browser/offline battle logic identical to the server engine.
@@ -416,8 +420,9 @@ GAME_HTML=GAME_HTML.replace(/캐릭터 32명/g,'캐릭터 '+engine.HEROES.length
 GAME_HTML=GAME_HTML.replace("if(f.isClone)ctx.globalAlpha=.65;","if(f.isClone&&!f.isCompanion)ctx.globalAlpha=.65;").replace("f.isClone?'분신':","f.isClone?(f.isCompanion?'할머니 듀오':'분신'):");
 GAME_HTML=GAME_HTML.replace("const appearance=f.morphId||f.id;","if(f.ultActive?.type==='meatman'&&!f.ultActive.landed)ctx.translate(0,-Math.sin(Math.min(1,f.ultActive.elapsed/.45)*Math.PI)*90);const appearance=f.morphId||f.id;");
 const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8');
+const ARENA_FEATURES_UI=fs.readFileSync(path.join(__dirname,'arena-features-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
-GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(['GET','HEAD'].includes(req.method)){
@@ -435,12 +440,13 @@ const server=http.createServer((req,res)=>{
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
   if(['GET','HEAD'].includes(req.method)&&['/season-ui.js','/season-ui.css','/loading-season1.png','/loading-season1-mobile.webp'].includes(url.pathname)){const file=path.join(__dirname,url.pathname.slice(1));res.writeHead(200,{'Content-Type':url.pathname.endsWith('.webp')?'image/webp':url.pathname.endsWith('.png')?'image/png':url.pathname.endsWith('.css')?'text/css; charset=utf-8':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);return;}
   if(req.method==='GET'&&url.pathname==='/arena-ui.css'){res.writeHead(200,{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache'});res.end(fs.readFileSync(path.join(__dirname,'arena-ui.css')));return}
+  if(req.method==='GET'&&url.pathname==='/hero-stats'){return json(res,200,{heroes:engine.HEROES.map(h=>{const rows=[...profiles.values()].map(u=>u.heroStats?.[h.id]||{});const plays=rows.reduce((n,x)=>n+(x.plays||0),0),wins=rows.reduce((n,x)=>n+(x.wins||0),0);return {id:h.id,plays,wins,winRate:plays?Math.round(wins/plays*1000)/10:0}})})}
   if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>progression.total(b)-progression.total(a)||(b.wins||0)-(a.wins||0)).slice(0,100).map(publicUser)})}
 
   if(['GET','HEAD'].includes(req.method)&&/^\/character-art\/[a-z_]+\.webp$/.test(url.pathname)){const id=url.pathname.split('/').pop().slice(0,-5);if(!originalPortraitIds.includes(id)){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=86400'});if(req.method==='HEAD')res.end();else fs.createReadStream(path.join(__dirname,'portraits',id+'.webp')).pipe(res);return;}
   if(req.method==='POST'&&url.pathname==='/clans'){
    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>8192){req.destroy();return}body+=part});req.on('end',async()=>{
-    try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),...out})}
+    try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=liveFeatures.social(u,m)||clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),...out})}
     catch(e){return json(res,400,{error:e.message||'클랜 오류'})}});return;
   }
   if(req.method==='POST'&&url.pathname==='/social'){
@@ -455,7 +461,7 @@ const server=http.createServer((req,res)=>{
         await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
-      const advanced=cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
+      const advanced=liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
       if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
         updateNickname(u,m.nick,m.avatar);persist()
@@ -475,17 +481,17 @@ const server=http.createServer((req,res)=>{
       }else if(m.action==='remove'){
         throw Error('친구 삭제 기능은 사용할 수 없어요.');
       }else if(m.action!=='get')throw Error('지원하지 않는 명령입니다.');
-      await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
+      await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v18.3',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length,pins:8,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v19.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
     res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','Access-Control-Allow-Origin':'*','X-Accel-Buffering':'no'});s.stream=res;send(s,'hello',{status:'ok',side:s.side,room:s.room});
     multiplayer.resume(s);
     if(s.royale){let rr=royales.get(s.royale);if(rr){if(rr.phase==='lobby')sendRoyaleLobby(rr);else{send(s,'royale_start',{loadMs:Math.max(0,(rr.loadingUntil||0)-Date.now()),code:rr.code,state:rr.sim});send(s,'royale_state',{state:rr.sim});if(rr.phase==='complete')send(s,'royale_end',{state:rr.sim,winner:rr.sim?.winner,placements:rr.sim?.placements});}}}
-    let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{resume:true,side:s.side,code:r.code||null,scores:r.scores,round:r.round});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),scores:r.scores,round:r.round});if(['battle','loading','between','complete'].includes(r.phase))send(s,'start',{loadMs:Math.max(0,(r.loadingUntil||0)-Date.now()),levels:r.levels,heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage,stats:r.sim?.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[]});}}
+    let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{resume:true,side:s.side,code:r.code||null,scores:r.scores,round:r.round});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),scores:r.scores,round:r.round});if(['battle','loading','between','complete'].includes(r.phase))send(s,'start',{loadMs:Math.max(0,(r.loadingUntil||0)-Date.now()),levels:r.levels,heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage,stats:r.sim?.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}}
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
   if(req.method==='POST'&&url.pathname==='/api'){

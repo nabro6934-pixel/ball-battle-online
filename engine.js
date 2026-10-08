@@ -54,6 +54,7 @@ function initializeNewHeroes(s){for(const f of s.actors){
  if(f.id==='grannyduo'){f.awakened=false;f.ultTimer=f.ultCooldown=7;const q=actor(HERO_BY_ID.grannyduo,f.side,0);Object.assign(q,{isClone:true,isCompanion:true,entityId:'granny'+s.summonSerial++,level:f.level,power:f.power,hp:f.max,max:f.max,x:clamp(f.x+75,L+q.r,R-q.r),y:clamp(f.y+55,T+q.r,B-q.r),vx:f.vx,vy:-f.vy,ultTimer:7,ultCooldown:7});s.clones.push(q);}
 }}
 function newBasic(s,f,e){
+ if(f.raidBoss){for(let j=-1;j<=1;j++)fire(s,f,e,'pellet',j*.22,360,7,{r:16,life:3});f.atkTimer=1.1;return true;}
  if(f.id==='fidgetspino'){f.atkTimer=.5;return true;}
  if(f.id==='grannyduo'){if(!f.awakened){fire(s,f,e,'word',0,620,.8,{r:15,life:2,text:'도현아',homing:false});f.atkTimer=.16;}else{for(let j=0;j<12;j++)radial(s,f,'grannylaser',f.spin+j*Math.PI/6,780,2,9,1.7);f.atkTimer=f.ultActive?.type==='grannyduo'?.175:.35;}return true;}
  if(f.id==='fries'){for(let j=-1;j<=1;j++)fire(s,f,e,'whitespray',j*.15,480,3,{r:12,life:1});f.atkTimer=.85;return true;}
@@ -80,7 +81,7 @@ function newPassives(s,dt){
    if(hot&&dist(f,q)<=f.r+q.r+4){q.burn={source:f.side,left:3,rate:24};}
   }
  }
- if(f.id==='meatman'&&!(f.ultActive?.type==='meatman'&&!f.ultActive.landed)&&!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0){const hot=f.ultActive?.type==='meatman'&&f.ultActive.landed;f.pinTouch=f.pinTouch||{};
+ if(!f.raidBoss&&f.id==='meatman'&&!(f.ultActive?.type==='meatman'&&!f.ultActive.landed)&&!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0){const hot=f.ultActive?.type==='meatman'&&f.ultActive.landed;f.pinTouch=f.pinTouch||{};
   for(const q of entities(s)){if(!enemies(s,q.side,f.side)||q.hp<=0)continue;const key=q.entityId||'actor'+q.side,touch=dist(f,q)<=f.r+q.r+7;if(!touch){delete f.pinTouch[key];continue;}if(!f.pinTouch[key]&&(hot||s.t>=(f.pinReady||0))){f.pinTouch[key]=true;f.pinReady=s.t+2;const a=Math.atan2(q.y-f.y,q.x-f.x),dx=Math.cos(a),dy=Math.sin(a);const alongX=Math.abs(dx)<1e-6?Infinity:((dx>0?R-q.r:L+q.r)-q.x)/dx,alongY=Math.abs(dy)<1e-6?Infinity:((dy>0?B-q.r:T+q.r)-q.y)/dy,d=Math.max(0,Math.min(alongX,alongY));q.x=clamp(q.x+dx*d,L+q.r,R-q.r);q.y=clamp(q.y+dy*d,T+q.r,B-q.r);damage(s,q,12,f,'벽 찍어 누르기');fx(s,'slam',q.x,q.y,{color:'#b280ed'});}
    if(hot&&touch)damage(s,q,8*dt,f,'연속 찍기');
   }
@@ -255,7 +256,7 @@ function tick(s,dt=1/30){if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt))
   if(f.pillBurst&&!held(s,f)&&f.stun<=0&&f.mute<=0&&s.t>=f.pillBurst.next){pillBurst(s,f,e);f.pillBurst.next+=.16;if(--f.pillBurst.left<=0)f.pillBurst=null;}if(attackId(f)==='lea'&&!held(s,f)&&f.mute<=0&&f.freeze<=0)for(const q of entities(s))if(enemies(s,q.side,f.side)&&q.hp>0&&dist(f,q)<155+q.r)damage(s,q,7.5*dt,f,'포스필드');
   if(f.ultActive&&!held(s,f))updateSuper(s,f,e,dt);if(s.finished)break;
   if(!held(s,f)&&f.stun<=0&&f.freeze<=0&&f.mute<=0&&f.airborne<=0&&!(f.ultActive?.type==='meatman'&&!f.ultActive.landed)){const knocked=f.knockback&&s.t<f.knockback.until;if(!knocked&&f.charge>0){let goal=Math.atan2(e.y-f.y,e.x-f.x);let diff=Math.atan2(Math.sin(goal-f.chargeDir),Math.cos(goal-f.chargeDir));f.chargeDir+=clamp(diff,-1.6*dt,1.6*dt);const speed=attackId(f)==='utti'?660:attackId(f)==='ddak'?650:460;f.vx=Math.cos(f.chargeDir)*speed;f.vy=Math.sin(f.chargeDir)*speed;}else if(!knocked&&attackId(f)==='utti'){f.vx*=.996;f.vy*=.996;}
-    if(knocked){f.vx=f.knockback.vx;f.vy=f.knockback.vy;}else{f.knockback=null;const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:HERO_BY_ID[attackId(f)].speed*(f.boost>0?1.8:1.14))*Math.min(f.slow>0?f.slowPower:1,(s.sauceZones||[]).some(z=>s.t<z.until&&enemies(s,f.side,z.owner)&&dist(f,z)<=z.r+f.r)?.8:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}}
+    if(knocked){f.vx=f.knockback.vx;f.vy=f.knockback.vy;}else{f.knockback=null;const angle=Math.atan2(e.y-f.y,e.x-f.x);let mag=Math.hypot(f.vx,f.vy)||1;f.vx+=Math.cos(angle)*25*dt;f.vy+=Math.sin(angle)*25*dt; const maxSp=(f.charge>0?640:(f.raidBoss?110:HERO_BY_ID[attackId(f)].speed)*(f.boost>0?1.8:1.14))*Math.min(f.slow>0?f.slowPower:1,(s.sauceZones||[]).some(z=>s.t<z.until&&enemies(s,f.side,z.owner)&&dist(f,z)<=z.r+f.r)?.8:1);if(mag>maxSp){f.vx*=maxSp/mag;f.vy*=maxSp/mag;}}
     f.x+=f.vx*dt;f.y+=f.vy*dt;
     if(knocked&&(f.x<L+f.r||f.x>R-f.r||f.y<T+f.r||f.y>B-f.r)){knockImpact(s,f);f.knockback.until=s.t;}
     if(f.x<L+f.r){f.x=L+f.r;f.vx=Math.abs(f.vx)}if(f.x>R-f.r){f.x=R-f.r;f.vx=-Math.abs(f.vx)}

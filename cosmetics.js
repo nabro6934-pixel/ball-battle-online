@@ -9,7 +9,8 @@ const PINS=[
  {id:'pass_moai_surprise',name:'모아이 놀람',track:'free',tier:25},
  {id:'pass_moai_cool',name:'모아이 선글라스',track:'premium',tier:30}
 ];
-const pinIds=new Set(PINS.map(p=>p.id)),basic=PINS.filter(p=>!p.track).map(p=>p.id);
+PINS.push(...HEROES.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
+const pinIds=new Set(PINS.map(p=>p.id)),basic=PINS.filter(p=>!p.track&&!p.mastery).map(p=>p.id);
 function migrate(u){
  const admin=u.tag==='6E2C5BF4';
  u.pins=[...new Set([...(Array.isArray(u.pins)?u.pins:[]).filter(id=>pinIds.has(id)),...basic])];
@@ -37,3 +38,4 @@ function emote(u,s,m,now=Date.now()){
 }
 function passPin(track,tier){return PINS.find(p=>p.track===track&&p.tier===tier);}
 module.exports={PINS,migrate,fields,action,emote,passPin};
+

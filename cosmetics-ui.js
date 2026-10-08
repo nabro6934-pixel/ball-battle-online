@@ -9,11 +9,12 @@ window.createCosmeticsUI=function(api){
   {id:'pass_moai_surprise',name:'모아이 놀람',track:'free',tier:25},
   {id:'pass_moai_cool',name:'모아이 선글라스',track:'premium',tier:30}
  ];
+ pins.push(...H.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
  const byId=new Map(pins.map(p=>[p.id,p])),images=new Map(),bubbles=new Map();
  const base=()=>api.base();
  function iconImg(id){return base()+'/cosmetics/icons/'+(HM[id]?id:'pizza')+'.webp';}
  function playerImg(u){return iconImg(u?.profileIcon||u?.avatar);}
- function pinImg(id){return base()+'/cosmetics/pins/'+id+'.webp';}
+ function pinImg(id){if(id.startsWith('mastery_'))return iconImg(id.slice(8));return base()+'/cosmetics/pins/'+id+'.webp';}
  function preload(id){if(!byId.has(id))return;let im=images.get(id);if(!im){im=new Image();im.src=pinImg(id);images.set(id,im)}return im;}
  let selectedIcon='pizza',equipped=[],slot=0,busy=false,tab='icons',query='';
  function rewardPin(track,tier){return pins.find(p=>p.track===track&&p.tier===tier);}
@@ -21,14 +22,14 @@ window.createCosmeticsUI=function(api){
  async function save(){if(busy)return;busy=true;const button=content.querySelector('#saveCosmetics');if(button)button.disabled=true;try{const r=await call('cosmetics_update',{...auth(),profileIcon:selectedIcon,equippedPins:equipped});setProfile(r.profile);refresh();sound('reward');toast('프로필 아이콘과 핀을 저장했어요!');if(api.getActive()==='cosmetics')render();}catch(e){toast(e.message);}finally{busy=false;const b=content.querySelector('#saveCosmetics');if(b)b.disabled=false;}}
  function render(){
   const p=profile(),owned=p.pins||pins.slice(0,3).map(x=>x.id);
-  content.innerHTML=`<div class="cosmeticPreview"><img class="playerIcon" src="${iconImg(selectedIcon)}"><div><b>${esc(p.nick)}</b><small>프로필 아이콘 · 로비 캐릭터와 별도로 장착</small></div></div><div class="cosmeticTabs"><button data-cosmetic-tab="icons" class="${tab==='icons'?'selected':''}">프로필 아이콘 32개</button><button data-cosmetic-tab="pins" class="${tab==='pins'?'selected':''}">감정표현 핀 ${owned.length}/8</button></div><div id="cosmeticPane"></div><div class="cosmeticSave"><button id="saveCosmetics" class="primary">장착 저장</button><button id="cosmeticProfile">내 프로필</button></div>`;
+  content.innerHTML=`<div class="cosmeticPreview"><img class="playerIcon" src="${iconImg(selectedIcon)}"><div><b>${esc(p.nick)}</b><small>프로필 아이콘 · 로비 캐릭터와 별도로 장착</small></div></div><div class="cosmeticTabs"><button data-cosmetic-tab="icons" class="${tab==='icons'?'selected':''}">프로필 아이콘 32개</button><button data-cosmetic-tab="pins" class="${tab==='pins'?'selected':''}">감정표현 핀 ${owned.length}/${pins.length}</button></div><div id="cosmeticPane"></div><div class="cosmeticSave"><button id="saveCosmetics" class="primary">장착 저장</button><button id="cosmeticProfile">내 프로필</button></div>`;
   const pane=content.querySelector('#cosmeticPane');
   if(tab==='icons'){
    pane.innerHTML=`<p class="micro">모든 플레이어가 32개 아이콘을 자유롭게 선택할 수 있어요.</p><input id="iconSearch" type="search" placeholder="캐릭터 이름 검색" value="${esc(query)}"><div class="iconGrid">${H.map(h=>`<button class="iconTile ${selectedIcon===h.id?'selected':''}" data-icon="${h.id}" data-name="${esc(h.name)}" aria-pressed="${selectedIcon===h.id}" title="${esc(h.name)}"><img loading="lazy" class="playerIcon" src="${iconImg(h.id)}" alt="${esc(h.name)}"><b>${esc(h.name)}</b></button>`).join('')}</div>`;
    const filter=()=>{pane.querySelectorAll('[data-icon]').forEach(b=>b.hidden=!b.dataset.name.toLowerCase().includes(query.toLowerCase()));};filter();pane.querySelector('#iconSearch').oninput=e=>{query=e.target.value.trim();filter();};
    pane.querySelectorAll('[data-icon]').forEach(b=>b.onclick=()=>{selectedIcon=b.dataset.icon;content.querySelector('.cosmeticPreview img').src=iconImg(selectedIcon);pane.querySelectorAll('[data-icon]').forEach(x=>{x.classList.toggle('selected',x===b);x.setAttribute('aria-pressed',x===b?'true':'false')});});
   }else{
-   pane.innerHTML=`<p class="micro">슬롯을 누른 뒤 핀을 골라요. 장착한 핀은 전투 중 사용할 수 있어요. 기본 3개는 무료, 모아이 5개는 시즌 패스 보상이에요.</p><div class="pinSlots">${[0,1,2].map(i=>`<button data-pin-slot="${i}" class="${slot===i?'selected':''}" aria-label="핀 슬롯 ${i+1}">${equipped[i]?`<img src="${pinImg(equipped[i])}">`:'+'}<small>슬롯 ${i+1}</small></button>`).join('')}</div><div class="pinGrid">${pins.map(pin=>{const has=owned.includes(pin.id);return `<button class="pinTile ${has?'':'locked'} ${equipped.includes(pin.id)?'equipped':''}" data-pin="${pin.id}" ${has?'':'disabled'}><img src="${pinImg(pin.id)}" alt="${pin.name}"><b>${pin.name}</b><small>${has?(equipped.includes(pin.id)?'✓ 장착 중':'보유'):`${pin.track==='free'?'무료':'프리미엄'} 패스 ${pin.tier}티어`}</small></button>`}).join('')}</div><p class="micro">이미 해당 패스 보상을 수령했다면 핀도 자동으로 지급돼요.</p>`;
+   pane.innerHTML=`<p class="micro">슬롯을 누른 뒤 핀을 골라요. 장착한 핀은 전투 중 사용할 수 있어요. 기본 3개는 무료, 모아이 5개는 시즌 패스, 캐릭터 전용 핀은 숙련도 30 보상이에요.</p><div class="pinSlots">${[0,1,2].map(i=>`<button data-pin-slot="${i}" class="${slot===i?'selected':''}" aria-label="핀 슬롯 ${i+1}">${equipped[i]?`<img src="${pinImg(equipped[i])}">`:'+'}<small>슬롯 ${i+1}</small></button>`).join('')}</div><div class="pinGrid">${pins.map(pin=>{const has=owned.includes(pin.id);return `<button class="pinTile ${has?'':'locked'} ${equipped.includes(pin.id)?'equipped':''}" data-pin="${pin.id}" ${has?'':'disabled'}><img src="${pinImg(pin.id)}" alt="${pin.name}"><b>${pin.name}</b><small>${has?(equipped.includes(pin.id)?'✓ 장착 중':'보유'):pin.mastery?'숙련도 30 · 우편 수령':`${pin.track==='free'?'무료':'프리미엄'} 패스 ${pin.tier}티어`}</small></button>`}).join('')}</div><p class="micro">이미 해당 패스 보상을 수령했다면 핀도 자동으로 지급돼요.</p>`;
    pane.querySelectorAll('[data-pin-slot]').forEach(b=>b.onclick=()=>{slot=+b.dataset.pinSlot;render();});
    pane.querySelectorAll('[data-pin]').forEach(b=>b.onclick=()=>{const id=b.dataset.pin,old=equipped.indexOf(id);if(old>=0&&old!==slot){const previous=equipped[slot];equipped[slot]=id;if(previous)equipped[old]=previous;else equipped.splice(old,1);}else equipped[slot]=id;equipped=equipped.filter(Boolean);slot=Math.min(slot,equipped.length-1);preload(id);render();});
   }
