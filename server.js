@@ -475,7 +475,7 @@ const server=http.createServer((req,res)=>{
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
   if(req.method==='POST'&&url.pathname==='/api'){
-    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>4096){req.destroy();return}body+=part});req.on('end',()=>{try{let m=JSON.parse(body);if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream)throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'서버 오류',code:e.code||'REQUEST_ERROR'})}});return;
+    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>4096){req.destroy();return}body+=part});req.on('end',()=>{try{let m=JSON.parse(body);if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream&&!['leave','multi_leave','royale_leave'].includes(m.action))throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'서버 오류',code:e.code||'REQUEST_ERROR'})}});return;
   }
   json(res,404,{error:'Not found'});
 });
