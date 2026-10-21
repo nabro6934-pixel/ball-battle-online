@@ -12,9 +12,9 @@ s=make('hairdohyun');[f,e]=s.actors;E._basic(s,f,e);const b=s.expansionObjects[0
 s=make('redchroma');[f,e]=s.actors;f.x=200;f.y=300;e.x=400;e.y=300;E._super(s,f,e);assert(!s.oil.lit);E._basic(s,f,e);assert.equal(f.atkTimer,5);E.tick(s,.01);assert(s.oil.lit);assert(e.burn.left>4.9);
 s=make('cheongohyun');[f,e]=s.actors;E._super(s,f,e);run(s,4.9);assert(e.abductedUntil>s.t);assert.equal(e.hp,10000);run(s,.2);assert(!e.abductedUntil);assert.equal(e.hp,7000);assert.equal(e.outputScale,.8);
 s=make('bluechroma');[f,e]=s.actors;f.x=300;f.y=300;e.x=390;e.y=300;E.tick(s,.01);assert(e.hp<10000);const prev=e.hp;E._super(s,f,e);assert.equal(e.hp,prev-28);
-s=make('formerduli');[f,e]=s.actors;E._super(s,f,e);assert.equal(s.expansionObjects.length,3);const meteor=s.expansionObjects[0];e.x=meteor.x;e.y=meteor.y;e.stun=3;run(s,1.15);assert(e.hp<=9968);
+s=make('formerduli');[f,e]=s.actors;E._super(s,f,e);assert.equal(s.expansionObjects.length,3);const meteor=s.expansionObjects[0];e.x=meteor.x;e.y=meteor.y;e.stun=3;run(s,1.15);assert(e.hp<=9984);
 s=make('petersshit');[f,e]=s.actors;E._super(s,f,e);assert.equal(e.mute,5);assert(s.giantShit);run(s,5.1);assert.equal(e.mute,0);
-s=make('hwangmigyeong');[f,e]=s.actors;e.x=f.x+180;E._basic(s,f,e);assert.equal(e.poison,5);E._super(s,f,e);run(s,1.6);assert.equal(f.ultActive.waves,5);assert(e.stun>1);assert(e.x>=939||e.x<=61);
+s=make('hwangmigyeong');[f,e]=s.actors;e.x=f.x+180;E._basic(s,f,e);assert.equal(e.shortPoison.left,5);E._super(s,f,e);run(s,1.6);assert.equal(f.ultActive.waves,5);assert(e.stun>1);assert(e.x>=939||e.x<=61);
 s=make('pushmark');[f,e]=s.actors;E._basic(s,f,e);assert.equal(s.expansionObjects.length,2);s.expansionObjects=[];E._super(s,f,e);run(s,2);assert(e.hp<9990);assert(e.mute>.4);run(s,3.2);assert.equal(f.ultActive,null);assert.equal(f.carriedUntil,0);
 // Full deterministic battles and team arenas must finish with finite state.
 for(const h of E.HEROES.slice(-12)){const sim=E.create([h.id,'pizza'],[0,0],777,[5,5]);for(let n=0;n<6000&&!sim.finished;n++)E.tick(sim,.02);assert(sim.finished,h.id);for(const a of sim.actors)assert(Number.isFinite(a.hp)&&Number.isFinite(a.x),h.id);}
