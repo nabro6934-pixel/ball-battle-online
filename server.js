@@ -380,6 +380,9 @@ let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
 for(const edit of JSON.parse(fs.readFileSync(path.join(__dirname,'game-ui-patches.json'),'utf8'))){if(!GAME_HTML.includes(edit.from))throw Error('Game UI patch target missing');GAME_HTML=GAME_HTML.replace(edit.from,()=>edit.to);}
+// Keep the startup playlist identical to the streamed music catalog.
+const LOBBY_MUSIC_TRACKS=JSON.parse(fs.readFileSync(path.join(__dirname,'music/tracks.json'),'utf8'));
+GAME_HTML=GAME_HTML.replace(/window\.createLobbyMusic\(\{tracks:\[[\s\S]*?\]\}\)/,()=> 'window.createLobbyMusic({tracks:'+JSON.stringify(LOBBY_MUSIC_TRACKS).replace(/</g,'\\u003c')+'})').replace(/\/lobby-music\.js\?v=[^"']+/g,'/lobby-music.js?v=23');
 if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');
 GAME_HTML=GAME_HTML.replace('${escapeHTML(m.body)}</p>', "${escapeHTML(m.body)}</p>${m.id==='mobile-app-release-v1'?'<a href=\"/android/Lil_Ago_Arena-Android-v1.apk\" class=\"primary\">안드로이드 앱 다운로드</a>':''}");
 // Keep the live URL's browser/offline battle logic identical to the server engine.

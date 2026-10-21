@@ -8,7 +8,7 @@
  audio.preload='auto';audio.volume=settings.volume;
  const usable=()=>tracks.filter(t=>(settings.allowed===null||settings.allowed.includes(t.id))&&!failed.has(t.id));
  const notify=()=>listeners.forEach(fn=>fn(snapshot()));
- const save=()=>{try{storage.setItem('ballbattle_audio_v1',JSON.stringify({...settings,catalogVersion:22}))}catch{}notify()};
+ const save=()=>{try{storage.setItem('ballbattle_audio_v1',JSON.stringify({...settings,catalogVersion:23}))}catch{}notify()};
  function snapshot(){return {tracks,current,settings:{...settings,allowed:settings.allowed===null?null:[...settings.allowed]},playing:!audio.paused,lobby,blocked,empty:usable().length===0}}
  function shouldPlay(){return lobby&&!doc.hidden&&settings.enabled&&settings.volume>0&&usable().length>0}
  function choose(){let pool=usable().filter(t=>t.id!==current?.id);if(!pool.length)pool=usable();return pool[Math.floor((options.random||Math.random)()*pool.length)]||null}
@@ -23,7 +23,7 @@
  audio.addEventListener('ended',()=>{if(lobby&&settings.enabled)next()});audio.addEventListener('playing',()=>{if(!shouldPlay())audio.pause();notify()});audio.addEventListener('pause',notify);audio.addEventListener('error',()=>{if(current)failed.add(current.id);if(lobby)next();else notify()});
  doc.addEventListener('visibilitychange',()=>{if(doc.hidden){audio.pause();notify()}else play()});doc.addEventListener('pointerdown',unlock,{passive:true});doc.addEventListener('keydown',unlock);doc.addEventListener('touchend',unlock,{passive:true});doc.addEventListener('click',unlock);
  const ready=options.tracks?Promise.resolve(options.tracks):(options.fetch||fetch)('/music/tracks.json').then(r=>{if(!r.ok)throw Error('음악 목록을 불러오지 못했어요.');return r.json()});
- ready.then(list=>{tracks=list;if(settings.allowed!==null){const added=['right-there','bed-tonight','fetish','sayonara','reload','kuzi-96-inst'];if(saved.catalogVersion!==22&&settings.allowed.length>0){settings.allowed=[...new Set(settings.allowed.filter(id=>tracks.some(t=>t.id===id)).concat(added.filter(id=>tracks.some(t=>t.id===id))))];try{storage.setItem('ballbattle_audio_v1',JSON.stringify({...settings,catalogVersion:22}))}catch{}}}const t=choose();if(t)select(t.id);else notify()}).catch(()=>{blocked=true;notify()});
+ ready.then(list=>{tracks=list;if(settings.allowed!==null){const added=['right-there','bed-tonight','fetish','sayonara','reload','kuzi-96-inst'];if(saved.catalogVersion!==23&&settings.allowed.length>0){settings.allowed=[...new Set(settings.allowed.filter(id=>tracks.some(t=>t.id===id)).concat(added.filter(id=>tracks.some(t=>t.id===id))))];try{storage.setItem('ballbattle_audio_v1',JSON.stringify({...settings,catalogVersion:23}))}catch{}}}const t=choose();if(t)select(t.id);else notify()}).catch(()=>{blocked=true;notify()});
  return {ready,snapshot,setLobby,setScreen,update,select,next,unlock,subscribe(fn){listeners.push(fn);fn(snapshot());return()=>{listeners=listeners.filter(x=>x!==fn)}},effectsVolume:()=>settings.effects};
 });
 
