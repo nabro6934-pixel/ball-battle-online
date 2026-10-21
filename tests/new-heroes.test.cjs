@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),E=require('../engine');
 function still(s){s.manualUlt=s.actors.map(()=>true);for(const f of s.actors.concat(s.clones)){f.vx=f.vy=0;f.atkTimer=999;f.contact=999;}return s;}
 function step(s,n=1){for(let i=0;i<n;i++)E.tick(s,.05);}
 function hit(s,target,amount,owner=1,type='pellet'){s.bullets.push({owner,type,x:target.x,y:target.y,vx:0,vy:0,r:10,damage:amount,life:1,age:0});step(s);}
-assert.equal(E.HEROES.length,36);
+assert.equal(E.HEROES.length,49);
 {
  const s=still(E.create(['fidgetspino','pizza'])),f=s.actors[0],q=s.actors[1];q.x=f.x+184;q.y=f.y;step(s);assert.equal(q.hp,q.max-4,'spinner reaches the doubled orbit');assert(q.knockback,'spinner still knocks back');
  const t=still(E.create(['grannyduo','pizza'],[],77,[5,0]));t.actors[0].atkTimer=0;step(t);const p=t.bullets.find(b=>b.text==='도현아');assert(p);assert.equal(p.damage,1.6);assert.equal(p.homing,false,'pre-awakening shots are straight');
