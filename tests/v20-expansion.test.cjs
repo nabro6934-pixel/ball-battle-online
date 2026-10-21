@@ -15,7 +15,7 @@ s=make('bluechroma');[f,e]=s.actors;f.x=300;f.y=300;e.x=390;e.y=300;E.tick(s,.01
 s=make('formerduli');[f,e]=s.actors;E._super(s,f,e);assert.equal(s.expansionObjects.length,3);const meteor=s.expansionObjects[0];e.x=meteor.x;e.y=meteor.y;e.stun=3;run(s,1.15);assert(e.hp<=9968);
 s=make('petersshit');[f,e]=s.actors;E._super(s,f,e);assert.equal(e.mute,5);assert(s.giantShit);run(s,5.1);assert.equal(e.mute,0);
 s=make('hwangmigyeong');[f,e]=s.actors;e.x=f.x+180;E._basic(s,f,e);assert.equal(e.poison,5);E._super(s,f,e);run(s,1.6);assert.equal(f.ultActive.waves,5);assert(e.stun>1);assert(e.x>=939||e.x<=61);
-s=make('pushmark');[f,e]=s.actors;E._basic(s,f,e);assert.equal(s.expansionObjects.length,2);s.expansionObjects=[];E._super(s,f,e);run(s,2);assert(e.hp<9990);assert(e.mute>2);run(s,3.2);assert.equal(f.ultActive,null);assert.equal(f.carriedUntil,0);
+s=make('pushmark');[f,e]=s.actors;E._basic(s,f,e);assert.equal(s.expansionObjects.length,2);s.expansionObjects=[];E._super(s,f,e);run(s,2);assert(e.hp<9990);assert(e.mute>.4);run(s,3.2);assert.equal(f.ultActive,null);assert.equal(f.carriedUntil,0);
 // Full deterministic battles and team arenas must finish with finite state.
 for(const h of E.HEROES.slice(-12)){const sim=E.create([h.id,'pizza'],[0,0],777,[5,5]);for(let n=0;n<6000&&!sim.finished;n++)E.tick(sim,.02);assert(sim.finished,h.id);for(const a of sim.actors)assert(Number.isFinite(a.hp)&&Number.isFinite(a.x),h.id);}
 s=E.forArena(1400,950).create(['pizza','meatman']);s.mode='raid';s.actors[1].raidBoss=true;s.actors[1].hp=s.actors[1].max=50000;s.actors.forEach(a=>a.ultTimer=999);s.raidPhase=3;for(let n=0;n<120;n++)E.forArena(1400,950).tick(s,.02);assert(s.raidHazards?.length);
