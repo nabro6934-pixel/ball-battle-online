@@ -1,6 +1,6 @@
 /* Inner menus only. The original lobby theme is deliberately untouched. */
 #socialModal{background:#07142cbd;backdrop-filter:blur(9px);padding:26px 16px;scroll-behavior:smooth}
-#socialModal .socialPanel{width:min(1100px,100%);padding:0 28px 26px;background:#f2f6fc;color:#20344e;border:1px solid #d4e0ef;border-radius:22px;box-shadow:0 22px 90px #0006;overflow:clip}
+#socialModal .socialPanel{width:min(1100px,100%);padding:0 28px 26px;background:#fff0a6;color:#20344e;border:1px solid #e5c95e;border-radius:22px;box-shadow:0 22px 90px #0006;overflow:clip}
 #socialModal .socialTitle{position:relative;top:auto;margin:0 -28px;padding:22px 28px 17px;display:flex;align-items:center;justify-content:space-between;gap:15px;background:#102947;border:0;color:#fff;z-index:5}
 #socialModal .socialTitle h2{margin:0;color:#fff;font-size:22px;letter-spacing:-.7px;text-shadow:none;line-height:1.45}
 #socialModal #socialClose{border:1px solid #6683a4!important;background:#28415e!important;color:#f0f6ff!important;box-shadow:none!important;border-radius:9px;min-height:37px;padding:8px 12px;font-size:11px;flex-shrink:0}
