@@ -1,0 +1,94 @@
+/* Arena 24: deep ink, stadium cyan and a clear acid-yellow primary action. */
+body[data-screen=home]{background:#07131f;color:#f5f8ff;background-image:radial-gradient(ellipse at 60% 25%,#123e58 0,transparent 58%)}
+body[data-screen=home] .header{background:#0a1826e8;border:1px solid #284355;border-radius:18px;box-shadow:none}
+body[data-screen=home] .brand .logo{background:#d3fb59;color:#142130;border-radius:12px;box-shadow:none}
+body[data-screen=home] .brand h1 b{color:#d3fb59}
+body[data-screen=home] .panel{border:1px solid #274456;border-radius:23px;background:#091a28;box-shadow:0 22px 60px #0005}
+body[data-screen=home] .panelHeader{background:#0b1c2a;border-bottom:1px solid #284151}
+body[data-screen=home] .arena{background:#091a28;min-height:760px;height:auto;aspect-ratio:auto}
+body[data-screen=home] .arena>canvas{position:absolute;width:100%;height:100%;opacity:.15}
+body[data-screen=home] .overlay:has(.arenaLobby24){position:relative;inset:auto;padding:24px;background:radial-gradient(ellipse at 51% 40%,#15536a55,transparent 56%),linear-gradient(135deg,#0a1c2b,#102b3d 55%,#0b1828);backdrop-filter:none;overflow:visible;align-items:stretch}
+body[data-screen=home] .overlayContent:has(.arenaLobby24){width:100%;max-width:1240px;max-height:none;padding:0;background:transparent;border:0;box-shadow:none;overflow:visible}
+body[data-screen=home] .arenaLobby24{display:grid;grid-template-columns:150px minmax(220px,1fr) 225px;grid-template-rows:auto minmax(340px,1fr) auto auto;gap:18px;min-height:690px;color:#eef7ff}
+body[data-screen=home] .lobbyTop{grid-column:1/-1;padding-bottom:17px;border-bottom:1px solid #73b0c522;align-items:center}
+body[data-screen=home] .playerBadge{background:#152f40;border:1px solid #375365;border-radius:14px;padding:9px 16px;box-shadow:none;max-width:none}
+body[data-screen=home] .playerBadge img{width:46px;height:46px;border-radius:10px;background:#233e52}
+body[data-screen=home] .playerBadge strong{font-size:16px;color:white}
+body[data-screen=home] .playerBadge small{font-size:9px;color:#a3bbc8;letter-spacing:1px}
+body[data-screen=home] .walletStrip{gap:9px}
+body[data-screen=home] .walletCell{background:#132a3c;border:1px solid #3b5365;box-shadow:none;color:#f5f7ff;padding:12px 16px;border-radius:12px;font-size:16px}
+body[data-screen=home] .walletCell.trophy{font-size:21px;color:#ddfb8b}
+body[data-screen=home] .lobbyRail{grid-column:1;grid-row:2;gap:8px;justify-content:flex-start}
+body[data-screen=home] .lobbyRail .railBtn,body[data-screen=home] .lobbyRight>.railBtn{border:1px solid #325365;background:#132f41;color:#d7e5f1;border-radius:12px;box-shadow:none;text-align:left;padding:12px;font-size:12px;transition:background .15s,transform .15s}
+body[data-screen=home] .lobbyRail .railBtn:hover{background:#224b61;transform:translateX(3px)}
+body[data-screen=home] .lobbyRail .navIcon{font-size:21px}
+body[data-screen=home] .lobbyShowcase{grid-column:2;grid-row:2;position:relative;isolation:isolate;min-width:0;display:flex;align-items:center;justify-content:flex-end;flex-direction:column;padding:24px 5px 12px;overflow:hidden}
+body[data-screen=home] .seasonTag{position:absolute;top:28px;right:5px;font-size:9px;color:#a3bbc9;letter-spacing:2px;background:transparent;border:0;z-index:3}
+.lobbyEdition{position:absolute;top:0;left:0;font-weight:800;font-size:9px;letter-spacing:2px;color:#a7c9d5;display:flex;gap:8px;align-items:center;z-index:3}
+.liveDot{display:inline-block;width:6px;height:6px;flex:none;background:#cdfa58;border-radius:50%;box-shadow:0 0 10px #cdfa5855}
+.lobbyWordmark{position:absolute;left:0;top:53px;font-size:clamp(38px,5.5vw,76px);font-weight:1000;letter-spacing:-4px;line-height:.96;color:#dff4f8;opacity:.2;transform:skewY(-5deg);z-index:-1;text-align:left;white-space:nowrap}
+.lobbyWordmark i{color:#9fe4ed;font-style:normal}
+body[data-screen=home] .showcaseImage{height:280px;width:min(95%,340px);object-fit:contain;z-index:2;filter:drop-shadow(0 18px 12px #0007);animation:arenaFloat24 4s ease-in-out infinite;transform-origin:bottom}
+body[data-screen=home] .fighterGlow{position:absolute;width:260px;height:260px;top:70px;background:radial-gradient(circle,#6bd7e633,#25b6db0a 60%,transparent 70%);filter:none;box-shadow:none;border:1px solid #65c3d21f;border-radius:50%;z-index:-1}
+.showcaseFloor{position:absolute;left:50%;bottom:94px;width:260px;height:62px;border:1px solid #5edcec88;background:radial-gradient(ellipse,#50cddd33,transparent 70%);border-radius:50%;transform:translateX(-50%);box-shadow:0 0 0 15px #58d2dd08,0 0 0 32px #58d2dd04;z-index:-1}
+body[data-screen=home] .showcaseName{font-size:25px;letter-spacing:-1px;color:white;text-shadow:0 2px 10px #0008;margin-top:5px;z-index:3}
+body[data-screen=home] .fighterBadges{margin:9px 0;z-index:3}
+body[data-screen=home] .powerBadge,body[data-screen=home] .rankBadge{border:1px solid #4e7284;background:#18394c;color:#deedf7;border-radius:6px;box-shadow:none}
+body[data-screen=home] #selectLobbyHero{font-size:11px;padding:8px 16px;background:transparent;color:#a9d6e4;border:1px solid #44697a;box-shadow:none;border-radius:8px;z-index:3}
+body[data-screen=home] .lobbyRight{display:flex;grid-column:3;grid-row:2;gap:12px;flex-direction:column;justify-content:center}
+.arenaStatus{font-size:10px;letter-spacing:1.4px;font-weight:800;color:#d2f986;border-bottom:1px solid #42627355;padding:0 0 16px;line-height:1.7}
+.arenaStatus .liveDot{margin-right:7px}.arenaStatus small{display:block;font-size:10px;color:#8faebd;letter-spacing:0;margin-top:7px}
+body[data-screen=home] .featureTile{background:linear-gradient(120deg,#1a3d50,#122c3e);border:1px solid #3b6074;border-radius:14px;padding:17px;text-align:left;box-shadow:none;transform:none}
+body[data-screen=home] .featureTile.gold{background:linear-gradient(120deg,#34462e,#1d393c);border-color:#7b975351}
+body[data-screen=home] .featureTile h3{font-size:14px;color:#f3f9ff;margin:0 0 8px}
+body[data-screen=home] .featureTile p{font-size:11px;color:#b2cbd7;line-height:1.8;margin:0}
+body[data-screen=home] .seasonNav{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+body[data-screen=home] .seasonNav button{border:1px solid #425a6c;background:#153246;box-shadow:none;border-radius:12px;padding:14px;color:#e5f1fa;text-align:left;font-size:13px}
+body[data-screen=home] .seasonNav .passNav{color:#e6f9b0;background:linear-gradient(110deg,#344631,#213a40);border-color:#7b975351}
+body[data-screen=home] .modeBar{grid-column:1/-1;display:grid;grid-template-columns:1fr 220px;gap:12px;padding:18px;background:#071722aa;border:1px solid #43687966;border-radius:17px;margin:0;align-items:stretch}
+.selectedModeBanner{grid-column:1;display:flex;flex-direction:column;gap:5px;text-align:left;padding-bottom:4px}
+.selectedModeBanner small{font-size:8px;color:#80b9ce;letter-spacing:2px}.selectedModeBanner b{font-size:21px;color:#f0f9ff}.selectedModeBanner span{font-size:10px;color:#a1bdcd}
+body[data-screen=home] .modeOptions{grid-column:1;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px!important}
+body[data-screen=home] .modeChip{display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;padding:9px 7px;background:#193244;border:1px solid #365267;border-radius:8px;color:#b5cbdc;box-shadow:none;font-size:10px;white-space:normal;line-height:1.4}
+body[data-screen=home] .modeChip span{font-size:16px}
+body[data-screen=home] .modeChip.selected{background:#2c5261;border-color:#8de2e7;color:#fff;box-shadow:inset 3px 0 #99eef0;transform:none}
+body[data-screen=home] #playLobby.playButton{grid-column:2;grid-row:1/3;background:#d3fb59;border:1px solid #edffa8;color:#142319;border-radius:13px;box-shadow:0 5px 0 #6c8837;display:flex;align-items:center;justify-content:center;gap:18px;font-size:23px;min-height:105px;transition:filter .15s,transform .15s;text-shadow:none}
+body[data-screen=home] #playLobby.playButton:hover{filter:brightness(1.08);transform:translateY(-2px)}
+body[data-screen=home] #playLobby b{font-size:33px;font-weight:500}
+body[data-screen=home] #homeError{grid-column:1/-1;margin:0}
+body[data-screen=home] .privateRoom{grid-column:1/-1}
+@keyframes arenaFloat24{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(1deg)}}
+/* A real countdown, with the battle frozen behind it. */
+.battleCountdown{position:fixed;inset:0;z-index:10005;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:linear-gradient(#051321e8,#092b3ad9);color:#fff;text-align:center;backdrop-filter:blur(6px)}
+.battleCountdown[hidden]{display:none!important}.countdownHeading{font-size:12px;font-weight:900;letter-spacing:4px;color:#a7e0ee;margin-bottom:16px}.countdownNumber{font-size:clamp(100px,20vh,180px);line-height:1.05;font-weight:1000;color:#d3fb59;text-shadow:0 5px 0 #3c662c,0 0 70px #b5fd5222;animation:countdownPulse24 .35s ease-out}.battleCountdown>p{font-size:12px;color:#b3d1df;letter-spacing:2px;margin:10px}.countdownTrack{width:140px;height:3px;background:#2e4b5b;margin-top:15px;overflow:hidden;border-radius:4px}.countdownTrack i{display:block;width:100%;height:100%;background:#c9fa59;transform-origin:left;transition:transform .04s linear}
+.countdownProfiles{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;width:min(100%,1000px);max-height:42vh;overflow:auto;margin-bottom:8px}
+.battleProfile{display:flex;align-items:center;gap:12px;padding:14px;background:#173548e8;border:1px solid #426b81;border-radius:14px;min-width:180px;max-width:300px;text-align:left;color:#fff;flex:1 1 180px;box-sizing:border-box}
+.battleProfileIcon{width:58px!important;height:58px!important;object-fit:contain;border:1px solid #80c5d05c;border-radius:11px;background:#23485e;flex-shrink:0;filter:none!important}
+.battleProfileCopy{min-width:0;display:flex;flex-direction:column;gap:4px}.battleProfileCopy small{color:#86c4d8;font-size:8px;letter-spacing:1px}.battleProfileCopy b{font-size:14px;overflow-wrap:anywhere;color:white;white-space:normal!important}.battleProfileCopy strong{font-size:15px;color:#e0fb9c}.battleProfileCopy span,.battleProfileCopy em{font-size:10px;color:#b6cfdd;line-height:1.5;font-style:normal}
+.fullMatchCard{display:flex!important;flex-direction:column!important;padding:20px!important;max-width:440px!important;width:min(94%,440px)!important;background:#0c2336f5!important;border:1px solid #4e879d!important;border-radius:18px!important;margin:20px auto!important;box-shadow:0 10px 50px #0005!important}.fullMatchCard .battleProfile{width:100%;max-width:none}.fullMatchCard p{font-size:11px;color:#b0cedd;margin:0}.versusEyebrow{font-size:10px;font-weight:900;letter-spacing:2px;color:#d3fb59;margin-bottom:12px}.matchTeamProfiles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.matchTeamProfiles .battleProfile{flex:1 1 170px}.multiRoster .battleProfile{max-width:none;margin:4px 0;min-width:0}.multiRoster .battleProfileIcon{height:42px!important;width:42px!important}
+@keyframes countdownPulse24{from{transform:scale(1.25);opacity:.4}to{transform:scale(1);opacity:1}}
+@media(max-width:900px){body[data-screen=home] .arenaLobby24{grid-template-columns:126px minmax(200px,1fr);grid-template-rows:auto minmax(330px,1fr) auto auto;min-height:650px;gap:13px}body[data-screen=home] .lobbyRight{display:none}body[data-screen=home] .lobbyShowcase{grid-column:2}body[data-screen=home] .modeBar{grid-template-columns:1fr 185px}body[data-screen=home] .arena{min-height:730px}.lobbyWordmark{font-size:66px}}
+@media(max-width:560px){body[data-screen=home] .overlay:has(.arenaLobby24){padding:12px}body[data-screen=home] .arenaLobby24{grid-template-columns:93px minmax(0,1fr);gap:10px;grid-template-rows:auto 310px auto auto;min-height:0}body[data-screen=home] .arena{min-height:0}body[data-screen=home] .lobbyTop{padding-bottom:11px;gap:8px;align-items:center}body[data-screen=home] .playerBadge{padding:7px;gap:8px;max-width:59%}body[data-screen=home] .playerBadge img{width:33px;height:33px}body[data-screen=home] .playerBadge strong{font-size:12px}body[data-screen=home] .playerBadge small{font-size:7px;letter-spacing:0}body[data-screen=home] .walletStrip{gap:5px;flex-direction:column}body[data-screen=home] .walletCell{padding:5px 10px;font-size:10px}body[data-screen=home] .walletCell.trophy{font-size:14px}body[data-screen=home] .lobbyRail{gap:6px}body[data-screen=home] .lobbyRail .railBtn{font-size:9px;padding:9px 6px;gap:5px;min-height:36px}body[data-screen=home] .lobbyRail .navIcon{font-size:15px}body[data-screen=home] .showcaseImage{height:205px;width:95%;max-width:240px}body[data-screen=home] .lobbyShowcase{padding:32px 0 0;justify-content:flex-end}body[data-screen=home] .showcaseName{font-size:19px}body[data-screen=home] .seasonTag{top:17px;right:0;font-size:6px;letter-spacing:1px}.lobbyEdition{font-size:6px;letter-spacing:1px;top:0}.lobbyWordmark{font-size:43px;letter-spacing:-2px;top:48px}.showcaseFloor{width:165px;bottom:71px;height:42px}body[data-screen=home] .fighterGlow{width:170px;height:170px;top:70px}body[data-screen=home] .fighterBadges{margin:5px 0}body[data-screen=home] .powerBadge,body[data-screen=home] .rankBadge{font-size:8px;padding:3px 5px}body[data-screen=home] #selectLobbyHero{padding:6px 10px;font-size:9px}body[data-screen=home] .seasonNav{gap:8px}body[data-screen=home] .seasonNav button{font-size:10px;padding:11px 9px}body[data-screen=home] .modeBar{grid-template-columns:1fr;gap:10px;padding:12px}body[data-screen=home] .modeOptions{grid-template-columns:repeat(4,minmax(0,1fr))}.selectedModeBanner b{font-size:18px}.selectedModeBanner span{font-size:9px}body[data-screen=home] .modeChip{font-size:8px;padding:8px 4px;gap:4px;flex-direction:column;justify-content:center}body[data-screen=home] #playLobby.playButton{grid-column:1;grid-row:3;min-height:58px;font-size:21px;justify-content:space-between;padding:10px 20px}.countdownProfiles{gap:6px;max-height:44vh}.battleProfile{padding:9px;gap:8px;min-width:140px;flex-basis:140px}.battleProfileIcon{width:40px!important;height:40px!important}.battleProfileCopy b{font-size:11px}.battleProfileCopy strong{font-size:12px}.battleProfileCopy span,.battleProfileCopy em{font-size:8px}.countdownNumber{font-size:100px}.countdownHeading{font-size:10px;letter-spacing:2px}}
+@media(prefers-reduced-motion:reduce){body[data-screen=home] .showcaseImage,.countdownNumber{animation:none!important}body[data-screen=home] .railBtn{transition:none}}
+/* Override legacy theme declarations that intentionally used !important. */
+body[data-screen=home] .overlay:has(.arenaLobby24){background:radial-gradient(ellipse at 51% 40%,#15536a55,transparent 56%),linear-gradient(135deg,#0a1c2b,#102b3d 55%,#0b1828)!important}
+body[data-screen=home] .arenaLobby24{height:auto!important;grid-template-rows:auto 370px auto auto;align-items:stretch}
+body[data-screen=home] .lobbyRail{display:flex;flex-direction:column;gap:7px;align-self:center}
+body[data-screen=home] .lobbyRail .railBtn{min-height:38px;padding:10px}
+body[data-screen=home] .lobbyRight{gap:8px;align-self:center}
+body[data-screen=home] .lobbyRight .featureTile:not(.gold){display:none}
+body[data-screen=home] .lobbyRight .featureTile{padding:12px}
+body[data-screen=home] .lobbyRight #lobbyStats{border:1px solid #436678;background:#17364b;color:#b9deeb;border-radius:10px;box-shadow:none;font-size:11px;padding:10px}
+body[data-screen=home] #clubRaidLobby{min-height:72px;padding:11px!important;background:linear-gradient(120deg,#372a51,#493648)!important;border:1px solid #9677b0!important;box-shadow:none!important;gap:8px;border-radius:12px!important}
+body[data-screen=home] #clubRaidLobby strong{font-size:13px}body[data-screen=home] #clubRaidLobby small{font-size:9px}body[data-screen=home] #clubRaidLobby>b{font-size:10px}body[data-screen=home] .raidLobbyFace{font-size:26px}
+body[data-screen=home] .arenaStatus{padding-bottom:10px;font-size:9px}
+body[data-screen=home] .seasonNav button{max-width:none;min-height:38px;padding:11px}
+body[data-screen=home] .modeBar{padding:14px}
+body[data-screen=home] .modeChip{padding:7px;font-size:10px}
+body[data-screen=home] #playLobby.playButton{background:#d3fb59!important;color:#142319!important;border:1px solid #edffa8!important;border-radius:13px!important;box-shadow:0 5px 0 #6c8837!important}
+body[data-screen=home] #selectLobbyHero{background:#102e40!important;color:#b8dce8!important;border:1px solid #42697b!important;box-shadow:none!important}
+@media(max-width:900px){body[data-screen=home] .arenaLobby24{grid-template-rows:auto 350px auto auto}}
+@media(max-width:560px){body[data-screen=home] .arenaLobby24{grid-template-rows:auto 310px auto auto}body[data-screen=home] .lobbyRail .railBtn{min-height:34px;padding:8px 6px}body[data-screen=home] .modeChip{font-size:8px;padding:7px 3px}body[data-screen=home] .modeBar{padding:11px}}
+body[data-screen=home] .lobbyRight #lobbyStats{display:block}
+body[data-screen=home] .showcaseImage{height:225px;flex:none}
+@media(max-width:560px){body[data-screen=home] .showcaseImage{height:175px}}
