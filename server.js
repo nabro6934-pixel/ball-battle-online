@@ -8,6 +8,7 @@ const sessions=new Map(),rooms=new Map(),codes=new Map(),royales=new Map(),royal
 const queue=[];
 const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const progression=require('./progression').create(engine.HEROES);
+const battleStats=require('./battle-stats');
 const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
 const mastery=require('./mastery')(engine.HEROES);
@@ -217,7 +218,14 @@ function royaleWinCoins(r){
  r.rewardedSim=r.sim;const u=profileForSession(sessions.get(r.sim.winner));if(!u)return;
  migrate(u);u.coins=(u.coins||0)+50;persist();
 }
-function recordRound(r,w){r.totalStats=r.totalStats||[{damage:0,received:0,kills:0,ultUses:0},{damage:0,received:0,kills:0,ultUses:0}];for(let i=0;i<2;i++){const f=r.sim?.actors?.[i];if(f){const v=r.totalStats[i];v.hero=f.id;v.name=profileForSession(sessions.get(r.players[i]))?.nick||'플레이어';v.damage+=r.sim.damage[i]||0;v.received+=f.received||0;v.kills+=f.kills||0;v.ultUses+=f.ultUses||0;}}r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w,damage:r.sim?.damage?.[i]||0,kills:r.sim?.actors?.[i]?.kills||0});}
+function recordRound(r,w){
+ if(r.recordedSim===r.sim)return;
+ r.recordedSim=r.sim;
+ r.roundStats=battleStats.rows(r.sim,r.players.map(id=>profileForSession(sessions.get(id))?.nick||'플레이어'));
+ r.totalStats=battleStats.merge(r.totalStats,r.roundStats);
+ r.history=r.history||[[],[]];for(let i=0;i<2;i++)if(HERO_IDS.has(r.picks?.[i]))r.history[i].push({hero:r.picks[i],won:i===w,damage:r.roundStats[i]?.damage||0,kills:r.roundStats[i]?.kills||0});
+}
+
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
@@ -261,7 +269,7 @@ function startCombat(r){r.phase='loading';r.loadingUntil=Date.now()+3000;r.updat
    for(let i=0;i<2&&!r.sim.finished;i++)engine.tick(r.sim,1/60);
    r.count++;
    both(r,'frame',{state:r.sim});
-   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,stats:r.phase==='complete'?r.totalStats:r.sim.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}
+   if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,stats:r.roundStats,totalStats:r.phase==='complete'?r.totalStats:null,trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}
  },1000/30);},3000);
 }
 
@@ -355,7 +363,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(liveFeatures.raids.h
  if(type==='ultimate'){if(r.phase!=='battle'||!engine.useUltimate(r.sim,side))throw Error('궁극기를 아직 사용할 수 없어요.');both(r,'frame',{state:r.sim});return;}
  if(type==='pick'){if(r.phase!=='pick'||!r.offers[side].includes(m.hero)||!(profileForSession(s)?.owned||[]).includes(m.hero))throw Error('캐릭터를 선택할 수 없는 상태예요.');r.picks[side]=m.hero;send(s,'pick_ok',{hero:m.hero});send(sessions.get(r.players[1-side]),'opponent_picked');if(r.picks.every(Boolean))prepareAim(r);return}
  if(type==='ready'){if(r.phase!=='aim')throw Error('지금은 각도를 정할 수 없어요.');if(!Number.isFinite(m.angle))throw Error('올바른 각도를 입력하세요.');r.angles[side]=Math.min(70,Math.max(-70,m.angle));send(s,'ready_ok');send(sessions.get(r.players[1-side]),'opponent_ready');if(r.angles.every(x=>x!==null))startCombat(r);return}
- if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
+ if(type==='next'){if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.roundStats=null;r.recordedSim=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
@@ -425,12 +433,14 @@ GAME_HTML=GAME_HTML.replace("const appearance=f.morphId||f.id;","if(f.ultActive?
 // All cosmetic rewards use the same one-time mailbox claim flow.
 GAME_HTML=GAME_HTML.replaceAll('m.coins||m.heroes?.length||m.premium','m.coins||m.heroes?.length||m.premium||m.pins?.length||m.titleHeroes?.length||m.pin||m.titleHero');
 GAME_HTML=GAME_HTML.replace('<div class="mailRewards">','<div class="mailRewards">${giftCosmeticRewards(m)}');
+GAME_HTML=GAME_HTML.replaceAll('Math.round(damage[0])',"window.ArenaBattleStats.amount(damage[0]).toLocaleString('ko-KR',{maximumFractionDigits:2})").replaceAll('Math.round(damage[1])',"window.ArenaBattleStats.amount(damage[1]).toLocaleString('ko-KR',{maximumFractionDigits:2})");
 const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8');
 const ARENA_FEATURES_UI=fs.readFileSync(path.join(__dirname,'arena-features-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
+GAME_HTML=GAME_HTML.replace('</head>',()=>'<script>'+fs.readFileSync(path.join(__dirname,'battle-stats.js'),'utf8')+'</script></head>');
 GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+'</style></head>');
 GAME_HTML=GAME_HTML.replaceAll("heroImg(HM[app.opponent?.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)').replaceAll("heroImg(HM[app.opponent.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)');
-GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(['GET','HEAD'].includes(req.method)){
@@ -492,14 +502,14 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v25.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v25.1',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
     res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','Access-Control-Allow-Origin':'*','X-Accel-Buffering':'no'});s.stream=res;send(s,'hello',{status:'ok',side:s.side,room:s.room});
     multiplayer.resume(s);
     if(s.royale){let rr=royales.get(s.royale);if(rr){if(rr.phase==='lobby')sendRoyaleLobby(rr);else{send(s,'royale_start',{loadMs:Math.max(0,(rr.loadingUntil||0)-Date.now()),players:rr.players.map(id=>publicUser(profileForSession(sessions.get(id)))),code:rr.code,state:rr.sim});send(s,'royale_state',{state:rr.sim});if(rr.phase==='complete')send(s,'royale_end',{state:rr.sim,winner:rr.sim?.winner,placements:rr.sim?.placements});}}}
-    let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{resume:true,side:s.side,code:r.code||null,scores:r.scores,round:r.round,opponent:publicUser(profileForSession(sessions.get(r.players[1-s.side])))});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),scores:r.scores,round:r.round});if(['battle','loading','between','complete'].includes(r.phase))send(s,'start',{loadMs:Math.max(0,(r.loadingUntil||0)-Date.now()),players:r.players.map(id=>publicUser(profileForSession(sessions.get(id)))),levels:r.levels,heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage,stats:r.sim?.actors.map((a,i)=>({hero:a.id,damage:r.sim.damage[i],received:a.received||0,kills:a.kills||0,ultUses:a.ultUses||0})),trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}}
+    let r=roomOf(s);if(r){if(r.players.length===1)send(s,'created',{code:r.code});else{send(s,'matched',{resume:true,side:s.side,code:r.code||null,scores:r.scores,round:r.round,opponent:publicUser(profileForSession(sessions.get(r.players[1-s.side])))});if(r.phase==='pick')send(s,'pick_phase',{offers:r.offers[s.side],round:r.round,scores:r.scores});if(r.phase==='aim')send(s,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),scores:r.scores,round:r.round});if(['battle','loading','between','complete'].includes(r.phase))send(s,'start',{loadMs:Math.max(0,(r.loadingUntil||0)-Date.now()),players:r.players.map(id=>publicUser(profileForSession(sessions.get(id)))),levels:r.levels,heroes:r.picks,angles:r.angles,round:r.round,scores:r.scores});if(r.sim)send(s,'frame',{state:r.sim});if(r.phase==='between'||r.phase==='complete')send(s,'round_end',{winner:r.sim?.winner,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim?.damage,stats:r.roundStats||battleStats.rows(r.sim),totalStats:r.phase==='complete'?r.totalStats:null,trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}}
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
   if(req.method==='POST'&&url.pathname==='/api'){
