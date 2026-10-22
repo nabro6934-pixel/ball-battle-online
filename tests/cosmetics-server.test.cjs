@@ -9,6 +9,15 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  assert.equal((await request({action:'cosmetics_update',id:u.id,secret:'wrong',profileIcon:'moai'})).status,401);
  const result=await request({action:'cosmetics_update',id:u.id,secret:u.secret,profileIcon:'gymgay',equippedPins:['basic_heart']});assert.equal(result.status,200);assert.equal(result.profile.profileIcon,'gymgay');assert.equal(result.profile.avatar,'pizza');assert.equal(st.publicUser(u).profileIcon,'gymgay');assert.equal(result.profile.pins.length,3);
  assert.equal((await request({action:'cosmetics_update',id:u.id,secret:u.secret,equippedPins:['pass_moai_cool']})).status,400);
+ const admin=st.migrate({id:'cosmetic-admin',secret:'admin-test-only',tag:'6E2C5BF4',nick:'Admin',avatar:'pizza',owned:['pizza'],coins:500});st.profiles.set(admin.id,admin);
+ const gift={action:'admin_send',id:admin.id,secret:admin.secret,scope:'one',tag:u.tag,coins:0,heroes:[],pins:['mastery_pushmark','pass_moai_cool'],titleHeroes:['pushmark'],title:'핀과 칭호',body:'테스트',requestId:'http-cosmetic-gift-1'};
+ assert.equal((await request({...gift,id:u.id,secret:u.secret})).status,400);
+ assert.equal((await request({...gift,secret:'wrong'})).status,401);
+ const sent=await request(gift);assert.equal(sent.status,200);assert.equal(sent.sent,1);assert.equal(sent.profile.titles.length,49);assert.equal(sent.profile.pins.length,57);
+ const mail=u.mail.find(m=>m.title==='핀과 칭호');assert(mail);assert.equal((await request(gift)).duplicate,true);
+ const claimed=await request({action:'mail_claim',id:u.id,secret:u.secret,mailId:mail.id});assert.equal(claimed.status,200);assert(claimed.profile.pins.includes('mastery_pushmark'));assert(claimed.profile.titles.includes('pushmark'));assert.equal(claimed.profile.titleCatalog.pushmark,'개씹푸시급');
+ const equipped=await request({action:'mastery_equip',id:u.id,secret:u.secret,titleHero:'pushmark'});assert.equal(equipped.status,200);assert.equal(equipped.profile.title,'개씹푸시급');
+ assert.equal((await request({action:'cosmetics_update',id:u.id,secret:u.secret,equippedPins:['basic_heart','mastery_pushmark']})).status,200);
  const packets=[[],[]],ss=[0,1].map(i=>({id:'pin-session-'+i,profile:u.id,side:i,room:'pin-room',stream:{write(data){packets[i].push(data)}}}));ss.forEach(s=>st.sessions.set(s.id,s));const room={id:'pin-room',players:ss.map(s=>s.id),phase:'battle'};st.rooms.set(room.id,room);
  st.action(ss[0],{action:'emote',pin:'basic_heart'});assert(packets.every(a=>a.some(p=>p.includes('"event":"emote"')||p.includes('"type":"emote"')||p.includes('event: emote'))));assert(packets.every(a=>a.join('').includes('basic_heart')));
  assert.throws(()=>st.action(ss[0],{action:'emote',pin:'basic_heart'}),/2.5/);room.phase='pick';assert.throws(()=>st.action(ss[1],{action:'emote',pin:'basic_heart'}),/전투/);

@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict'),E=require('../engine'),P=require('../progression').create(E.HEROES),M=require('../mastery')(E.HEROES),C=require('../cosmetics');
+const admin={id:'admin',tag:'6E2C5BF4',nick:'Admin',coins:500,owned:['pizza'],trophies:{},levels:{}},user={id:'user',tag:'TEST0001',nick:'User',coins:123,owned:['pizza'],trophies:{},levels:{}},other={id:'other',tag:'TEST0002',nick:'Other',coins:9,owned:['rico'],trophies:{},levels:{}};
+const people=new Map([admin,user,other].map(u=>[u.id,u]));for(const u of people.values()){P.migrate(u);M.migrate(u);C.migrate(u)}
+assert.deepEqual(E.HEROES.slice(-13).map(h=>M.titles[h.id]),['벌레새끼','장인','레이저빔','내가 지킨다','털보','프로토타임-01','불을 싸지르다','사람이 아닌','일렉트리시티','공룡원탑',"Peter's Shit",'황미경급','개씹푸시급']);assert.equal(admin.titles.length,E.HEROES.length);assert.equal(admin.pins.length,C.PINS.length);assert.equal(P.total(admin),0);assert.equal(admin.coins,500);
+M.action(admin,{action:'mastery_equip',titleHero:'pushmark'});assert.equal(admin.equippedTitle,'pushmark');C.action(admin,{action:'cosmetics_update',equippedPins:['mastery_pushmark','pass_moai_cool']});
+const gift={action:'admin_send',scope:'one',tag:user.tag,coins:0,heroes:[],pins:['pass_moai_cool','mastery_pushmark','mastery_pushmark'],titleHeroes:['pushmark','wormdohyun'],title:'Cosmetic gift',body:'Test',requestId:'cosmetic-gift-001'};
+assert.throws(()=>P.action(user,gift,people),/관리자/);user.isAdmin=true;assert.throws(()=>P.action(user,gift,people),/관리자/);assert.equal(user.titles.length,0);
+const before=user.mail.length;
+for(const bad of [{pins:['fake']},{pins:'mastery_pizza'},{titleHeroes:['fake']},{titleHeroes:'pizza'}])assert.throws(()=>P.action(admin,{...gift,...bad},people),/올바른/);
+assert.equal(user.mail.length,before);
+assert.equal(P.action(admin,gift,people).sent,1);const mail=user.mail[0];assert.equal(mail.kind,'gift');assert.deepEqual(mail.pins,['pass_moai_cool','mastery_pushmark']);assert(!user.pins.includes('mastery_pushmark'));assert(!other.mail.some(m=>m.id===mail.id));
+assert(P.action(admin,gift,people).duplicate);assert.throws(()=>P.action(admin,{...gift,titleHeroes:['pizza']},people),/중복/);assert.throws(()=>P.action(other,{action:'mail_claim',mailId:mail.id},people),/우편/);
+M.migrate(user);assert(user.mail.some(m=>m.id===mail.id),'gift remains with zero hero trophies');
+P.action(user,{action:'mail_claim',mailId:mail.id},people);P.action(user,{action:'mail_claim',mailId:mail.id},people);M.migrate(user);C.migrate(user);assert.equal(user.coins,123);assert.equal(P.total(user),0);assert(user.titles.includes('pushmark'));assert(user.titles.includes('wormdohyun'));assert(user.pins.includes('mastery_pushmark'));assert(user.pins.includes('pass_moai_cool'));assert.equal(user.pins.filter(id=>id==='mastery_pushmark').length,1);
+M.action(user,{action:'mastery_equip',titleHero:'pushmark'});C.action(user,{action:'cosmetics_update',equippedPins:['mastery_pushmark','pass_moai_cool']});assert.equal(M.publicFields(user).title,M.titles.pushmark);
+const restored=JSON.parse(JSON.stringify(user));M.migrate(restored);C.migrate(restored);assert.equal(restored.equippedTitle,'pushmark');assert(restored.pins.includes('mastery_pushmark'));
+assert.equal(P.action(admin,{...gift,scope:'all',requestId:'cosmetic-all-001'},people).sent,3);const all=other.mail[0];P.action(other,{action:'mail_claim',mailId:all.id},people);assert(other.pins.includes('mastery_pushmark'));assert(other.titles.includes('pushmark'));assert.equal(other.coins,9);
+const legacy={id:'legacy',tag:'TEST0003',coins:0,owned:['pizza'],levels:{},trophies:{pizza:1000}};P.migrate(legacy);M.migrate(legacy);for(const reward of legacy.mail.filter(m=>m.pin||m.titleHero))P.action(legacy,{action:'mail_claim',mailId:reward.id},people);assert(legacy.titles.includes('pizza'));assert(legacy.pins.includes('mastery_pizza'));
+console.log('PASS admin-only single/all cosmetic gifts, catalog validation, idempotency, zero-trophy claim/equip/persistence, no duplicate compensation, all admin titles/pins, legacy mastery rewards');

@@ -11,9 +11,9 @@ u.season.xp=3000;
 for(const pin of C.PINS.filter(p=>p.track)){
  if(pin.track==='premium'){u.season.premium=false;assert.throws(()=>S.action(u,{action:'pass_claim',tier:pin.tier,track:pin.track}),/관리자/);u.season.premium=true;}
  const before=u.coins,result=S.action(u,{action:'pass_claim',tier:pin.tier,track:pin.track});
- assert.equal(result.reward.pin,pin.id);assert(u.pins.includes(pin.id));assert(u.coins>before);const coins=u.coins;assert.throws(()=>S.action(u,{action:'pass_claim',tier:pin.tier,track:pin.track}),/이미/);assert.equal(u.coins,coins);
+ assert.equal(result.reward.pin,pin.id);assert(u.pins.includes(pin.id));assert.equal(u.coins,before,'pin reward tiers have no base coin reward');const coins=u.coins;assert.throws(()=>S.action(u,{action:'pass_claim',tier:pin.tier,track:pin.track}),/이미/);assert.equal(u.coins,coins);
 }
 assert.equal(u.pins.length,8);const old=user();S.migrate(old);old.season.claimed=['free:5','premium:30'];C.migrate(old);assert(old.pins.includes('pass_moai_laugh'));assert(old.pins.includes('pass_moai_cool'));C.migrate(old);assert.equal(old.pins.length,5);
-const admin={...user(),tag:'6E2C5BF4'};C.migrate(admin);assert.equal(admin.pins.length,8);assert.equal(C.fields(admin).equippedPins.length,3);
+const admin={...user(),tag:'6E2C5BF4'};C.migrate(admin);assert.equal(admin.pins.length,C.PINS.length);assert.equal(C.fields(admin).equippedPins.length,3);
 const session={};assert.equal(C.emote(u,session,{pin:'basic_heart'},10000).pin,'basic_heart');assert.throws(()=>C.emote(u,session,{pin:'basic_heart'},11000),/2.5/);assert.throws(()=>C.emote(u,session,{pin:'pass_moai_cool'},13000),/장착/);C.emote(u,session,{pin:'basic_heart'},12500);
 console.log('PASS independent icons, 3 equipped pins, locked/duplicate rejection, all 5 pass rewards, old claims migration, admin unlocks and emote cooldown');

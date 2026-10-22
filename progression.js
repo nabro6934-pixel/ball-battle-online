@@ -1,6 +1,7 @@
 'use strict';
 const crypto=require('node:crypto');
 const mastery=require('./mastery')(require('./engine').HEROES);
+const pinIds=new Set(require('./cosmetics').PINS.map(p=>p.id));
 const COSTS=[500,1000,2000,3000,5000];
 const RANKS=[[3000,'사파이어'],[1600,'에메랄드'],[1000,'다이아'],[700,'골드'],[300,'실버'],[100,'브론즈'],[0,'입문']];
 const ADMIN_TAG='6E2C5BF4';
@@ -56,14 +57,17 @@ function create(heroes){
    if(!['one','all'].includes(m.scope))throw Error('지급 대상을 선택해 주세요.');
    const coins=Number(m.coins||0);if(!Number.isSafeInteger(coins)||coins<0||coins>1e7)throw Error('코인은 0~10,000,000의 정수만 가능해요.');
    if(!Array.isArray(m.heroes)||m.heroes.some(id=>!ids.has(id)))throw Error('올바른 캐릭터를 선택해 주세요.');
+   const pins=m.pins??[],titleHeroes=m.titleHeroes??[];
+   if(!Array.isArray(pins)||pins.some(id=>!pinIds.has(id)))throw Error('올바른 핀을 선택해 주세요.');
+   if(!Array.isArray(titleHeroes)||titleHeroes.some(id=>!ids.has(id)))throw Error('올바른 칭호를 선택해 주세요.');
    const title=String(m.title||'관리자 선물').trim().slice(0,100),body=String(m.body||'우편함에서 보상을 받아주세요!').trim().slice(0,3000);
    const nonce=String(m.requestId||'');if(!/^[a-zA-Z0-9_-]{12,90}$/.test(nonce))throw Error('새 지급 요청으로 다시 시도해 주세요.');
    u.sentGifts=u.sentGifts||{};
-   const fingerprint=JSON.stringify([m.scope,m.tag,coins,m.heroes,title,body,!!m.premium]);
+   const fingerprint=JSON.stringify([m.scope,m.tag,coins,m.heroes,title,body,!!m.premium,...(pins.length||titleHeroes.length?[pins,titleHeroes]:[])]);
    if(u.sentGifts[nonce]){if(u.sentGifts[nonce].fingerprint!==fingerprint)throw Error('중복 요청의 내용이 달라요.');return {sent:u.sentGifts[nonce].count,duplicate:true};}
    const recipients=m.scope==='all'?[...profiles.values()]:[...profiles.values()].filter(v=>v.tag===String(m.tag||'').trim().toUpperCase());
    if(!recipients.length)throw Error('친구 코드에 해당하는 유저가 없어요.');
-   const mailId=crypto.randomUUID();for(const v of recipients){migrate(v);v.mail.unshift({id:mailId,kind:coins||m.heroes.length||m.premium?'gift':'patch',title,body,coins,premium:!!m.premium,heroes:[...new Set(m.heroes)],read:false,claimed:false,createdAt:Date.now()});}
+   const mailId=crypto.randomUUID();for(const v of recipients){migrate(v);v.mail.unshift({id:mailId,kind:coins||m.heroes.length||m.premium||pins.length||titleHeroes.length?'gift':'patch',title,body,coins,premium:!!m.premium,heroes:[...new Set(m.heroes)],pins:[...new Set(pins)],titleHeroes:[...new Set(titleHeroes)],read:false,claimed:false,createdAt:Date.now()});}
    u.sentGifts[nonce]={fingerprint,count:recipients.length};return {changed:true,sent:recipients.length,recipients:recipients.map(v=>v.id)};
   }
   return null;
