@@ -44,10 +44,18 @@ function create(heroes){
    if(m.expectedLevel!==level)throw Error('레벨 정보가 바뀌었어요. 새로고침해 주세요.');
    const cost=COSTS[level];if(u.coins<cost)throw Error('코인이 부족해요.');u.coins-=cost;u.levels[id]++;return {changed:true};
   }
-  if(m.action==='mail_read'||m.action==='mail_claim'){
-   const item=u.mail.find(x=>x.id===m.mailId);if(!item)throw Error('우편을 찾지 못했어요.');item.read=true;
-   if(m.action==='mail_claim'&&!item.claimed){item.claimed=true;mastery.claim(u,item);u.coins+=int(item.coins,1e7);for(const id of new Set(item.heroes||[]))if(ids.has(id)){if(!u.owned.includes(id))u.owned.push(id);else u.coins+=500;}if(item.premium){require('./season').grantPremium(u);}migrate(u);}
-   return {changed:true};
+  if(['mail_read','mail_claim','mail_read_all','mail_claim_all'].includes(m.action)){
+   const all=m.action.endsWith('_all'),claim=m.action.startsWith('mail_claim');
+   const items=all?u.mail:[u.mail.find(x=>x.id===m.mailId)];
+   if(!all&&!items[0])throw Error('우편을 찾지 못했어요.');
+   let claimedCount=0;
+   for(const item of items){item.read=true;
+    if(claim&&!item.claimed){item.claimed=true;claimedCount++;mastery.claim(u,item);u.coins+=int(item.coins,1e7);
+     for(const id of new Set(item.heroes||[]))if(ids.has(id)){if(!u.owned.includes(id))u.owned.push(id);else u.coins+=500;}
+     if(item.premium)require('./season').grantPremium(u);
+    }
+   }
+   migrate(u);return {changed:true,claimedCount};
   }
   if(m.action==='admin_users'){
    requireAdmin(u);const q=String(m.q||'').trim().toLowerCase();return {users:[...profiles.values()].filter(v=>(v.tag+' '+v.nick).toLowerCase().includes(q)).slice(0,100).map(v=>({tag:v.tag,nick:v.nick,coins:v.coins,totalTrophies:total(v)}))};
