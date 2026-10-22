@@ -45,14 +45,4 @@ onEvent=function(m){
 const prebattleLaunchLocal=launchLocal;
 launchLocal=async function(){await prebattleLaunchLocal();beginBattleCountdown(3000,[{...profile,nick:app.mode==='cpu'?'봇 1':profile?.nick||'1P',hero:app.choices[0]},{nick:app.mode==='cpu'?'봇 2':'2P',avatar:app.choices[1],hero:app.choices[1]}]);};
 const prebattleHome=home;
-home=function(){cancelBattleCountdown();app.battlePlayers=null;prebattleHome();decorateArenaLobby();};
-function decorateArenaLobby(){
- const lobby=$('.v12Lobby');if(!lobby)return;
- lobby.classList.add('arenaLobby24');
- const showcase=$('.lobbyShowcase');if(showcase){showcase.insertAdjacentHTML('afterbegin','<div class="lobbyEdition"><span class="liveDot"></span> THE ARENA IS YOURS</div><div class="lobbyWordmark" aria-hidden="true">PLAY<br><i>YOUR WAY.</i></div>');showcase.insertAdjacentHTML('beforeend','<div class="showcaseFloor"></div>');}
- const modes={random:['1대1 아레나','실력으로 증명하는 정면 승부'],duo:['2대2 팀 아레나','둘이 함께, 끝까지 살아남기'],trio:['3대3 팀 아레나','세 명의 팀워크로 전장 장악'],royale4:['4인 배틀로얄','마지막 한 명이 승리한다'],royale:['친구 배틀로얄','친구들과 펼치는 생존 승부'],private:['친구 1대1','친구와 같은 방에서 맞대결'],cpu:['봇 테스트','캐릭터와 스킬을 자유롭게 테스트'],local:['로컬 2인','한 기기에서 즐기는 맞대결']};
- const modeBar=$('.modeBar');if(modeBar)modeBar.insertAdjacentHTML('afterbegin','<div class="selectedModeBanner"><small>SELECTED MODE</small><b id="selectedModeName"></b><span id="selectedModeDesc"></span></div>');
- function update(){const mode=modes[selectedLobbyMode]||modes.random;$('#selectedModeName').textContent=mode[0];$('#selectedModeDesc').textContent=mode[1];const play=$('#playLobby');if(play)play.innerHTML='<span>배틀 시작</span><b aria-hidden="true">↗</b>';}
- update();$('.modeOptions')?.addEventListener('click',()=>update());
- const right=$('.lobbyRight');if(right)right.insertAdjacentHTML('afterbegin','<div class="arenaStatus"><span class="liveDot"></span> READY TO BATTLE<small>'+H.length+'명의 파이터 · 하나의 아레나</small></div>');
-}
+home=function(){cancelBattleCountdown();app.battlePlayers=null;prebattleHome();};

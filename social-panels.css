@@ -1,0 +1,122 @@
+/* Inner menus only. The original lobby theme is deliberately untouched. */
+#socialModal{background:#07142cbd;backdrop-filter:blur(9px);padding:26px 16px;scroll-behavior:smooth}
+#socialModal .socialPanel{width:min(1100px,100%);padding:0 28px 26px;background:#f2f6fc;color:#20344e;border:1px solid #d4e0ef;border-radius:22px;box-shadow:0 22px 90px #0006;overflow:clip}
+#socialModal .socialTitle{position:relative;top:auto;margin:0 -28px;padding:22px 28px 17px;display:flex;align-items:center;justify-content:space-between;gap:15px;background:#102947;border:0;color:#fff;z-index:5}
+#socialModal .socialTitle h2{margin:0;color:#fff;font-size:22px;letter-spacing:-.7px;text-shadow:none;line-height:1.45}
+#socialModal #socialClose{border:1px solid #6683a4!important;background:#28415e!important;color:#f0f6ff!important;box-shadow:none!important;border-radius:9px;min-height:37px;padding:8px 12px;font-size:11px;flex-shrink:0}
+.socialPanelNav{display:flex;gap:6px;margin:0 -28px 22px;padding:10px 28px;background:#fff;border-bottom:1px solid #d9e4f2;overflow-x:auto;scrollbar-width:thin}
+#socialModal .socialPanelNav button{flex:1;min-width:78px;min-height:42px;border:1px solid transparent;background:transparent;color:#61758e;border-radius:9px;box-shadow:none;font-size:12px;font-weight:800;white-space:nowrap}
+#socialModal .socialPanelNav button:hover{background:#edf3fc;filter:none}
+#socialModal .socialPanelNav button.active{background:#e7efff;color:#2059ba;border-color:#c6d8fc;box-shadow:inset 0 -2px #3878e7}
+#socialModal #socialContent{color:#243a56;line-height:1.6}
+#socialModal #socialContent h3{color:#193351;font-size:17px;letter-spacing:-.5px;margin:25px 0 12px}
+#socialModal #socialContent h4{color:#506986;font-size:13px;margin:24px 0 10px}
+#socialModal #socialContent p{color:#657a94;font-size:12px;line-height:1.8}
+#socialModal .micro,#socialModal .socialRow small{color:#6a809a!important}
+#socialModal .panelIntro{position:relative;padding:8px 0 23px;margin-bottom:21px;border-bottom:1px solid #dbe5f0}
+#socialModal .panelIntro>small{font-size:8px;font-weight:900;letter-spacing:2px;color:#6686ac}
+#socialModal .panelIntro>h3{font-size:26px!important;margin:6px 0!important;letter-spacing:-1px!important;color:#153457!important}
+#socialModal .panelIntro>p{margin:0;color:#6d819b;font-size:12px}
+#socialModal button{border:1px solid #c6d6e9;border-radius:9px;background:#e8effa;color:#2e527e;font-size:12px;font-weight:800;padding:9px 13px;box-shadow:none;transition:background .12s,transform .12s}
+#socialModal button:hover{background:#dce8fc;filter:none}
+#socialModal button:disabled{opacity:.48;filter:grayscale(.4)}
+#socialModal button.primary,#socialModal button.action{background:#2868d8!important;color:#fff!important;border:1px solid #225fc9!important;box-shadow:0 3px 0 #194592!important;border-radius:10px!important;text-shadow:none}
+#socialModal button.primary:hover{background:#1c5ac8!important}
+#socialModal input:not([type=checkbox]):not([type=range]),#socialModal textarea,#socialModal select{background:#fff;color:#243e5d;border:1px solid #ccdaeb;border-radius:10px;min-height:42px;padding:10px 12px;font-size:12px;box-shadow:0 1px 2px #1c3c6605;outline:none}
+#socialModal input:focus,#socialModal textarea:focus,#socialModal select:focus{border-color:#4b8aec!important;box-shadow:0 0 0 3px #4b8aec19!important}
+#socialModal input::placeholder{color:#93a5ba}
+#socialModal button:focus-visible,#socialModal summary:focus-visible{outline:3px solid #65a4ff;outline-offset:3px}
+#socialModal label{color:#54708d;font-size:12px}
+#socialModal .roomRow,#socialModal .leaderTools,#socialModal .collectionToolbar{gap:9px;display:flex;flex-wrap:wrap;align-items:center;margin:12px 0}
+#socialModal .roomRow input,#socialModal .leaderTools input,#socialModal #fighterSearch,#socialModal #panelFriendFilter{flex:1;min-width:130px}
+#socialModal .socialRows{display:grid;gap:9px}
+#socialModal .socialRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:70px;background:#fff;border:1px solid #dce6f1;border-radius:13px;padding:13px 15px;color:#243c5a;box-shadow:0 2px 5px #19395f03;margin:0}
+#socialModal .socialRow>b,#socialModal .socialRow .name b{color:#233f60;font-size:13px}
+#socialModal .socialRow>span.name{flex:1;min-width:100px}
+#socialModal .socialRow .playerIcon{width:43px;height:43px!important;border:1px solid #cfdded;border-radius:11px;background:#edf3fb}
+#socialModal .socialRow .matchup{background:#eff5ff;color:#3e6697;padding:7px 10px;border-radius:9px;font-size:10px;line-height:1.65}
+#socialModal .friendCode{display:inline-block;font-family:ui-monospace,monospace;font-size:22px;letter-spacing:3px;font-weight:900;color:#255fad;background:#edf4ff;padding:5px 12px;border-radius:8px}
+#socialModal #friendParty{margin:26px 0;padding:20px;background:#e8f0fc;border:1px solid #c7d9f3;border-radius:15px;color:#28496f}
+#socialModal #friendParty h3{margin:0 0 10px!important}
+#socialModal .panelFriendCard{border-left:3px solid #74a7ee}
+#socialModal .clubHero{position:relative;background:linear-gradient(120deg,#163453,#265e90);border:1px solid #446d96;border-radius:17px;padding:25px 24px;text-align:left;color:#fff;box-shadow:0 7px 18px #16345315;overflow:hidden}
+#socialModal .clubHero h3{color:#fff!important;font-size:26px!important;margin:0 0 8px!important}
+#socialModal .clubHero p{color:#ccdded!important;margin:5px 0;font-size:12px!important}
+#socialModal .clubEmblem{float:right;font-size:55px;padding:0 5px 0 20px;filter:drop-shadow(0 4px 8px #0003)}
+#socialModal .missionPanel{background:#fff;border:1px solid #d8e5f3;border-radius:14px;padding:18px;margin:14px 0 22px;color:#2b507d}
+#socialModal .progressTrack,#socialModal .rankProgress{background:#e1ebf7;border:0;height:9px;border-radius:8px;overflow:hidden;margin:12px 0 7px}
+#socialModal .progressTrack>span,#socialModal .rankProgress>span{background:linear-gradient(90deg,#387be7,#6db8ff);display:block;height:100%;border-radius:8px}
+#socialModal .clubDiscovery{border:1px solid #d5e1ef;border-radius:14px;padding:16px;background:#fff;margin:20px 0}
+#socialModal summary{cursor:pointer;color:#35618e;font-size:12px;font-weight:800;padding:6px 0}
+#socialModal .clubMember{display:grid;grid-template-columns:44px minmax(80px,1fr) minmax(120px,1fr) auto;gap:11px}
+#socialModal .clubMember img{grid-column:1}#socialModal .clubMember>small{font-size:10px;line-height:1.8}
+#socialModal .clanUI>.primary{display:block;width:100%;margin-bottom:16px;min-height:49px}
+#socialModal #clanLeaveBtn{background:#fff3f3;color:#bc5262;border-color:#efd2d7}
+.panelCollectionProgress{display:flex;align-items:center;gap:12px;margin-top:15px;font-size:11px;color:#4172a9}.panelCollectionProgress>span{height:6px;background:#dce7f5;width:150px;border-radius:8px;overflow:hidden}.panelCollectionProgress i{display:block;height:100%;background:#4085e7;border-radius:8px}
+#socialModal .collectionToolbar{background:#e9eff8;border:1px solid #dce5f1;border-radius:12px;padding:10px;margin:0 0 18px}
+#socialModal #fighterDetail .fighterDetail{display:grid;grid-template-columns:155px minmax(0,1fr);gap:24px;background:linear-gradient(120deg,#e5eefc,#fff);border:1px solid #c9d9ee;border-radius:17px;padding:23px;margin:0 0 18px;color:#2b4565}
+#socialModal .fighterDetail>img{width:100%;height:220px;object-fit:contain;align-self:center;filter:drop-shadow(0 10px 8px #173a6f18)}
+#socialModal .fighterDetail h3{font-size:25px!important;margin:0 0 10px!important}
+#socialModal .fighterDetail p{font-size:11px!important;color:#59718f!important}
+#socialModal .fighterBadges{gap:7px}
+#socialModal .powerBadge{background:#e7f0ff;color:#36649c;border:1px solid #bed2ef;box-shadow:none;border-radius:7px;font-size:10px}
+#socialModal .rankBadge{border:0;border-radius:6px;font-size:9px;padding:5px 8px}
+#socialModal .upgradeSteps{display:flex;gap:5px;margin:14px 0}
+#socialModal .upgradeSteps i{display:block;height:5px;flex:1;border-radius:5px;background:#d4e1f2}#socialModal .upgradeSteps .done{background:#4587e4}
+#socialModal .detailActions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+#socialModal .fighterGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+#socialModal .fighterCard{display:flex;flex-direction:column;align-items:stretch;position:relative;padding:10px!important;min-width:0;background:#fff!important;border:1px solid #d1deef!important;border-radius:13px!important;box-shadow:0 3px 9px #254e8010!important;overflow:hidden;color:#294567!important;text-align:center;transition:transform .13s,border-color .13s}
+#socialModal .fighterCard:hover{transform:translateY(-3px);border-color:#79a8ed!important}
+#socialModal .fighterCard.selected{border:2px solid #3c7ee5!important;padding:9px!important;background:#f3f7ff!important;box-shadow:0 0 0 3px #3c7ee511!important}
+#socialModal .fighterCard.locked{filter:saturate(.5);background:#edf1f7!important;opacity:.77}
+#socialModal .fighterCard img{width:100%;height:125px;object-fit:contain;filter:drop-shadow(0 5px 3px #20385712)}
+#socialModal .fighterCard strong{font-size:11px;min-height:32px;margin-top:5px;line-height:1.5}
+#socialModal .fighterCard .cardTop{font-size:9px;gap:3px}
+#socialModal .fighterCard .cardTop small{background:#e9f0fa;color:#5a759a;padding:4px 5px;border-radius:5px;white-space:nowrap}
+#socialModal .fighterCard .rankBadge{align-self:center;margin-top:6px}
+#socialModal .masteryCard{background:#eaf1fc;border:1px solid #cfdef2;border-radius:13px;padding:16px;color:#294b75;margin:15px 0}
+#socialModal .masteryRewards span{background:#fff;border:1px solid #d1def0;color:#547397;font-size:11px;padding:9px 12px;border-radius:8px}
+#socialModal .shopWallet{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#173a60;border:1px solid #2d577f;border-radius:14px;padding:18px 22px;margin-bottom:18px;color:#cedff2}
+#socialModal .shopWallet>b{font-size:24px;color:#ffe6a6}.shopWallet>span{font-size:11px}
+#socialModal .drawOffers{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+#socialModal .drawOffers>article{position:relative;overflow:hidden;text-align:center;border:1px solid #cdddf0;border-radius:17px;background:linear-gradient(155deg,#edf4ff,#fff);box-shadow:0 5px 16px #20477008;padding:24px 20px;min-width:0}
+#socialModal .drawOffers>article.bestOffer{border:1px solid #e2bc77;background:linear-gradient(155deg,#fff2dc,#fff)}
+#socialModal .drawOffers h3{font-size:22px!important;margin:12px 0 4px!important}
+#socialModal .drawOffers .bestOffer>small{display:inline-block;position:absolute;top:15px;right:15px;background:#f4dfb7;color:#8a601f;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900}
+#socialModal .drawOffers button{min-height:47px;width:min(100%,280px);font-size:13px;margin-top:10px}
+#socialModal .panelPackArt{position:relative;display:block;width:170px;height:155px;margin:15px auto 10px;font-size:initial}
+.packCard{position:absolute;top:15px;left:34px;display:block;width:94px;height:130px;background:linear-gradient(140deg,#79c8ff,#286ada);border:3px solid #d1eaff;border-radius:13px;box-shadow:0 8px 18px #193d7426;transform:rotate(10deg);padding:12px 4px;overflow:hidden}
+.packCard img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 3px #102b4a35)}.packCard.back{transform:translate(-24px,8px) rotate(-15deg);background:#8bb9e9}.packCard.front{background:linear-gradient(140deg,#9dd5ff,#3d7ce6)}.bestOffer .packCard.front{background:linear-gradient(140deg,#ffe6a4,#ecb04f);border-color:#fff3d4}.panelPackArt>b{position:absolute;bottom:0;right:8px;font-size:18px;font-weight:1000;background:#173f6d;color:#fff;border:2px solid #fff;border-radius:9px;padding:1px 9px;transform:rotate(-7deg)}
+#socialModal .drawCards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:15px 0 24px}
+#socialModal .revealCard{background:#fff;border:1px solid #cdddef;border-radius:13px;color:#34587f;padding:12px 8px;min-width:0;text-align:center;box-shadow:0 3px 8px #244b7410}
+#socialModal .revealCard img{width:100%;height:105px;object-fit:contain}
+#socialModal .revealCard b{display:block;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+#socialModal .revealCard small{font-size:10px;color:#8b9bb1}
+#socialModal .revealCard.newFighter{background:#f2fff8;border:2px solid #69c891;box-shadow:none}#socialModal .newFighter small{color:#269e5b;font-weight:900}
+#socialModal #panelShopFilter{width:100%;margin:12px 0}
+#socialModal .shopRoster{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+#socialModal .shopRoster>div{min-width:0;background:#fff;border:1px solid #d6e3f2;border-radius:10px;padding:9px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+#socialModal .shopRoster img{width:100%;height:75px;object-fit:contain}#socialModal .shopRoster b{font-size:9px;color:#34516f}#socialModal .shopRoster small{font-size:9px;color:#8497b0}
+#socialModal .leaderSummary{background:#e6effd;border:1px solid #c6dafa;color:#325d92;padding:17px;border-radius:12px}
+#socialModal .leaderRow{background:#fff;border:1px solid #d6e3f1;border-radius:12px;margin:9px 0;color:#345777}
+#socialModal .leaderRow.isMe{background:#eaf2ff;border-color:#9bbced}#socialModal .leaderRow small{color:#8296ad}
+#socialModal .leaderRow .place{background:#edf2fa;color:#6584a9}
+#socialModal .scoreCols span{background:#fff;border:1px solid #d3e0ef;color:#3c6491;border-radius:11px;box-shadow:none}
+#socialModal .profileCosmeticLink{background:#fff;border:1px solid #d1e0ef;color:#335c8a;border-radius:12px;padding:14px}
+#socialModal .playerTitle{color:#a97527}
+#socialModal .socialError{color:#c05060;font-size:12px}
+#socialModal [hidden]{display:none!important}
+@media(max-width:800px){#socialModal{padding:14px 10px}#socialModal .socialPanel{padding:0 20px 20px;border-radius:18px}#socialModal .socialTitle{margin:0 -20px;padding:18px 20px}#socialModal .socialTitle h2{font-size:19px}.socialPanelNav{margin:0 -20px 18px;padding:9px 20px}#socialModal .fighterGrid{grid-template-columns:repeat(4,minmax(0,1fr))}#socialModal .shopRoster{grid-template-columns:repeat(4,minmax(0,1fr))}#socialModal .drawCards{grid-template-columns:repeat(4,minmax(0,1fr))}#socialModal .panelFriendCard{gap:9px}#socialModal .clubMember{grid-template-columns:40px 1fr auto}#socialModal .clubMember>small{grid-column:2/-1}}
+@media(max-width:520px){#socialModal{padding:8px 6px}#socialModal .socialPanel{padding:0 13px 16px;border-radius:15px}#socialModal .socialTitle{margin:0 -13px;padding:16px 13px}#socialModal .socialTitle h2{font-size:16px}#socialModal #socialClose{min-height:32px;font-size:10px;padding:6px 9px}.socialPanelNav{margin:0 -13px 17px;padding:8px 13px;gap:4px}#socialModal .socialPanelNav button{min-width:65px;min-height:36px;font-size:11px}#socialModal .panelIntro{padding-bottom:17px;margin-bottom:17px}#socialModal .panelIntro>h3{font-size:22px!important}#socialModal .panelIntro>p{font-size:10px}#socialModal .socialRow{padding:12px 10px;gap:8px}#socialModal .roomRow button{font-size:11px;padding:10px}#socialModal .friendCode{font-size:17px;letter-spacing:2px}#socialModal .socialRow .name{min-width:85px!important}#socialModal .panelFriendCard .matchup{font-size:9px;padding:5px 7px}#socialModal .panelFriendCard>button{font-size:10px;padding:7px 9px;min-height:34px}#socialModal .clubHero{padding:18px}#socialModal .clubHero h3{font-size:23px!important}#socialModal .clubEmblem{font-size:42px}#socialModal .collectionToolbar{padding:9px;gap:7px}#socialModal #fighterSearch,#socialModal #panelFriendFilter{flex-basis:100%;width:100%}#socialModal .collectionToolbar select{flex:1;min-width:95px;font-size:11px}#socialModal #fighterDetail .fighterDetail{grid-template-columns:85px minmax(0,1fr);padding:13px;gap:12px}#socialModal .fighterDetail>img{height:150px}#socialModal .fighterDetail h3{font-size:19px!important}#socialModal .fighterDetail p{font-size:10px!important}#socialModal .detailActions button{font-size:10px;padding:8px 9px;min-height:36px}#socialModal .fighterGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}#socialModal .fighterCard{padding:7px!important}#socialModal .fighterCard.selected{padding:6px!important}#socialModal .fighterCard img{height:95px}#socialModal .fighterCard strong{font-size:9px}#socialModal .fighterCard .cardTop{flex-wrap:wrap;justify-content:center;gap:3px}#socialModal .fighterCard .cardTop small{font-size:8px;padding:3px 4px}#socialModal .fighterCard .rankBadge{font-size:7px;padding:4px}#socialModal .drawOffers{gap:10px}#socialModal .drawOffers>article{padding:21px 9px 15px}#socialModal .drawOffers h3{font-size:17px!important}#socialModal .drawOffers p{font-size:9px!important}#socialModal .drawOffers button{font-size:10px;min-height:43px;padding:9px 4px}#socialModal .drawOffers .bestOffer>small{top:8px;right:8px;font-size:8px;padding:3px 6px}#socialModal .panelPackArt{width:125px;height:140px;margin:8px auto 0}.packCard{width:78px;height:112px;left:29px}.packCard.back{transform:translate(-15px,8px) rotate(-15deg)}.panelPackArt>b{font-size:15px;right:2px;bottom:3px}#socialModal .shopWallet{padding:15px}#socialModal .shopWallet>b{font-size:21px}#socialModal .drawCards{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#socialModal .revealCard img{height:85px}#socialModal .shopRoster{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#socialModal .shopRoster img{height:68px}#socialModal .leaderTools{gap:7px}#socialModal .leaderTools input{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){#socialModal,#socialModal *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+#socialModal .socialPanelNav{position:sticky;top:0;z-index:4}
+#socialModal .cosmeticPreview,#socialModal .equippedPins,#socialModal .cosmeticSave{background:#eaf1fc;border:1px solid #d2e0f1;color:#345b88;box-shadow:none}
+#socialModal .cosmeticTabs button{background:#e7effa;color:#4d6e99}
+#socialModal .cosmeticTabs .selected,#socialModal .iconTile.selected{border-color:#4886de!important;box-shadow:0 0 0 2px #4886de22!important}
+#socialModal .cosmeticPreview small{color:#6886ab}
+#socialModal .questCard{background:#fff;border:1px solid #d7e3f1;color:#345b88;border-radius:13px}
+#socialModal .passHero p,#socialModal .raidBanner p{color:#d1e4f8!important}
+#socialModal .passInfo{background:#e7eef9;color:#315580;border:1px solid #d0def0}
+#socialModal .masteryCard h3{color:#294b75!important}
+body:has(#socialModal:not(.hidden)){overflow:hidden}
+@media(max-width:520px){#socialModal .socialPanelNav{overflow-x:visible}#socialModal .socialPanelNav button{min-width:0;flex:1;font-size:10px;padding:8px 4px}}
