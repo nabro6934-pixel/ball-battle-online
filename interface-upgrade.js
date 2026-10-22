@@ -27,27 +27,6 @@ openMailbox=async function(){
 };
 // Selection handlers render synchronously; scroll after the new detail is laid out.
 socialContent.addEventListener('click',e=>{if(activeSocial!=='collection'||!e.target.closest('[data-fighter]'))return;requestAnimationFrame(()=>{const detail=$('#fighterDetail');if(detail){detail.tabIndex=-1;detail.scrollIntoView({behavior:ui26Reduced()?'auto':'smooth',block:'start'});detail.focus({preventScroll:true});}});});
-const ui26Shop=features.shop;
-let ui26ShopTab='characters',ui26BuyBusy=false;
-features.shop=async function(){
- await ui26Shop();if(activeSocial!=='gacha')return;
- const original=document.createElement('div');original.className='characterShopPane';while(socialContent.firstChild)original.append(socialContent.firstChild);
- const nav=document.createElement('div');nav.className='shopTabs';nav.setAttribute('role','tablist');nav.innerHTML='<button role="tab" data-shop-tab="characters">캐릭터 뽑기</button><button role="tab" data-shop-tab="pins">핀</button><button role="tab" data-shop-tab="icons">아이콘</button>';
- const pane=document.createElement('section');pane.className='cosmeticShopPane';socialContent.append(nav,original,pane);
- function render(){
-  nav.querySelectorAll('button').forEach(b=>{const active=b.dataset.shopTab===ui26ShopTab;b.classList.toggle('selected',active);b.setAttribute('aria-selected',String(active));});
-  original.hidden=ui26ShopTab!=='characters';pane.hidden=ui26ShopTab==='characters';if(pane.hidden)return;
-  const kind=ui26ShopTab==='pins'?'pin':'icon',items=(profile.cosmeticShop||[]).filter(x=>x.kind===kind),owned=kind==='pin'?(profile.pins||[]):(profile.profileIcons||[]);
-  pane.innerHTML='<div class="shopSectionHead"><div><small>ARENA COLLECTION</small><h3>'+(kind==='pin'?'응원 핀':'스타 프로필 아이콘')+'</h3><p>구매 후 프로필에서 장착할 수 있어요.</p></div><strong>🪙 '+ui26Number(profile.coins)+'</strong></div><div class="cosmeticShopGrid">'+items.map(item=>'<article class="cosmeticProduct"><img loading="lazy" src="'+socialBase()+'/cosmetics/shop/'+item.id+'.svg" alt="'+escapeHTML(item.name)+'"><h4>'+escapeHTML(item.name)+'</h4><small>'+(owned.includes(item.id)?'내 컬렉션에 보유 중':(kind==='pin'?'전투 중 사용 가능한 핀':'프로필에 장착하는 아이콘'))+'</small><button data-buy-cosmetic="'+item.id+'" class="'+(owned.includes(item.id)?'':'primary')+'" '+(!owned.includes(item.id)&&profile.coins<item.price?'disabled':'')+'>'+(owned.includes(item.id)?'장착하러 가기':'🪙 '+ui26Number(item.price)+' · 구매')+'</button></article>').join('')+'</div><p class="micro" role="status" id="cosmeticBuyStatus"></p>';
-  pane.querySelectorAll('[data-buy-cosmetic]').forEach(b=>b.onclick=async()=>{
-   const item=items.find(x=>x.id===b.dataset.buyCosmetic);if(owned.includes(item.id)){await cosmeticsUI.open(kind==='pin'?'pins':'icons');return;}if(ui26BuyBusy)return;
-   ui26BuyBusy=true;pane.querySelectorAll('button').forEach(x=>x.disabled=true);
-   try{const v=await socialCall('cosmetic_buy',{...profileCred,itemId:item.id});profile=v.profile;refreshHeader();sound('reward');toastNotice(item.name+' 구입 완료!');if(activeSocial==='gacha')render();}
-   catch(e){if(activeSocial==='gacha'){$('#cosmeticBuyStatus').textContent=e.message;pane.querySelectorAll('button').forEach(x=>x.disabled=false);}}finally{ui26BuyBusy=false;}
-  });
- }
- nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{ui26ShopTab=b.dataset.shopTab;render();});render();
-};
 // Useful pass navigation instead of requiring a long swipe through all 30 tiers.
 const ui26Pass=features.pass;
 features.pass=async function(){await ui26Pass();ui26EnhancePass();};

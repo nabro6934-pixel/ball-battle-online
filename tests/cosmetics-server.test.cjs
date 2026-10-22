@@ -24,9 +24,8 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  room.phase='complete';ss[0].royale=ss[1].royale='pin-royale';st.royales.set('pin-royale',{phase:'battle',players:ss.map(s=>s.id),sim:{actors:ss.map(s=>({sid:s.id}))}});st.action(ss[1],{action:'emote',pin:'basic_heart'});assert(packets.every(a=>a.join('').includes('pin-session-1')));
  u.coins=2000;
  assert.equal((await request({action:'cosmetic_buy',id:u.id,secret:'wrong',itemId:'shop_icon_pizza'})).status,401);
- const bought=await request({action:'cosmetic_buy',id:u.id,secret:u.secret,itemId:'shop_icon_pizza'});assert.equal(bought.status,200);assert.equal(bought.profile.coins,1700);assert(bought.profile.profileIcons.includes('shop_icon_pizza'));
- assert.equal((await request({action:'cosmetic_buy',id:u.id,secret:u.secret,itemId:'shop_icon_pizza'})).profile.coins,1700);
- assert.equal((await request({action:'cosmetics_update',id:u.id,secret:u.secret,profileIcon:'shop_icon_pizza'})).status,200);
+ assert.equal((await request({action:'cosmetic_buy',id:u.id,secret:u.secret,itemId:'shop_icon_pizza'})).status,400);assert.equal(u.coins,2000);
+ u.profileIcons.push('shop_icon_pizza');assert.equal((await request({action:'cosmetics_update',id:u.id,secret:u.secret,profileIcon:'shop_icon_pizza'})).status,200);
  assert.equal((await request({action:'mail_read_all',id:u.id,secret:'wrong'})).status,401);
  const read=await request({action:'mail_read_all',id:u.id,secret:u.secret});assert.equal(read.profile.unreadMail,0);
  const bulk=await request({action:'mail_claim_all',id:u.id,secret:u.secret});assert.equal(bulk.status,200);assert(bulk.profile.mail.every(m=>m.claimed));const bulkCoins=bulk.profile.coins;

@@ -3,8 +3,8 @@ const assert=require('node:assert/strict'),E=require('../engine'),C=require('../
 const {catalog}=require('../cosmetic-shop');
 function profile(id){const u={id,tag:'TEST'+id,nick:'Player '+id,owned:['pizza','rico','moai'],coins:2000,wins:0,losses:0,avatar:'pizza',levels:{pizza:3,rico:3,moai:3},trophies:{pizza:250}};S.migrate(u);P.migrate(u);C.migrate(u);return u;}
 const u=profile('shop');assert.equal(u.pins.length,3);assert.equal(u.profileIcons.length,E.HEROES.length);
-for(const item of catalog){const p=profile(item.id);assert.throws(()=>C.action(p,{action:'cosmetics_update',...(item.kind==='icon'?{profileIcon:item.id}:{equippedPins:[item.id]})}),/아이콘|보유/);const coins=p.coins;C.action(p,{action:'cosmetic_buy',itemId:item.id});assert.equal(p.coins,coins-item.price);assert.equal(C.action(p,{action:'cosmetic_buy',itemId:item.id}).alreadyOwned,true);assert.equal(p.coins,coins-item.price);C.action(p,{action:'cosmetics_update',...(item.kind==='icon'?{profileIcon:item.id}:{equippedPins:[item.id]})});C.migrate(p);assert.equal(item.kind==='icon'?p.profileIcon:p.equippedPins[0],item.id);}
-assert.throws(()=>C.action(u,{action:'cosmetic_buy',itemId:'mastery_pizza'}),/판매/);u.coins=0;assert.throws(()=>C.action(u,{action:'cosmetic_buy',itemId:catalog[0].id}),/부족/);assert(!u.profileIcons.includes(catalog[0].id));
+for(const item of catalog){const p=profile(item.id);assert.throws(()=>C.action(p,{action:'cosmetic_buy',itemId:item.id}),/판매가 종료/);assert.equal(p.coins,2000);const owned=item.kind==='icon'?p.profileIcons:p.pins;owned.push(item.id);C.action(p,{action:'cosmetics_update',...(item.kind==='icon'?{profileIcon:item.id}:{equippedPins:[item.id]})});C.migrate(p);assert.equal(item.kind==='icon'?p.profileIcon:p.equippedPins[0],item.id);}
+assert.equal(C.fields(u).cosmeticShop.length,0);u.coins=0;
 const a=profile('admin');a.tag='6E2C5BF4';C.migrate(a);assert.equal(a.pins.length,C.PINS.length);assert.equal(a.profileIcons.length,E.HEROES.length+catalog.filter(i=>i.kind==='icon').length);
 u.mail.push({id:'bulk-1',kind:'gift',coins:30,heroes:['lea'],pins:['shop_pin_pizza'],titleHeroes:['pushmark'],read:false,claimed:false},{id:'bulk-2',kind:'gift',coins:70,heroes:['pizza'],premium:true,read:false,claimed:false});
 const coins=u.coins;P.action(u,{action:'mail_read_all'});assert(u.mail.every(m=>m.read));assert.equal(u.coins,coins);assert(u.mail.some(m=>!m.claimed));
@@ -27,4 +27,4 @@ try{
  // A full premade duo waits rather than being put against two AI opponents.
  const g=fixture();g.ps.slice(0,2).forEach(s=>{s.queuedGroup='same-party';g.multi.action(s,{action:'multi_queue',mode:'duo'});});now+=300000;g.multi.fillBots();assert.equal(g.multi.matches.size,0);
 }finally{Object.assign(global,timers);Date.now=realNow;}
-console.log('PASS shop ownership/auth-independent validation/prices/idempotency, bulk mail mixed rewards, admin access, timed and balanced AI fills, caps, cooldown, party integrity, no bot accounts or rewards');
+console.log('PASS removed shop purchases with preserved legacy ownership, bulk mail mixed rewards, admin access, timed and balanced AI fills, caps, cooldown, party integrity, no bot accounts or rewards');

@@ -23,15 +23,9 @@ function migrate(u){
  if(!u.equippedPins.length)u.equippedPins=[...basic];
  return u;
 }
-function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:SHOP,profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
+function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
 function action(u,m){
- if(m.action==='cosmetic_buy'){
-  migrate(u);const item=SHOP.find(x=>x.id===m.itemId);if(!item)throw Error('판매 중인 상품이 아니에요.');
-  const owned=item.kind==='icon'?u.profileIcons:u.pins;
-  if(owned.includes(item.id))return {changed:false,alreadyOwned:true};
-  if(!Number.isFinite(u.coins)||u.coins<item.price)throw Error('코인이 부족해요.');
-  u.coins-=item.price;owned.push(item.id);return {changed:true,purchased:item.id};
- }
+ if(m.action==='cosmetic_buy')throw Error('핀·아이콘 상점 판매가 종료됐어요.');
  if(m.action!=='cosmetics_update')return null;
  migrate(u);
  const icon=m.profileIcon===undefined?u.profileIcon:m.profileIcon;

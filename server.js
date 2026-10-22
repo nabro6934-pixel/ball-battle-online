@@ -13,6 +13,7 @@ const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
 const mastery=require('./mastery')(engine.HEROES);
 const profiles=new Map(), clans=new Map();
+const characterRequests=require('./character-requests')({profiles,db:()=>dbPool,isAdmin:u=>progression.admin(u),migrate,persist,flush:()=>dbSaveChain,notify:id=>{for(const s of sessions.values())if(s.profile===id)send(s,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});}});
 const parties=require('./parties')({sessions,profiles,send,publicUser,profile:profileForSession,busy:s=>!!(queue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
 const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics,mastery,parties});
 const liveFeatures=require('./live-features')({sessions,profiles,clans,rooms,royales,multiplayer,engine,profile:profileForSession,send,save:saveClanAndProfiles,busy:s=>!!(queue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
@@ -141,6 +142,7 @@ async function initStorage(){
  const cr=await p.query("SELECT data FROM ball_battle_state WHERE id='clans'");
  if(cr.rowCount){let xs=cr.rows[0].data;for(const c of (Array.isArray(xs)?xs:JSON.parse(xs))){if(c&&c.id)clans.set(c.id,c)}}
  console.log('Clans restored from PostgreSQL:',clans.size);
+ await characterRequests.init();
 }
 function publicUser(u){return {...mastery.publicFields(u),id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
 function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...mastery.fields(u),...cosmetics.fields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
@@ -439,9 +441,9 @@ const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8'
 const ARENA_FEATURES_UI=fs.readFileSync(path.join(__dirname,'arena-features-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
 GAME_HTML=GAME_HTML.replace('</head>',()=>'<script>'+fs.readFileSync(path.join(__dirname,'battle-stats.js'),'utf8')+'</script></head>');
-GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+'</style></head>');
+GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+fs.readFileSync(path.join(__dirname,'character-requests-ui.css'),'utf8')+'</style></head>');
 GAME_HTML=GAME_HTML.replaceAll("heroImg(HM[app.opponent?.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)').replaceAll("heroImg(HM[app.opponent.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)');
-GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'interface-upgrade.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'interface-upgrade.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'character-requests-ui.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 const shopArt=require('./cosmetic-shop-art')(__dirname,NEW_HERO_ASSETS.icons);
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
@@ -470,6 +472,10 @@ const server=http.createServer((req,res)=>{
    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>8192){req.destroy();return}body+=part});req.on('end',async()=>{
     try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=liveFeatures.social(u,m)||clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),...out})}
     catch(e){return json(res,400,{error:e.message||'클랜 오류'})}});return;
+  }
+  if(req.method==='POST'&&url.pathname==='/character-requests'){
+   let bytes=0,body='',tooLarge=false;req.on('data',part=>{bytes+=Buffer.byteLength(part);if(bytes>1150000){tooLarge=true;body='';}else if(!tooLarge)body+=part;});
+   req.on('end',async()=>{if(tooLarge)return json(res,413,{error:'사진 용량이 너무 커요. 더 작은 사진으로 다시 시도해 주세요.'});try{const m=JSON.parse(body||'{}'),u=migrate(getProfile(m));const result=await characterRequests.action(u,m);return json(res,200,{ok:true,...result});}catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청을 처리하지 못했어요.'});}});return;
   }
   if(req.method==='POST'&&url.pathname==='/social'){
     let bytes=0,body='';req.on('data',p=>{bytes+=p.length;if(bytes>8192){req.destroy();return}body+=p});
@@ -506,7 +512,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v26.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v26.1',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
