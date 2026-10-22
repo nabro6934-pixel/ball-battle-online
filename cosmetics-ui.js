@@ -10,7 +10,7 @@ window.createCosmeticsUI=function(api){
   {id:'pass_moai_cool',name:'모아이 선글라스',track:'premium',tier:30}
  ];
  pins.push(...H.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
- pins.push(...['pizza','rico','moai','wormdohyun','irondohyun','bluechroma'].map(id=>({id:'shop_pin_'+id,name:HM[id].name+' · 응원 핀',shop:true})));
+
  const byId=new Map(pins.map(p=>[p.id,p])),images=new Map(),bubbles=new Map();
  const base=()=>api.base();
  function iconImg(id){return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/icons/'+(HM[id]?id:'pizza')+'.webp';}
@@ -26,7 +26,7 @@ window.createCosmeticsUI=function(api){
   content.innerHTML=`<div class="cosmeticPreview"><img class="playerIcon" src="${iconImg(selectedIcon)}"><div><b>${esc(p.nick)}</b><small>프로필 아이콘 · 로비 캐릭터와 별도로 장착</small></div></div><div class="cosmeticTabs"><button data-cosmetic-tab="icons" class="${tab==='icons'?'selected':''}">프로필 아이콘</button><button data-cosmetic-tab="pins" class="${tab==='pins'?'selected':''}">감정표현 핀 ${owned.length}/${pins.length}</button></div><div id="cosmeticPane"></div><div class="cosmeticSave"><button id="saveCosmetics" class="primary">장착 저장</button><button id="cosmeticProfile">내 프로필</button></div>`;
   const pane=content.querySelector('#cosmeticPane');
   if(tab==='icons'){
-   pane.innerHTML=`<p class="micro">기본 캐릭터 아이콘은 무료예요. 구입한 스타 아이콘도 여기서 장착해요.</p><input id="iconSearch" type="search" placeholder="캐릭터 이름 검색" value="${esc(query)}"><div class="iconGrid">${[...H,...(p.ownedIconVariants||p.cosmeticShop||[]).filter(x=>x.kind==='icon'&&(p.profileIcons||[]).includes(x.id))].map(h=>`<button class="iconTile ${selectedIcon===h.id?'selected':''}" data-icon="${h.id}" data-name="${esc(h.name)}" aria-pressed="${selectedIcon===h.id}" title="${esc(h.name)}"><img loading="lazy" class="playerIcon" src="${iconImg(h.id)}" alt="${esc(h.name)}"><b>${esc(h.name)}</b></button>`).join('')}</div>`;
+   pane.innerHTML=`<p class="micro">캐릭터 프로필 아이콘을 선택해 장착하세요.</p><input id="iconSearch" type="search" placeholder="캐릭터 이름 검색" value="${esc(query)}"><div class="iconGrid">${[...H,...(p.ownedIconVariants||p.cosmeticShop||[]).filter(x=>x.kind==='icon'&&(p.profileIcons||[]).includes(x.id))].map(h=>`<button class="iconTile ${selectedIcon===h.id?'selected':''}" data-icon="${h.id}" data-name="${esc(h.name)}" aria-pressed="${selectedIcon===h.id}" title="${esc(h.name)}"><img loading="lazy" class="playerIcon" src="${iconImg(h.id)}" alt="${esc(h.name)}"><b>${esc(h.name)}</b></button>`).join('')}</div>`;
    const filter=()=>{pane.querySelectorAll('[data-icon]').forEach(b=>b.hidden=!b.dataset.name.toLowerCase().includes(query.toLowerCase()));};filter();pane.querySelector('#iconSearch').oninput=e=>{query=e.target.value.trim();filter();};
    pane.querySelectorAll('[data-icon]').forEach(b=>b.onclick=()=>{selectedIcon=b.dataset.icon;content.querySelector('.cosmeticPreview img').src=iconImg(selectedIcon);pane.querySelectorAll('[data-icon]').forEach(x=>{x.classList.toggle('selected',x===b);x.setAttribute('aria-pressed',x===b?'true':'false')});});
   }else{
