@@ -1,0 +1,44 @@
+'use strict';
+const crypto=require('node:crypto');
+const BADGES=[{id:'first',name:'첫 승리',need:1,key:'wins'},{id:'veteran',name:'아레나 베테랑',need:50,key:'wins'},{id:'collector',name:'캐릭터 수집가',need:20,key:'owned'},{id:'damage',name:'압도적인 화력',need:10000,key:'damage'},{id:'rank',name:'랭크 도전자',need:10,key:'rankGames'},{id:'boss',name:'보스 사냥꾼',need:3000,key:'raid'}];
+const tier=rating=>rating>=1800?'마스터':rating>=1500?'다이아':rating>=1250?'골드':rating>=1050?'실버':'브론즈';
+module.exports=function(api){
+ const {profiles,engine}=api,ids=new Set(engine.HEROES.map(h=>h.id));
+ const cards=engine.HEROES.map((h,i)=>({id:h.id,name:h.name,kind:['coins','damage','health'][i%3],value:[10,3,4][i%3]}));
+ const init=u=>{u.arena27=u.arena27||{rating:1000,rankGames:0,history:[],cards:[],equipped:null,badge:null,damage:0,reports:[],feedback:[],tournaments:[]};const x=u.arena27;if(!Number.isFinite(x.rating))x.rating=1000;for(const k of ['history','cards','reports','feedback','tournaments'])if(!Array.isArray(x[k]))x[k]=[];return x;};
+ function fields(u){const x=init(u);return {rating:x.rating,tier:tier(x.rating),rankGames:x.rankGames,equippedCard:x.equipped,badge:BADGES.find(b=>b.id===x.badge)?.name||null};}
+ function badgeProgress(u,b){const x=init(u);return b.key==='owned'?u.owned.length:b.key==='wins'?u.wins||0:b.key==='raid'?x.raidDamage||0:x[b.key]||0;}
+ function record(u,d){const x=init(u);if(x.history.some(h=>h.id===d.id))return;x.history.unshift({...d,at:Date.now()});x.history=x.history.slice(0,50);x.damage+=(d.damage||0);if(d.mode==='raid')x.raidDamage=(x.raidDamage||0)+(d.damage||0);if(d.ranked){x.rankGames++;x.rating=Math.max(0,x.rating+(d.won?25:-20));}if(d.won&&d.mode!=='raid'&&ids.has(d.hero)&&!x.cards.includes(d.hero))x.cards.push(d.hero);}
+ function apply(sim,users,disabled=false){if(disabled)return;users.forEach((u,i)=>{if(!u||!sim.actors[i])return;const x=init(u),c=cards.find(c=>c.id===x.equipped&&x.cards.includes(c.id));if(!c)return;const a=sim.actors[i];a.card=c.id;if(c.kind==='damage')a.cardDamage=1+c.value/100;if(c.kind==='health'){a.hp=+(a.hp*(1+c.value/100)).toFixed(2);a.max=a.hp;}});}
+ function bonus(u,won,loadout=init(u).equipped){const x=init(u),c=cards.find(c=>c.id===loadout&&x.cards.includes(c.id));if(won&&c?.kind==='coins'){u.coins+=5;return 5;}return 0;}
+ function allTournaments(){return [...profiles.values()].flatMap(u=>init(u).tournaments.map(t=>({t,host:u})));}
+ function findTournament(code){const f=allTournaments().find(x=>x.t.code===String(code||'').toUpperCase());if(!f)throw Error('대회를 찾을 수 없어요.');return f;}
+ function tournamentView(t){return {...t,players:t.players.map(id=>({id,nick:profiles.get(id)?.nick||'탈퇴한 플레이어',...fields(profiles.get(id)||{owned:[]})})),rounds:t.rounds.map(r=>r.map(g=>({...g,names:g.players.map(id=>profiles.get(id)?.nick||'플레이어')})))};}
+ function advance(t){const last=t.rounds.at(-1);if(!last||last.some(g=>!g.winner))return;if(last.length===1){t.status='complete';t.champion=last[0].winner;t.completedAt=Date.now();return;}t.rounds.push(Array.from({length:last.length/2},(_,i)=>({id:crypto.randomUUID(),players:[last[i*2].winner,last[i*2+1].winner],winner:null,room:null})));}
+ function finishTournament(r,w){if(!r.tournament)return;const {t}=findTournament(r.tournament.code),g=t.rounds.flat().find(g=>g.id===r.tournament.game);if(!g||g.winner)return;g.winner=api.profile(api.sessions.get(r.players[w]))?.id||r.profileIds?.[w];g.room=null;advance(t);}
+ function social(u,m){const x=init(u),a=m.action;
+  if(a==='arena_hub')return {changed:false,arena:{...fields(u),history:x.history,cards:cards.map(c=>({...c,owned:x.cards.includes(c.id)})),equipped:x.equipped,badges:BADGES.map(b=>({...b,progress:Math.min(b.need,badgeProgress(u,b)),unlocked:badgeProgress(u,b)>=b.need,equipped:x.badge===b.id})),rankings:[...profiles.values()].filter(v=>init(v).rankGames>0).sort((a,b)=>init(b).rating-init(a).rating).slice(0,50).map(v=>({nick:v.nick,...fields(v)})),reports:x.reports.map(({body,...r})=>r),testHeroes:engine.HEROES.map(h=>({id:h.id,name:h.name})),tournaments:allTournaments().filter(({t})=>t.host===u.id||t.players.includes(u.id)).slice(-12).map(({t})=>tournamentView(t))}};
+  if(a==='card_pack'){if(u.coins<200)throw Error('200코인이 필요해요.');if(x.cards.length>=cards.length)throw Error('모든 카드를 수집했어요.');const available=cards.filter(c=>!x.cards.includes(c.id)),c=available[crypto.randomInt(available.length)];u.coins-=200;x.cards.push(c.id);return {changed:true,drawnCard:c};}
+  if(a==='card_equip'){if(m.card!==null&&!x.cards.includes(m.card))throw Error('보유한 카드를 골라 주세요.');x.equipped=m.card;return {changed:true};}
+  if(a==='badge_equip'){const b=BADGES.find(b=>b.id===m.badge);if(m.badge!==null&&(!b||badgeProgress(u,b)<b.need))throw Error('아직 달성하지 못한 업적이에요.');x.badge=m.badge;return {changed:true};}
+  if(a==='report_submit'||a==='test_feedback'){
+   const collection=a==='report_submit'?x.reports:x.feedback,last=collection.at(-1);if(last&&Date.now()-last.at<60000)throw Error('1분 후 다시 보낼 수 있어요.');
+   const body=String(m.body||'').trim();if(body.length<10||body.length>2000)throw Error('내용을 10~2,000자로 적어 주세요.');
+   const kind=a==='test_feedback'?'test':m.kind==='player'?'player':'bug';let target=null;if(kind==='player'){const v=[...profiles.values()].find(v=>v.tag===String(m.tag||'').trim().toUpperCase());if(!v||v.id===u.id)throw Error('신고할 상대의 정확한 친구 코드를 입력하세요.');target=v.tag;}
+   const hero=ids.has(m.hero)?m.hero:null;if(kind==='test'&&!hero)throw Error('테스트 캐릭터를 선택하세요.');
+   collection.push({id:crypto.randomUUID(),kind,body,target,hero,at:Date.now(),status:'pending',matchId:x.history.find(h=>h.id===m.matchId)?.id||null});if(collection.length>50)collection.shift();return {changed:true};
+  }
+  if(a==='report_list'||a==='report_resolve'){if(!api.isAdmin(u))throw Error('관리자만 확인할 수 있어요.');if(a==='report_resolve'){let r;for(const v of profiles.values())r=r||[...init(v).reports,...init(v).feedback].find(r=>r.id===m.reportId);if(!r)throw Error('신고를 찾지 못했어요.');r.status='resolved';r.resolvedAt=Date.now();return {changed:true};}return {changed:false,reports:[...profiles.values()].flatMap(v=>[...init(v).reports,...init(v).feedback].map(r=>({...r,nick:v.nick,tag:v.tag}))).sort((a,b)=>b.at-a.at).slice(0,200)};}
+  if(a==='tournament_create'){if(allTournaments().filter(({t})=>t.host===u.id&&t.status!=='complete'&&t.status!=='cancelled').length>=2)throw Error('진행 중인 대회는 2개까지만 만들 수 있어요.');const name=String(m.name||'').trim();if(name.length<2||name.length>30)throw Error('대회 이름은 2~30자로 적어 주세요.');const size=Number(m.size);if(![4,8,16].includes(size))throw Error('4·8·16명만 가능해요.');const t={code:crypto.randomBytes(4).toString('hex').toUpperCase(),name,size,host:u.id,players:[u.id],status:'waiting',rounds:[],createdAt:Date.now()};x.tournaments=x.tournaments.filter(t=>!['complete','cancelled'].includes(t.status)).slice(-5);x.tournaments.push(t);return {changed:true,tournament:tournamentView(t)};}
+  if(a.startsWith('tournament_')){const {t}=findTournament(m.code);if(a==='tournament_get')return {changed:false,tournament:tournamentView(t)};
+   if(a==='tournament_join'){if(t.status!=='waiting')throw Error('참가 신청이 끝났어요.');if(!t.players.includes(u.id)){if(t.players.length>=t.size)throw Error('참가자가 가득 찼어요.');t.players.push(u.id);}}
+   else if(a==='tournament_leave'){if(t.status!=='waiting'||t.host===u.id)throw Error('대회 시작 후에는 탈퇴할 수 없어요.');t.players=t.players.filter(id=>id!==u.id);}
+   else if(a==='tournament_start'){if(t.host!==u.id||t.status!=='waiting'||t.players.length!==t.size)throw Error('주최자가 정원이 찬 대회를 시작할 수 있어요.');const shuffled=[...t.players];for(let i=shuffled.length-1;i>0;i--){const j=crypto.randomInt(i+1);[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}t.rounds=[Array.from({length:t.size/2},(_,i)=>({id:crypto.randomUUID(),players:shuffled.slice(i*2,i*2+2),winner:null,room:null}))];t.status='active';}
+   else if(a==='tournament_cancel'){if(t.host!==u.id||t.status!=='waiting')throw Error('시작 전 대회만 주최자가 취소할 수 있어요.');t.status='cancelled';}
+   else throw Error('지원하지 않는 대회 명령이에요.');return {changed:true,tournament:tournamentView(t)};
+  }
+  return null;
+ }
+ return {init,fields,record,apply,bonus,social,findTournament,finishTournament,cards,tier};
+};
+module.exports.BADGES=BADGES;module.exports.tier=tier;
