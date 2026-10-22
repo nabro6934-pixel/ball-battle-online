@@ -17,5 +17,5 @@ ps.forEach((p,i)=>st.royaleAction(p,{action:i?'royale_join':'royale_create',code
 const royal=[...st.royales.values()][0];st.royaleAction(ps[0],{action:'royale_start'});assert.equal(royal.phase,'loading');assert.equal(royal.sim.t,0);const start=events.filter(e=>e.event==='royale_start').at(-1);assert.equal(start.loadMs,3000);assert.equal(start.players.length,3);assert(start.players.every(p=>p.profileIcon==='rico'));
 assert.equal(timeouts.at(-1).ms,3000);timeouts.at(-1).fn();assert.equal(royal.phase,'battle');intervals.at(-1).fn();assert(royal.sim.t>0);
 for(const m of st.GAME_HTML.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
-assert(st.GAME_HTML.includes('function beginBattleCountdown('));assert(!st.GAME_HTML.includes('arenaLobby24'));assert(st.GAME_HTML.includes('socialPanelNav'));
+assert(st.GAME_HTML.includes('function beginBattleCountdown('));assert(!st.GAME_HTML.includes('arenaLobby24'));assert(!st.GAME_HTML.includes('socialPanelNav'));assert(st.GAME_HTML.includes('menu-scroll-fix'));
 console.log('PASS three consecutive 1v1 rounds and friendly royale wait 3000ms on server; profile icons/trophies payloads; complete served script syntax');
