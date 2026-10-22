@@ -17,6 +17,20 @@ r=enqueue('trio',ps.slice(4,10));assert.deepEqual([r.teams.filter(t=>t===0).leng
 // Same account cannot occupy multiple slots; mode queues remain separate and cancellable.
 multi.action(ps[10],{action:'multi_queue',mode:'duo'});assert.equal(multi.counts().queues.duo,1);const copy={id:'anotherSession',profile:ps[10].profile,stream:{}};sessions.set(copy.id,copy);assert.throws(()=>multi.action(copy,{action:'multi_queue',mode:'duo'}),/이미 매칭/);multi.action(ps[11],{action:'multi_queue',mode:'trio'});assert.equal(multi.counts().queues.trio,1);multi.leave(ps[10]);multi.leave(ps[11]);assert.equal(multi.counts().queues.duo,0);
 r=enqueue('royale4',ps.slice(0,4));ready(r);r.sim.actors.forEach(f=>{f.hp=0});r.sim.actors[0].hp=100;r.sim.eliminations=[3,2,1];r.sim.finished=true;r.sim.winner=0;const before=r.players.map(id=>({coins:api.profile(sessions.get(id)).coins,t:api.profile(sessions.get(id)).trophies.pizza}));multi.step(r);for(let i=0;i<4;i++){const u=profiles.get(r.profiles[i]),prize=factory.ROYALE_REWARDS[i+1];assert.equal(u.coins-before[i].coins,prize.coins);assert.equal(u.trophies.pizza-before[i].t,prize.trophies);assert.equal(r.rewards[r.players[i]].rank,i+1);}const prev=saves;multi.reward(r);assert.equal(saves,prev);multi.resume(ps[0]);assert.equal(events.at(-1).event,'multi_end');assert.equal(events.at(-1).reward.trophies,13);
+// Every royale seat: rank, reward and W/L use the same identity, including SID winners.
+for(const useSid of [false,true])for(let seat=0;seat<4;seat++){
+ r=enqueue('royale4',ps.slice(0,4));ready(r);
+ const baseline=r.players.map(id=>{const u=userFor(id);return {wins:u.wins||0,losses:u.losses||0,coins:u.coins};});
+ r.sim.actors.forEach((a,i)=>a.hp=i===seat?100:0);r.sim.finished=true;r.sim.winner=useSid?r.players[seat]:seat;
+ r.sim.eliminations=[0,1,2,3].filter(i=>i!==seat);multi.step(r);
+ r.players.forEach((id,i)=>{const u=userFor(id),b=baseline[i],won=i===seat;
+ assert.equal(u.wins,b.wins+(won?1:0));assert.equal(u.losses||0,b.losses+(won?0:1));
+ assert.equal(r.rewards[id].won,won);assert.equal(r.rewards[id].rank===1,won);
+ if(won)assert.equal(u.coins-b.coins,50);
+ });
+ multi.reward(r);r.players.forEach((id,i)=>assert.equal(userFor(id).wins,baseline[i].wins+(i===seat?1:0)));
+}
+function userFor(id){return api.profile(sessions.get(id));}
 // In pick phase a departure cancels the match without rewards.
 r=enqueue('duo',ps.slice(0,4));multi.leave(ps[0]);assert(!multi.matches.has(r.id));assert(events.some(e=>e.event==='multi_cancelled'));r=enqueue('duo',ps.slice(0,4));ready(r);const losing=r.teams[0];for(const id of [...r.players].filter((id,i)=>r.teams[i]===losing))multi.leave(sessions.get(id));assert.equal(r.phase,'complete');assert(r.forfeit);assert(r.players.filter((id,i)=>r.teams[i]!==losing).every(id=>r.rewards[id].xp===0));
 // Timeout counts total team health; one eliminated teammate doesn't end the match.
