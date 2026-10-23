@@ -223,7 +223,7 @@ function clanAction(u,m){
 function royaleWinCoins(r){
  if(!r.sim?.finished||r.rewardedSim===r.sim||!r.players.includes(r.sim.winner))return;
  r.rewardedSim=r.sim;const u=profileForSession(sessions.get(r.sim.winner));if(!u)return;
- migrate(u);halloween.win(u,'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;arenaUpdate.bonus(u,true,r.cardLoadouts?.[r.players.indexOf(r.sim.winner)]);for(const id of r.players){const p=profileForSession(sessions.get(id));if(p)arenaUpdate.record(p,{id:'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil,mode:'royale',won:id===r.sim.winner,hero:r.picks[id],opponents:r.players.filter(q=>q!==id).map(q=>({nick:profileForSession(sessions.get(q))?.nick||'플레이어'})),damage:r.sim.damage?.[r.sim.actors.findIndex(a=>a.sid===id)]||0});}persist();
+ migrate(u);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;arenaUpdate.bonus(u,true,r.cardLoadouts?.[r.players.indexOf(r.sim.winner)]);for(const id of r.players){const p=profileForSession(sessions.get(id));if(p)arenaUpdate.record(p,{id:'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil,mode:'royale',won:id===r.sim.winner,hero:r.picks[id],opponents:r.players.filter(q=>q!==id).map(q=>({nick:profileForSession(sessions.get(q))?.nick||'플레이어'})),damage:r.sim.damage?.[r.sim.actors.findIndex(a=>a.sid===id)]||0});}persist();
 }
 function recordRound(r,w){
  if(r.recordedSim===r.sim)return;
@@ -236,7 +236,7 @@ function recordRound(r,w){
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
-  if(i===w){halloween.win(u,'match:'+r.matchId);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
+  if(i===w){if((r.matchmade||r.ranked)&&!r.tournament)halloween.win(u,'match:'+r.matchId);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
   if(!forfeit)season.record(u,r.history?.[i]||[],i===w);const bonus=mastery.record(u,r.history?.[i]||[],i===w,forfeit);r.rewards=r.rewards||{};r.rewards[r.players[i]]={coins:i===w?50:0,trophies:i===w&&!r.ranked?10:0,xp:i===w&&!forfeit?50+bonus.firstWinXP:0,firstWinXP:bonus.firstWinXP};
   const cardBonus=r.ranked||r.tournament?0:arenaUpdate.bonus(u,i===w,r.cardLoadouts?.[i]);if(cardBonus)r.rewards[r.players[i]].coins+=cardBonus;const rankResult=arenaUpdate.record(u,{id:r.matchId||r.id+':'+r.createdAt,mode:r.tournament?'tournament':r.ranked?'ranked':'1v1',won:i===w,hero:r.picks[i],opponents:users.filter(v=>v&&v.id!==u.id).map(v=>({nick:v.nick,tag:v.tag})),damage:r.totalStats?.[i]?.damage||r.sim?.damage?.[i]||0,score:r.scores,ranked:!!r.ranked,forfeit});if(rankResult)r.rewards[r.players[i]].rank=rankResult;
@@ -368,7 +368,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(['ranked_queue','que
  const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');const {t}=arenaUpdate.findTournament(m.code);if(t.status!=='active')throw Error('진행 중인 대회가 아니에요.');const g=t.rounds.at(-1).find(g=>g.players.includes(u.id)&&!g.winner);if(!g)throw Error('진행할 경기가 없어요.');let r=rooms.get(g.room);if(r&&r.players.includes(s.id)){send(s,'created',{code:t.code});return;}if(r&&r.players.some(id=>sessions.get(id)?.profile===u.id))throw Error('이미 다른 창에서 경기에 참가했어요.');if(r&&r.players.length>=2)throw Error('이미 경기가 시작됐어요.');leave(s);if(r&&rooms.has(r.id))addSecond(r,s);else{r=newRoom(s,null,null,{tournament:{code:t.code,game:g.id}});g.room=r.id;send(s,'created',{code:t.code});}persist();return;
  }
  if(type==='queue'){if(!profileForSession(s))throw Error('프로필을 먼저 설정하세요.');leave(s);let other=null;while(queue.length){let sid=queue.shift();let cand=sessions.get(sid);if(cand&&cand.stream&&!cand.stream.destroyed&&cand.id!==s.id&&cand.profile!==s.profile&&!cand.room){other=cand;break}}
- if(other){newRoom(other,s)}else{queue.push(s.id);send(s,'queueing',{message:'다른 플레이어를 찾고 있어요…'})}return}
+ if(other){newRoom(other,s,null,{matchmade:true})}else{queue.push(s.id);send(s,'queueing',{message:'다른 플레이어를 찾고 있어요…'})}return}
  if(type==='room'){if(!profileForSession(s))throw Error('프로필을 먼저 설정하세요.');
    const supplied=String(m.code||'').normalize('NFKC').trim();
    if(!supplied||Array.from(supplied).length>32||/[\x00-\x1f\x7f]/.test(supplied))throw Error('방 이름을 1~32글자로 입력하세요.');
@@ -539,7 +539,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v33.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v34.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
