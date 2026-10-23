@@ -16,7 +16,7 @@ const pinIds=new Set(PINS.map(p=>p.id)),basic=PINS.filter(p=>!p.track&&!p.master
 function migrate(u){
  const admin=u.tag==='6E2C5BF4';
  for(const mail of u.mail||[]){if(Array.isArray(mail.pins))mail.pins=mail.pins.filter(id=>!String(id).startsWith('shop_'));if(String(mail.pin||'').startsWith('shop_'))delete mail.pin;}
- u.profileIcons=[...new Set([...(Array.isArray(u.profileIcons)?u.profileIcons:[]).filter(id=>iconIds.has(id)),...HEROES.filter(h=>!h.event||admin||u.owned?.includes(h.id)).map(h=>h.id),...(admin?SHOP.filter(x=>x.kind==='icon').map(x=>x.id):[])])];
+ u.profileIcons=[...new Set([...(Array.isArray(u.profileIcons)?u.profileIcons:[]).filter(id=>iconIds.has(id)),...HEROES.filter(h=>!require('./character-policy').limited(h)||admin||u.owned?.includes(h.id)).map(h=>h.id),...(admin?SHOP.filter(x=>x.kind==='icon').map(x=>x.id):[])])];
  u.pins=[...new Set([...(Array.isArray(u.pins)?u.pins:[]).filter(id=>pinIds.has(id)),...basic])];
  for(const p of PINS)if(admin||(u.season?.id==='season-1'&&u.season.claimed?.includes(p.track+':'+p.tier)))if(!u.pins.includes(p.id))u.pins.push(p.id);
  if(!u.profileIcons.includes(u.profileIcon))u.profileIcon=iconIds.has(u.avatar)?u.avatar:'pizza';

@@ -1,0 +1,25 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),Policy=require('../character-policy');
+const ctx={module:{exports:{}}};vm.createContext(ctx);vm.runInContext(fs.readFileSync(require.resolve('../engine'),'utf8').replace('return {HEROES,HERO_BY_ID,create,tick,W,H,','return {_damage:damage,_hwTick:hwTick,_basic:basic,HEROES,HERO_BY_ID,create,tick,W,H,'),ctx);const E=ctx.module.exports;
+const A=require('../arena-update')({engine:E,profiles:new Map()}),make=owned=>({owned,coins:10000});
+assert.equal(E.HERO_BY_ID.hw_lemon.name,'레몬이');
+const titles=require('../mastery')(E.HEROES).titles;assert.deepEqual(Array.from(E.HEROES.filter(h=>h.event),h=>titles[h.id]),['레몬이 좋아','모츄 파워','메인 캐릭터','크리피큐트','핼러윈의 릴라고','빙의한','호박이 좋은','애완 박쥐']);
+assert.deepEqual(Policy.regular([{id:'a'},{id:'b',event:'future'},{id:'c',limited:true},{id:'d',limitedEdition:true},{id:'e',availability:'limited'}]).map(h=>h.id),['a']);
+const future={id:'future',name:'future',limited:true};const reg=E.HEROES.filter(h=>!h.event).map(h=>h.id),s=require('../season').create([...E.HEROES,future]),v={owned:reg,coins:0};s.migrate(v);v.season.xp=3000;assert.equal(s.action(v,{action:'pass_claim',track:'free',tier:20}).reward.hero,undefined);assert(!v.owned.includes('future'));
+const u=make(['pizza','hw_lemon']);for(let i=0;i<2;i++){const c=A.social(u,{action:'card_pack'}).drawnCard;assert(u.owned.includes(c.id));}const balance=u.coins;assert.throws(()=>A.social(u,{action:'card_pack'}),/보유 캐릭터/);assert.equal(u.coins,balance);u.owned.push('hw_mirai');assert.equal(A.social(u,{action:'card_pack'}).drawnCard.id,'hw_mirai');
+function sim(card){const u=make(E.HEROES.map(h=>h.id));A.init(u).cards=[card];A.init(u).equipped=card;const s=E.create(['pizza','rico'],[],22,[0,0]);A.apply(s,[u,null]);s.manualUlt=[true,true];s.actors.forEach(f=>{f.atkTimer=999;f.ultTimer=10;f.vx=f.vy=0;});return s;}
+const basic=E.create(['pizza','rico']).actors[0].hp;for(const c of A.cards.filter(c=>c.edition)){assert(c.description&&c.ability);const s=sim(c.id);assert.equal(s.actors[0].card,c.id);}
+let z=sim('hw_lemon');const hp=z.actors[1].hp;E._damage(z,z.actors[1],10,z.actors[0],'test');assert.equal(z.actors[1].hp,hp-10.8);assert.equal(z.actors[0].shield.amount,12);const h=z.actors[0].hp;E._damage(z,z.actors[0],10,z.actors[1],'test');assert.equal(z.actors[0].hp,h);assert.equal(z.actors[0].shield.amount,2);
+z=sim('hw_mochuping');E.tick(z,.05);assert(Math.abs(z.actors[0].ultTimer-9.944)<1e-7);
+z=sim('hw_frankenface');assert.equal(z.actors[0].max,+(basic*1.1).toFixed(2));z.actors[0].stun=2;E.tick(z,.05);assert(Math.abs(z.actors[0].stun-1.935)<1e-8);
+z=sim('hw_witchlea');let before=z.actors[1].hp;E._damage(z,z.actors[1],10,z.actors[0],'나사 지속 피해');assert.equal(z.actors[1].hp,before-11.5);assert.equal(z.actors[0].cardSpeed,1.1);
+z=sim('hw_draculago');z.actors[0].hp=100;z.actors[1].hp=2;E._damage(z,z.actors[1],100,z.actors[0],'test');assert.equal(z.actors[0].hp,100.16,'heal uses actual lost HP, not overkill');
+z=sim('hw_mirai');assert.equal(z.actors[0].cardDamage,1.1);assert.equal(z.actors[0].max,+(basic*1.08).toFixed(2));
+const p=make(['hw_pumpkinit']);A.init(p).cards=['hw_pumpkinit'];A.init(p).equipped='hw_pumpkinit';assert.equal(A.bonus(p,true),15);assert.equal(A.bonus(p,false),0);
+z=sim('hw_filterbat');z.actors[0].hp-=20;const initial=z.actors[0].hp;for(let i=0;i<80;i++)E.tick(z,.05);assert.equal(z.actors[0].hp,+(initial+z.actors[0].max*.01).toFixed(2));
+const no=make(['hw_lemon']);A.init(no).cards=['hw_lemon'];A.init(no).equipped='hw_lemon';const off=E.create(['pizza','rico']);A.apply(off,[no,null],true);assert.equal(off.actors[0].card,undefined);
+// First simulation tick spawns a bandage; own path can never hit owner or teammates.
+z=E.create(['hw_mirai','pizza']);z.manualUlt=[true,true];z.actors[1].invul=100;z.actors[1].atkTimer=999;z.actors.forEach(f=>f.contact=999);const ownerHP=z.actors[0].hp;E.tick(z,0);assert.equal(z.halloweenObjects.length,1);for(let n=0;n<150;n++)E.tick(z,.02);assert.equal(z.actors[0].hp,ownerHP);assert.equal(z.damage[0],0);
+const team=E.forArena(1200,800).create(['hw_mirai','hw_mirai','pizza']);team.teams=[0,0,1];team.manualUlt=[true,true,true];team.actors[2].invul=100;team.actors[2].atkTimer=999;const ally=team.actors[1].hp;E.forArena(1200,800).tick(team,0);assert.equal(team.actors[1].hp,ally);assert(team.halloweenObjects.every(o=>o.owner!==2));
+z=E.create(['hw_filterbat','pizza']);z.manualUlt=[true,true];z.actors.forEach(f=>{f.hp=f.max=1000;f.atkTimer=f.ultTimer=999;f.vx=f.vy=0;});const [batOwner,target]=z.actors;batOwner.hp=500;E._basic(z,batOwner,target);batOwner.atkTimer=999;const bat=z.clones[0];bat.x=target.x;bat.y=target.y;bat.batReady=0;E._hwTick(z,0);assert.equal(target.hp,997.5);assert.equal(batOwner.hp,501.25);assert.equal(bat.hp,0);for(let n=0;n<100;n++)E._hwTick(z,.02);assert.equal(target.hp,997.5);assert.equal(batOwner.hp,501.25);
+console.log('PASS owned-only card packs, future limited policy, 8 exact titles, all 8 card combat effects, ranked isolation, instant enemy-only bandages and single-hit/single-heal bats');
