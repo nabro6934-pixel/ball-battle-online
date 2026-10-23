@@ -43,6 +43,6 @@ onEvent=function(m){
  if(['round_end','multi_end','royale_end','raid_end','opponent_left','multi_cancelled','forfeit_win'].includes(m.event))cancelBattleCountdown();
 };
 const prebattleLaunchLocal=launchLocal;
-launchLocal=async function(){await prebattleLaunchLocal();beginBattleCountdown(3000,[{...profile,nick:app.mode==='cpu'?'봇 1':profile?.nick||'1P',hero:app.choices[0]},{nick:app.mode==='cpu'?'봇 2':'2P',avatar:app.choices[1],hero:app.choices[1]}]);};
+launchLocal=async function(){await prebattleLaunchLocal();beginBattleCountdown(3000,[{...profile,nick:profile?.nick||'1P',hero:app.choices[0]},{nick:app.mode==='cpu'?'봇 2':'2P',avatar:app.choices[1],hero:app.choices[1]}]);};
 const prebattleHome=home;
 home=function(){cancelBattleCountdown();app.battlePlayers=null;prebattleHome();};
