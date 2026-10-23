@@ -13,7 +13,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
  const gift={action:'admin_send',id:admin.id,secret:admin.secret,scope:'one',tag:u.tag,coins:0,heroes:[],pins:['mastery_pushmark','pass_moai_cool'],titleHeroes:['pushmark'],title:'핀과 칭호',body:'테스트',requestId:'http-cosmetic-gift-1'};
  assert.equal((await request({...gift,id:u.id,secret:u.secret})).status,400);
  assert.equal((await request({...gift,secret:'wrong'})).status,401);
- const sent=await request(gift);assert.equal(sent.status,200);assert.equal(sent.sent,1);assert.equal(sent.profile.titles.length,49);assert.equal(sent.profile.pins.length,require('../cosmetics').PINS.length);
+ const sent=await request(gift);assert.equal(sent.status,200);assert.equal(sent.sent,1);assert.equal(sent.profile.titles.length,57);assert.equal(sent.profile.pins.length,require('../cosmetics').PINS.length);
  const mail=u.mail.find(m=>m.title==='핀과 칭호');assert(mail);assert.equal((await request(gift)).duplicate,true);
  const claimed=await request({action:'mail_claim',id:u.id,secret:u.secret,mailId:mail.id});assert.equal(claimed.status,200);assert(claimed.profile.pins.includes('mastery_pushmark'));assert(claimed.profile.titles.includes('pushmark'));assert.equal(claimed.profile.titleCatalog.pushmark,'개씹푸시급');
  const equipped=await request({action:'mastery_equip',id:u.id,secret:u.secret,titleHero:'pushmark'});assert.equal(equipped.status,200);assert.equal(equipped.profile.title,'개씹푸시급');

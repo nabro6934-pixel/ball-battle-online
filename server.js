@@ -10,6 +10,7 @@ const HERO_IDS=new Set(engine.HEROES.map(x=>x.id));
 const progression=require('./progression').create(engine.HEROES);
 const battleStats=require('./battle-stats');
 const rankTiers=require('./rank-tiers');
+const halloween=require('./halloween'),halloweenEvent=halloween.create({engine});
 const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
 const mastery=require('./mastery')(engine.HEROES);
@@ -26,8 +27,8 @@ const PROFILE_PATH=path.join(__dirname,'ball_profiles.json');
 let dbPool=null,dbSaveChain=Promise.resolve();
 const DATABASE_URL=process.env.DATABASE_URL||'';
 try{for(const u of JSON.parse(fs.readFileSync(PROFILE_PATH,'utf8'))){if(u&&u.id&&u.secret)profiles.set(u.id,u)}}catch{}
-function starter(){let h=[...HERO_IDS];for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
-function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);progression.migrate(u);mastery.migrate(u);return cosmetics.migrate(u)}
+function starter(){let h=[...HERO_IDS].filter(id=>!halloween.limited(id));for(let i=h.length-1;i>0;i--){let j=crypto.randomInt(i+1);[h[i],h[j]]=[h[j],h[i]]}return h.slice(0,3)}
+function migrate(u){if(!Array.isArray(u.owned)||!u.owned.length)u.owned=starter();u.owned=[...new Set(u.owned.filter(x=>HERO_IDS.has(x)))];while(u.owned.length<3){let h=[...HERO_IDS].find(id=>!halloween.limited(id)&&!u.owned.includes(id));if(!h)break;u.owned.push(h)}u.coins=Math.max(0,Number(u.coins)||0);u.wins=Number(u.wins)||0;u.losses=Number(u.losses)||0;u.friends=Array.isArray(u.friends)?u.friends:[];u.versus=u.versus&&typeof u.versus==='object'&&!Array.isArray(u.versus)?u.versus:{};u.requests=Array.isArray(u.requests)?u.requests:[];if(u.clanId===undefined)u.clanId=null;if(u.setupDone==null)u.setupDone=u.nick!=='새 플레이어';season.migrate(u);progression.migrate(u);mastery.migrate(u);return cosmetics.migrate(u)}
 for(const u of profiles.values())migrate(u);
 const NICKNAME_TAKEN='이미 사용 중인 닉네임입니다. 다른 닉네임을 시도해 주세요.';
 function cleanNickname(value){return String(value||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
@@ -148,7 +149,7 @@ async function initStorage(){
  await characterRequests.init();
 }
 function publicUser(u){return {...mastery.publicFields(u),...arenaUpdate.fields(u),id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
-function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...mastery.fields(u),...cosmetics.fields(u),versus:u.versus||{},nicknameNotice:u.nicknameNotice||null}}
+function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...mastery.fields(u),...cosmetics.fields(u),versus:u.versus||{},halloween:halloween.fields(u),nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
@@ -221,7 +222,7 @@ function clanAction(u,m){
 function royaleWinCoins(r){
  if(!r.sim?.finished||r.rewardedSim===r.sim||!r.players.includes(r.sim.winner))return;
  r.rewardedSim=r.sim;const u=profileForSession(sessions.get(r.sim.winner));if(!u)return;
- migrate(u);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;arenaUpdate.bonus(u,true,r.cardLoadouts?.[r.players.indexOf(r.sim.winner)]);for(const id of r.players){const p=profileForSession(sessions.get(id));if(p)arenaUpdate.record(p,{id:'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil,mode:'royale',won:id===r.sim.winner,hero:r.picks[id],opponents:r.players.filter(q=>q!==id).map(q=>({nick:profileForSession(sessions.get(q))?.nick||'플레이어'})),damage:r.sim.damage?.[r.sim.actors.findIndex(a=>a.sid===id)]||0});}persist();
+ migrate(u);halloween.win(u,'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;arenaUpdate.bonus(u,true,r.cardLoadouts?.[r.players.indexOf(r.sim.winner)]);for(const id of r.players){const p=profileForSession(sessions.get(id));if(p)arenaUpdate.record(p,{id:'royale:'+r.id+':'+r.sim.seed+':'+r.loadingUntil,mode:'royale',won:id===r.sim.winner,hero:r.picks[id],opponents:r.players.filter(q=>q!==id).map(q=>({nick:profileForSession(sessions.get(q))?.nick||'플레이어'})),damage:r.sim.damage?.[r.sim.actors.findIndex(a=>a.sid===id)]||0});}persist();
 }
 function recordRound(r,w){
  if(r.recordedSim===r.sim)return;
@@ -234,7 +235,7 @@ function recordRound(r,w){
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
-  if(i===w){u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
+  if(i===w){halloween.win(u,'match:'+r.matchId);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
   if(!forfeit)season.record(u,r.history?.[i]||[],i===w);const bonus=mastery.record(u,r.history?.[i]||[],i===w,forfeit);r.rewards=r.rewards||{};r.rewards[r.players[i]]={coins:i===w?50:0,trophies:i===w&&!r.ranked?10:0,xp:i===w&&!forfeit?50+bonus.firstWinXP:0,firstWinXP:bonus.firstWinXP};
   const cardBonus=r.ranked||r.tournament?0:arenaUpdate.bonus(u,i===w,r.cardLoadouts?.[i]);if(cardBonus)r.rewards[r.players[i]].coins+=cardBonus;const rankResult=arenaUpdate.record(u,{id:r.matchId||r.id+':'+r.createdAt,mode:r.tournament?'tournament':r.ranked?'ranked':'1v1',won:i===w,hero:r.picks[i],opponents:users.filter(v=>v&&v.id!==u.id).map(v=>({nick:v.nick,tag:v.tag})),damage:r.totalStats?.[i]?.damage||r.sim?.damage?.[i]||0,score:r.scores,ranked:!!r.ranked,forfeit});if(rankResult)r.rewards[r.players[i]].rank=rankResult;
@@ -415,6 +416,7 @@ GAME_HTML=GAME_HTML.replace(/window\.createLobbyMusic\(\{tracks:\[[\s\S]*?\]\}\)
 if(!GAME_HTML.includes('"sahur":"data:image/webp;base64,'))throw Error('High-resolution character images failed to load');
 GAME_HTML=GAME_HTML.replace('${escapeHTML(m.body)}</p>', "${escapeHTML(m.body)}</p>${m.id==='mobile-app-release-v1'?'<a href=\"/android/Lil_Ago_Arena-Android-v1.apk\" class=\"primary\">안드로이드 앱 다운로드</a>':''}");
 // Keep the live URL's browser/offline battle logic identical to the server engine.
+GAME_HTML=GAME_HTML.replace('const pics={};',"for(const id of H.filter(h=>h.event==='halloween2026').map(h=>h.id))IMAGES[id]='/halloween/portrait_'+id+'.webp';const pics={};");
 const CLIENT_ENGINE=fs.readFileSync(path.join(__dirname,'engine.js'),'utf8');
 GAME_HTML=GAME_HTML.replace(/<script>\s*\/\* Shared deterministic battle engine[\s\S]*?<\/script>/,()=>'<script>'+CLIENT_ENGINE+'</script>');
 // Royale UI v10.4: only transparent WHITE text and original-scale compact Royale picker.
@@ -460,14 +462,15 @@ const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8'
 const ARENA_FEATURES_UI=fs.readFileSync(path.join(__dirname,'arena-features-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
 GAME_HTML=GAME_HTML.replace('</head>',()=>'<script>'+fs.readFileSync(path.join(__dirname,'battle-stats.js'),'utf8')+'</script></head>');
-GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+fs.readFileSync(path.join(__dirname,'character-requests-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'arena-update-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'navigation-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'ranked-ui.css'),'utf8')+'</style></head>');
+GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+fs.readFileSync(path.join(__dirname,'character-requests-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'arena-update-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'navigation-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'ranked-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'halloween-ui.css'),'utf8')+'</style></head>');
 GAME_HTML=GAME_HTML.replaceAll("heroImg(HM[app.opponent?.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)').replaceAll("heroImg(HM[app.opponent.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)');
-GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'interface-upgrade.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'character-requests-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'arena-update-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'navigation-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'ranked-ui.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'interface-upgrade.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'character-requests-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'arena-update-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'navigation-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'ranked-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'halloween-ui.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
 GAME_HTML=GAME_HTML.replaceAll('클럽','클랜');
 GAME_HTML=GAME_HTML.replaceAll("(i===0?heroLevel(id):0)===l","l===5").replaceAll('🤖 봇 <em>실험실</em>','🤖 봇 <em>대전</em>');
 const shopArt=require('./cosmetic-shop-art')(__dirname,NEW_HERO_ASSETS.icons);
 const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
+  if(['GET','HEAD'].includes(req.method)&&(/^\/halloween\/(loading|portrait_hw_[a-z]+|icon_hw_[a-z]+)\.webp$/.test(url.pathname)||/^\/cosmetics\/(icons\/|pins\/mastery_)hw_[a-z]+\.webp$/.test(url.pathname)||/^\/character-art\/hw_[a-z]+\.webp$/.test(url.pathname))){const part=url.pathname.split('/').pop().replace(/^mastery_/,''),file=path.join(__dirname,'halloween-art',url.pathname.startsWith('/cosmetics/')?'icon_'+part:url.pathname.startsWith('/character-art/')?'portrait_'+part:part);if(!fs.existsSync(file))return json(res,404,{error:'이미지가 없어요.'});res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=86400','Content-Length':fs.statSync(file).size});if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);return;}
   if(['GET','HEAD'].includes(req.method)){
     const shopMatch=/^\/cosmetics\/shop\/([a-z_]+)\.svg$/.exec(url.pathname);
     if(shopMatch){const bytes=shopArt(shopMatch[1]);if(!bytes)return json(res,404,{error:'상품을 찾지 못했어요.'});res.writeHead(200,{'Content-Type':'image/svg+xml','Content-Length':bytes.length,'Cache-Control':'public, max-age=86400'});res.end(req.method==='HEAD'?undefined:bytes);return;}
@@ -511,14 +514,14 @@ const server=http.createServer((req,res)=>{
         await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
-      const advanced=arenaUpdate.social(u,m)||liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
+      const advanced=halloweenEvent.action(u,m)||arenaUpdate.social(u,m)||liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
       if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
         updateNickname(u,m.nick,m.avatar);persist()
       }else if(m.action==='draw'){
         const count=Number(m.count);if(count!==1&&count!==10)throw Error('1회 또는 10회만 뽑을 수 있어요.');
         const price=count===1?100:900;if(u.coins<price)throw Error('코인이 부족해요.');
-        u.coins-=price;const drawn=[],newIds=[];for(let i=0;i<count;i++){const id=[...HERO_IDS][crypto.randomInt(HERO_IDS.size)];drawn.push(id);if(!u.owned.includes(id)){u.owned.push(id);newIds.push(id)}}
+        u.coins-=price;const drawn=[],newIds=[];for(let i=0;i<count;i++){const pool=[...HERO_IDS].filter(id=>!halloween.limited(id)),id=pool[crypto.randomInt(pool.length)];drawn.push(id);if(!u.owned.includes(id)){u.owned.push(id);newIds.push(id)}}
         persist();await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),drawn,newIds});
       }else if(m.action==='cpu_win'){
         throw Error('봇 테스트는 보상이 없는 연습 모드예요.');
@@ -534,7 +537,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v30.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v31.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

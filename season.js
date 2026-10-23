@@ -13,7 +13,7 @@ function migrate(u){
 }
 function grantPremium(u){migrate(u);u.season.premium=true;}
 function fields(u){migrate(u);return {seasonPass:{...u.season,tier:Math.floor(u.season.xp/100),nextXP:u.season.xp%100},attendance:{...u.attendance,todayClaimed:u.attendance.lastDay===day(),nextDay:u.attendance.count%7+1},daily:{...u.daily,quests:quests.map(q=>({...q,progress:q.id==='heroes'?u.daily.heroes.length:u.daily[q.id],claimed:u.daily.claimed.includes(q.id)}))}};}
-function create(heroes){const ids=heroes.map(h=>h.id),valid=new Set(ids);
+function create(heroes){const ids=heroes.filter(h=>!h.event).map(h=>h.id),valid=new Set(heroes.map(h=>h.id));
  function randomHero(u,allCoins=500){const missing=ids.filter(id=>!u.owned.includes(id));if(!missing.length)return {coins:allCoins};const hero=missing[crypto.randomInt(missing.length)];u.owned.push(hero);return {hero};}
  function record(u,history,won){migrate(u);u.daily.play++;if(won){u.daily.win++;u.season.xp=Math.min(3000,u.season.xp+50);}for(const r of history)if(valid.has(r.hero)&&!u.daily.heroes.includes(r.hero))u.daily.heroes.push(r.hero);}
  function action(u,m){migrate(u);

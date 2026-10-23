@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const env={module:{exports:{}}};vm.createContext(env);vm.runInContext(fs.readFileSync('engine.js','utf8').replace('return {HEROES,HERO_BY_ID,create,tick,W,H,','return {_basic:basic,_super:superMove,_damage:damage,HEROES,HERO_BY_ID,create,tick,W,H,'),env);const E=env.module.exports;
 const make=(id,other='pizza')=>{const s=E.create([id,other]);s.manualUlt=[true,true];for(const f of s.actors){f.atkTimer=f.ultTimer=999;f.contact=999;f.vx=f.vy=0;f.hp=f.max=10000;}return s;};
 const run=(s,t)=>{for(let n=0;n<Math.round(t/.01);n++)E.tick(s,.01);};
-assert.equal(E.HEROES.length,49);assert.equal(new Set(E.HEROES.map(h=>h.id)).size,49);
+assert.equal(E.HEROES.length,57);assert.equal(new Set(E.HEROES.map(h=>h.id)).size,57);
 let s=make('wormdohyun'),[f,e]=s.actors;e.x=f.x+60;E.tick(s,.01);assert(e.hp<10000);E._super(s,f,e);assert.equal(s.expansionObjects.length,18);run(s,.1);assert.equal(f.vx,0);run(s,5.1);assert.equal(f.ultActive,null);
 s=make('blackchroma');[f,e]=s.actors;E._basic(s,f,e);const hole=s.expansionObjects[0];e.x=hole.x+80;e.y=hole.y;const x=e.x;E.tick(s,.01);assert(e.x<x);E._super(s,f,e);assert.equal(s.expansionObjects.at(-1).r,75);assert.equal(s.expansionObjects.at(-1).harm,21);
 s=make('irondohyun','irondohyun');[f,e]=s.actors;E._super(s,f,e);E._super(s,e,f);E._damage(s,f,10,e,'test',true);assert.equal(f.hp,9990);assert.equal(e.hp,9990);run(s,3.1);const hp=e.hp;E._damage(s,f,10,e,'test',true);assert.equal(e.hp,hp);
