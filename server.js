@@ -463,9 +463,10 @@ const NEW_HERO_UI=fs.readFileSync(path.join(__dirname,'new-heroes-ui.js'),'utf8'
 const ARENA_FEATURES_UI=fs.readFileSync(path.join(__dirname,'arena-features-ui.js'),'utf8');
 const MULTIPLAYER_UI=fs.readFileSync(path.join(__dirname,'multiplayer-ui.js'),'utf8');
 GAME_HTML=GAME_HTML.replace('</head>',()=>'<script>'+fs.readFileSync(path.join(__dirname,'battle-stats.js'),'utf8')+'</script></head>');
-GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+fs.readFileSync(path.join(__dirname,'character-requests-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'arena-update-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'navigation-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'ranked-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'halloween-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'mobile32.css'),'utf8')+'</style></head>');
+GAME_HTML=GAME_HTML.replace('</head>',()=>'<style>'+fs.readFileSync(path.join(__dirname,'prebattle-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'menu-scroll.css'),'utf8')+fs.readFileSync(path.join(__dirname,'interface-upgrade.css'),'utf8')+fs.readFileSync(path.join(__dirname,'character-requests-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'arena-update-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'navigation-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'ranked-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'halloween-ui.css'),'utf8')+fs.readFileSync(path.join(__dirname,'mobile32.css'),'utf8')+fs.readFileSync(path.join(__dirname,'cards33.css'),'utf8')+'</style></head>');
 GAME_HTML=GAME_HTML.replaceAll("heroImg(HM[app.opponent?.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)').replaceAll("heroImg(HM[app.opponent.avatar]?app.opponent.avatar:'pizza')",'playerImg(app.opponent)');
 GAME_HTML=GAME_HTML.replace('drawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);',()=>MULTIPLAYER_UI+'\n'+NEW_HERO_UI+'\n'+ARENA_FEATURES_UI+'\n'+fs.readFileSync(path.join(__dirname,'expansion-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'prebattle-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'admin-cosmetics-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'battle-stats-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'interface-upgrade.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'character-requests-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'arena-update-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'navigation-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'ranked-ui.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'halloween-ui.js'),'utf8')+'\nwindow.ArenaCardCatalog='+JSON.stringify(arenaUpdate.cards)+';\n'+fs.readFileSync(path.join(__dirname,'mobile32.js'),'utf8')+'\ndrawList();home();loadTrueCharacterArt();requestAnimationFrame(frame);');
+GAME_HTML=GAME_HTML.replace('</head>',()=>'<script>'+fs.readFileSync(path.join(__dirname,'network33.js'),'utf8')+'</script></head>');
 GAME_HTML=GAME_HTML.replaceAll('클럽','클랜');
 GAME_HTML=GAME_HTML.replaceAll("(i===0?heroLevel(id):0)===l","l===5").replaceAll('🤖 봇 <em>실험실</em>','🤖 봇 <em>대전</em>');
 const shopArt=require('./cosmetic-shop-art')(__dirname,NEW_HERO_ASSETS.icons);
@@ -495,17 +496,17 @@ const server=http.createServer((req,res)=>{
 
   if(['GET','HEAD'].includes(req.method)&&/^\/character-art\/[a-z_]+\.webp$/.test(url.pathname)){const id=url.pathname.split('/').pop().slice(0,-5);if(!originalPortraitIds.includes(id)){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=86400'});if(req.method==='HEAD')res.end();else fs.createReadStream(path.join(__dirname,'portraits',id+'.webp')).pipe(res);return;}
   if(req.method==='POST'&&url.pathname==='/clans'){
-   let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>8192){req.destroy();return}body+=part});req.on('end',async()=>{
+   let bytes=0,chunks=[],tooLarge=false;req.on('data',part=>{bytes+=Buffer.byteLength(part);if(bytes>8192){tooLarge=true;chunks=[];}else if(!tooLarge)chunks.push(Buffer.from(part));});req.on('end',async()=>{if(tooLarge)return json(res,413,{ok:false,error:'요청 내용이 너무 커요.'});const body=Buffer.concat(chunks).toString('utf8');
     try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=liveFeatures.social(u,m)||clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),...out})}
-    catch(e){return json(res,400,{error:e.message||'클랜 오류'})}});return;
+    catch(e){return json(res,400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'클랜 오류'})}});return;
   }
   if(req.method==='POST'&&url.pathname==='/character-requests'){
    let bytes=0,body='',tooLarge=false;req.on('data',part=>{bytes+=Buffer.byteLength(part);if(bytes>1150000){tooLarge=true;body='';}else if(!tooLarge)body+=part;});
-   req.on('end',async()=>{if(tooLarge)return json(res,413,{error:'사진 용량이 너무 커요. 더 작은 사진으로 다시 시도해 주세요.'});try{const m=JSON.parse(body||'{}'),u=migrate(getProfile(m));const result=await characterRequests.action(u,m);return json(res,200,{ok:true,...result});}catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청을 처리하지 못했어요.'});}});return;
+   req.on('end',async()=>{if(tooLarge)return json(res,413,{error:'사진 용량이 너무 커요. 더 작은 사진으로 다시 시도해 주세요.'});try{const m=JSON.parse(body||'{}'),u=migrate(getProfile(m));const result=await characterRequests.action(u,m);return json(res,200,{ok:true,...result});}catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청을 처리하지 못했어요.'});}});return;
   }
   if(req.method==='POST'&&url.pathname==='/social'){
-    let bytes=0,body='';req.on('data',p=>{bytes+=p.length;if(bytes>8192){req.destroy();return}body+=p});
-    req.on('end',async()=>{try{const m=JSON.parse(body||'{}');let u;
+    let bytes=0,chunks=[],tooLarge=false;req.on('data',p=>{bytes+=Buffer.byteLength(p);if(bytes>600000){tooLarge=true;chunks=[];}else if(!tooLarge)chunks.push(Buffer.from(p));});
+    req.on('end',async()=>{if(tooLarge)return json(res,413,{ok:false,error:'경기 기록이 너무 커요. 새 경기를 시작해 주세요.',code:'PAYLOAD_TOO_LARGE'});try{const m=JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');let u;
       if(m.action==='register'){
         if(m.id||m.secret){
           if(!m.id||!m.secret)throw authError('PROFILE_CREDENTIALS_INVALID','저장된 로그인 정보가 완전하지 않아요.');
@@ -536,9 +537,9 @@ const server=http.createServer((req,res)=>{
         throw Error('친구 삭제 기능은 사용할 수 없어요.');
       }else if(m.action!=='get')throw Error('지원하지 않는 명령입니다.');
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
-    }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
+    }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v32.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v33.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
@@ -549,7 +550,7 @@ const server=http.createServer((req,res)=>{
     res.on('close',()=>{if(s.stream===res){s.stream=null;s.seen=Date.now()}});return;
   }
   if(req.method==='POST'&&url.pathname==='/api'){
-    let bytes=0,body='';req.on('data',part=>{bytes+=part.length;if(bytes>4096){req.destroy();return}body+=part});req.on('end',()=>{try{let m=JSON.parse(body);if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream&&!['leave','multi_leave','royale_leave'].includes(m.action))throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e.message||'서버 오류',code:e.code||'REQUEST_ERROR'})}});return;
+    let bytes=0,chunks=[],tooLarge=false;req.on('data',part=>{bytes+=Buffer.byteLength(part);if(bytes>4096){tooLarge=true;chunks=[];}else if(!tooLarge)chunks.push(Buffer.from(part));});req.on('end',()=>{if(tooLarge)return json(res,413,{ok:false,error:'요청 내용이 너무 커요.'});try{let m=JSON.parse(Buffer.concat(chunks).toString('utf8'));if(!validSid(m.sid))throw Error('유효하지 않은 세션입니다.');let s=identify(m.sid);if(!s.stream&&!['leave','multi_leave','royale_leave'].includes(m.action))throw Error('서버 연결이 끊어졌습니다. 다시 시도하세요.');action(s,m);json(res,200,{ok:true})}catch(e){json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'서버 오류',code:e.code||'REQUEST_ERROR'})}});return;
   }
   json(res,404,{error:'Not found'});
 });
