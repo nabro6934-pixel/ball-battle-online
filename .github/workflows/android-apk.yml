@@ -1,0 +1,46 @@
+name: Android APK
+on:
+  pull_request:
+    paths: ['android/**', '.github/workflows/android-apk.yml']
+  push:
+    branches: ['main', 'android-app-v1']
+    paths: ['android/**', '.github/workflows/android-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Preserve test APK signing certificate for updates
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: lil-ago-arena-test-signing-v1
+      - name: Compile, test, and lint
+        working-directory: android
+        run: gradle --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Prepare installation file
+        run: |
+          mkdir -p apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk/Lil_Ago_Arena-Android-v1.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose apk/Lil_Ago_Arena-Android-v1.apk
+          sha256sum apk/Lil_Ago_Arena-Android-v1.apk > apk/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lil_Ago_Arena-Android-v1
+          path: apk/*
+          retention-days: 30
