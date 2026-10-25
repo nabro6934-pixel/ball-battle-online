@@ -25,7 +25,7 @@ function renderArena27(view,token){
  }
  if(view==='cards'){
   p.innerHTML=h('캐릭터 카드','한 장을 장착해 효과를 얻어요. 온라인 승리 시 사용 캐릭터의 카드를 처음 한 번 획득합니다.')+'<section class="a27Toolbar"><strong>보유 '+d.cards.filter(c=>c.owned).length+' / '+d.cards.length+'</strong><span id="a27Pack"></span><span id="a27Unequip"></span></section><p class="micro">팩은 200코인 · 보유 캐릭터의 미보유 카드 1장 확정. 보유한 한정 캐릭터 카드도 포함해요. 일반·팀·배틀로얄에서 적용, 경쟁전·토너먼트에서는 전투 효과 제외. 일반 코인 카드는 승리 보상에 5코인, 호박 카드는 15코인을 더합니다.</p><div class="a27Grid">'+d.cards.map(c=>'<article class="a27Card '+(c.owned?'':'locked')+' '+(d.equipped===c.id?'equipped':'')+'"><img src="'+heroImg(c.id)+'" alt=""><h3>'+safe(c.name)+'</h3><p>'+arena27Effect(c)+'</p><button data-a27-card="'+c.id+'" '+(!c.owned?'disabled':'')+'>'+(d.equipped===c.id?'장착 중':c.owned?'장착':'미보유')+'</button></article>').join('')+'</div>';
-  $('#a27Pack').append(arena27Button('카드팩 열기 · 200',async()=>{const v=await arena27Call('card_pack');toastNotice(v.drawnCard.name+' 카드 획득!');await refresh('cards');},'primary'));
+  $('#a27Pack').append(arena27Button('카드팩 열기 · 200',async()=>{const v=await arena27Call('card_pack');if(window.playDraw35)await window.playDraw35([{...v.drawnCard,fresh:true}],'cards');toastNotice(v.drawnCard.name+' 카드 획득!');await refresh('cards');},'primary'));
   $('#a27Unequip').append(arena27Button('장착 해제',async()=>{await arena27Call('card_equip',{card:null});await refresh('cards');}));
   p.querySelectorAll('[data-a27-card]').forEach(b=>b.onclick=async()=>{try{await arena27Call('card_equip',{card:b.dataset.a27Card});await refresh('cards');}catch(e){toastNotice(e.message);}});
  }
