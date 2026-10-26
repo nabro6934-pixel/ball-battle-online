@@ -17,7 +17,7 @@ function create(roster,seed=Date.now()){
 function settle(s,dt){
  for(const side of s.eliminations||[]){const a=s.actors[side];if(a&&!a.rank&&a.hp<=0){a.rank=s.actors.length-s.placements.length;s.placements.push({side:a.side,rank:a.rank});}}
  const alive=s.actors.filter(a=>a.hp>0).length;s.targetRadius=radius(alive);const blend=Math.min(1,Math.max(0,dt)*8);
- for(const a of s.actors)if(a.hp>0){a.r+=(s.targetRadius-a.r)*blend;a.x=clamp(a.x,22+a.r,W-22-a.r);a.y=clamp(a.y,22+a.r,H-22-a.r);}
+ for(const a of s.actors)if(a.hp>0){a.r+=(s.targetRadius-a.r)*blend;const left=22+a.r,right=W-22-a.r,top=22+a.r,bottom=H-22-a.r;if(a.x<=left&&a.vx<0||a.x>=right&&a.vx>0)a.vx=-a.vx;if(a.y<=top&&a.vy<0||a.y>=bottom&&a.vy>0)a.vy=-a.vy;a.x=clamp(a.x,left,right);a.y=clamp(a.y,top,bottom);}
  for(const q of s.clones||[]){if(!q.arena35BaseRadius)q.arena35BaseRadius=q.r;const target=q.arena35BaseRadius*s.targetRadius/39;q.r=clamp(target,4,70);}
  if(s.finished){for(const a of s.actors.filter(a=>a.side!==s.winner&&!a.rank)){a.rank=s.actors.length-s.placements.length;s.placements.push({side:a.side,rank:a.rank});}const winner=s.actors[s.winner];if(winner&&!winner.rank){winner.rank=1;s.placements.push({side:winner.side,rank:1});winner.r=s.targetRadius;}}
  return s;
