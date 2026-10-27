@@ -16,9 +16,10 @@ const season=require('./season').create(engine.HEROES);
 const cosmetics=require('./cosmetics');
 const mastery=require('./mastery')(engine.HEROES);
 const profiles=new Map(), clans=new Map();
+const offlineBots=require('./offline-bots')({profiles,sessions,engine,migrate,nameFor:(name,id)=>availableNickname(name,id)});
 const characterRequests=require('./character-requests')({profiles,db:()=>dbPool,isAdmin:u=>progression.admin(u),migrate,persist,flush:()=>dbSaveChain,notify:id=>{for(const s of sessions.values())if(s.profile===id)send(s,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});}});
 const parties=require('./parties')({sessions,profiles,send,publicUser,profile:profileForSession,busy:s=>!!(queue.includes(s.id)||rankedQueue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
-const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics,mastery,parties,arenaUpdate:()=>arenaUpdate});
+const multiplayer=require('./multiplayer')({sessions,profile:profileForSession,profiles,send,migrate,persist,progression,season,contribution:clanContribution,publicUser,offer:newOffer,exitOther:leave,engine,cosmetics,mastery,parties,offlineBots,arenaUpdate:()=>arenaUpdate});
 const liveFeatures=require('./live-features')({sessions,profiles,clans,rooms,royales,multiplayer,engine,profile:profileForSession,send,save:saveClanAndProfiles,arenaUpdate:()=>arenaUpdate,tournament:code=>arenaUpdate.findTournament(code).t,findTournament:code=>arenaUpdate.findTournament(code),busy:s=>!!(queue.includes(s.id)||rankedQueue.includes(s.id)||s.multiQueue||rooms.get(s.room)&&rooms.get(s.room).phase!=='complete'||royales.get(s.royale)&&royales.get(s.royale).phase!=='complete'||multiplayer.matches.get(s.multi)&&multiplayer.matches.get(s.multi).phase!=='complete')});
 const arenaUpdate=require('./arena-update')({profiles,clans,sessions,engine,isAdmin:u=>progression.admin(u),profile:profileForSession});
 const rankedQueue=[];
@@ -125,6 +126,7 @@ async function initStorage(){
   console.log('Initial profiles imported to PostgreSQL:',profiles.size);
  }
  dbPool=p;
+ offlineBots.ensure();
  const nicknameBackups=await p.query('SELECT data,saved_at FROM ball_battle_backups ORDER BY saved_at ASC,id ASC');
  const renamed=repairDuplicateNicknames(nicknameBackups.rows);
  const client=await p.connect();
@@ -150,14 +152,15 @@ async function initStorage(){
  console.log('Clans restored from PostgreSQL:',clans.size);
  await characterRequests.init();
 }
-function publicUser(u){return {...mastery.publicFields(u),...arenaUpdate.fields(u),id:u.id,tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
+function publicUser(u){return {...mastery.publicFields(u),...arenaUpdate.fields(u),id:u.id,isBot:offlineBots.isBot(u),tag:u.tag,nick:u.nick,avatar:u.avatar,profileIcon:u.profileIcon||u.avatar,wins:u.wins||0,losses:u.losses||0,coins:u.coins||0,owned:u.owned||[],totalTrophies:progression.total(u),clanId:u.clanId||null,setupDone:!!u.setupDone}}
 function privateUser(u){return {...publicUser(u),...progression.privateFields(u),...mastery.fields(u),...cosmetics.fields(u),versus:u.versus||{},halloween:halloween.fields(u),nicknameNotice:u.nicknameNotice||null}}
 function authError(code,message){const e=new Error(message);e.code=code;return e}
 function getProfile(m){
  let u=profiles.get(String(m.id||''));
  if(!u)throw authError('PROFILE_NOT_FOUND','이 기기의 이전 프로필을 찾을 수 없어요.');
+ if(offlineBots.isBot(u))throw authError('PROFILE_BOT','AI 계정은 로그인할 수 없어요.');
  if(u.secret!==m.secret)throw authError('PROFILE_SECRET_MISMATCH','기존 프로필의 인증 키가 일치하지 않아요. 기존 데이터는 보호되고 있어요.');
- return u;
+ offlineBots.touch(u);return u;
 }
 // Older browsers may hold valid local credentials issued before database persistence.
 // Restore only a matching signed-in account from an earlier snapshot; never overwrite another user.
@@ -199,6 +202,7 @@ function saveClanAndProfiles(){if(!dbPool)throw Error('데이터베이스에 연
  const client=await dbPool.connect();try{await client.query('BEGIN');await client.query("INSERT INTO ball_battle_state(id,data) VALUES('profiles',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[people]);await client.query("INSERT INTO ball_battle_state(id,data) VALUES('clans',$1::jsonb) ON CONFLICT(id) DO UPDATE SET data=excluded.data",[groups]);await client.query('COMMIT')}catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}});dbSaveChain.catch(e=>console.error('CLAN+PROFILE DATABASE SAVE FAILED',e.message));return dbSaveChain}
 function clanContribution(u){if(!u?.clanId)return;const c=clans.get(u.clanId);if(!c||!c.members.includes(u.id))return;c.progress=(c.progress||0)+1;c.participation=c.participation||{};c.participation[u.id]=(c.participation[u.id]||0)+1;const m=CLAN_MISSIONS[c.stage%3];if(c.progress>=m.need){let people=Object.keys(c.participation);for(const id of people){const v=profiles.get(id);if(v&&v.clanId===c.id){v.coins+=m.reward;}}c.completed=(c.completed||0)+1;c.stage=(c.stage+1)%3;c.progress=0;c.participation={};}saveClanAndProfiles()}
 function clanAction(u,m){
+ if(offlineBots.isBot(u))throw Error('AI는 클랜을 사용할 수 없어요.');
  const act=m.action;let c=clans.get(u.clanId);
  if(act==='create'){
   if(c)throw Error('이미 클랜에 소속돼 있어요.');if(u.coins<100)throw Error('클랜 창설에는 100코인이 필요해요.');
@@ -208,7 +212,7 @@ function clanAction(u,m){
   let id='c'+crypto.randomBytes(5).toString('hex');c={id,name,desc,owner:u.id,members:[u.id],invited:[],stage:0,progress:0,participation:{},completed:0,createdAt:Date.now()};clans.set(id,c);u.coins-=100;u.clanId=id;
  }else if(act==='invite'){
   if(!c)throw Error('먼저 클랜에 가입해 주세요.');if(c.owner!==u.id)throw Error('클랜장만 초대할 수 있어요.');if(c.members.length>=100)throw Error('클랜은 100명까지예요.');
-  const friend=profileLookup(m.tag);if(!friend||friend.id===u.id||friend.clanId)throw Error('초대할 수 없는 사용자예요.');c.invited=[...new Set([...(c.invited||[]),friend.id])];
+  const friend=profileLookup(m.tag);if(!friend||offlineBots.isBot(friend)||friend.id===u.id||friend.clanId)throw Error('초대할 수 없는 사용자예요.');c.invited=[...new Set([...(c.invited||[]),friend.id])];
  }else if(act==='join'){
   if(c)throw Error('이미 클랜에 소속돼 있어요.');c=clans.get(String(m.clanId||''));if(!c)throw Error('클랜을 찾지 못했어요.');if(c.members.length>=100)throw Error('클랜이 가득 찼어요.');c.members.push(u.id);u.clanId=c.id;c.invited=(c.invited||[]).filter(x=>x!==u.id);
  }else if(act==='leave'){
@@ -237,7 +241,7 @@ function recordRound(r,w){
 function matchStats(r,w,forfeit=false){if(r.statsDone)return;r.statsDone=true;
  const users=r.players.map(id=>profileForSession(sessions.get(id)));
  for(let i=0;i<2;i++){let u=users[i];if(!u)continue;migrate(u);
-  if(i===w){if((r.matchmade||r.ranked)&&!r.tournament)halloween.win(u,'match:'+r.matchId);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
+  if(i===w){if((r.matchmade||r.ranked)&&!r.tournament&&!r.offlineBot)halloween.win(u,'match:'+r.matchId);u.wins=(u.wins||0)+1;u.coins=(u.coins||0)+50;const history=r.history?.[i]?.length?r.history[i]:r.sim&&HERO_IDS.has(r.picks?.[i])?[{hero:r.picks[i],won:true}]:[];r.trophyRewards=r.ranked?[]:progression.trophies(u,history);clanContribution(u)}
   else u.losses=(u.losses||0)+1;
   if(!forfeit)season.record(u,r.history?.[i]||[],i===w);const bonus=mastery.record(u,r.history?.[i]||[],i===w,forfeit);r.rewards=r.rewards||{};r.rewards[r.players[i]]={coins:i===w?50:0,trophies:i===w&&!r.ranked?10:0,xp:i===w&&!forfeit?50+bonus.firstWinXP:0,firstWinXP:bonus.firstWinXP};
   const cardBonus=r.ranked||r.tournament?0:arenaUpdate.bonus(u,i===w,r.cardLoadouts?.[i]);if(cardBonus)r.rewards[r.players[i]].coins+=cardBonus;const rankResult=arenaUpdate.record(u,{id:r.matchId||r.id+':'+r.createdAt,mode:r.tournament?'tournament':r.ranked?'ranked':'1v1',won:i===w,hero:r.picks[i],opponents:users.filter(v=>v&&v.id!==u.id).map(v=>({nick:v.nick,tag:v.tag})),damage:r.totalStats?.[i]?.damage||r.sim?.damage?.[i]||0,score:r.scores,ranked:!!r.ranked,forfeit});if(rankResult)r.rewards[r.players[i]].rank=rankResult;
@@ -252,7 +256,7 @@ function matchRankedWaiting(){
 }
 const rankedMatchTimer=setInterval(matchRankedWaiting,5000);rankedMatchTimer.unref?.();
 function json(res,status,obj){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Cache-Control':'no-store'});res.end(JSON.stringify(obj))}
-function send(s,event,data={}){if(!s||!s.stream)return;try{s.stream.write(`data: ${JSON.stringify({event,...data})}\n\n`)}catch{ s.stream=null; }}
+function send(s,event,data={}){if(!s||s.isBot||!s.stream)return;try{s.stream.write(`data: ${JSON.stringify({event,...data})}\n\n`)}catch{ s.stream=null; }}
 function both(r,evt,data){r.players.forEach(id=>send(sessions.get(id),evt,data))}
 function roomOf(s){return s?.room&&rooms.get(s.room)}
 function leave(s,msg='상대 플레이어가 나갔습니다.'){
@@ -266,6 +270,7 @@ function leave(s,msg='상대 플레이어가 나갔습니다.'){
    let survivor=sessions.get(r.players[winner]);send(survivor,'forfeit_win',{winner,scores:r.scores,message:'상대가 나가서 부전승! +50코인',rewards:r.rewards||{},opponent:publicUser(profileForSession(s))});
  }
  rooms.delete(r.id);if(r.code)codes.delete(r.code);if(r.timer)clearInterval(r.timer);
+ for(const id of r.players){const bot=sessions.get(id);if(bot?.isBot){offlineBots.release(profileForSession(bot),bot.id);sessions.delete(id);}}
  for(const id of r.players){let o=sessions.get(id);if(o&&o.id!==s.id){o.room=null;o.side=null;if(r.phase==='complete'||r.phase==='waiting')send(o,'opponent_left',{message:msg})}}
 }
 function identify(sid){let s=sessions.get(sid);if(!s){s={id:sid,stream:null,room:null,side:null,seen:Date.now(),nick:'플레이어'};sessions.set(sid,s)}s.seen=Date.now();return s}
@@ -276,7 +281,7 @@ function nextCode(){let c;do{c=Array.from({length:6},()=>('ABCDEFGHJKLMNPQRSTUVW
 function stopTimer(r){if(r.timer)clearInterval(r.timer);r.timer=null}
 function prepareAim(r){r.phase='aim';r.angles=[null,null];r.acks.clear();both(r,'aim',{heroes:r.picks,levels:r.players.map((id,i)=>r.tournament?0:profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0),round:r.round,scores:r.scores});}
 function prepareNext(r){r.round++;sendPicks(r)}
-function startCombat(r){r.phase='loading';r.loadingUntil=Date.now()+3000;r.updated=Date.now();let seed=crypto.randomBytes(4).readUInt32BE(0);r.levels=r.players.map((id,i)=>r.tournament?0:profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0);r.cardLoadouts=r.players.map(id=>arenaUpdate.init(profileForSession(sessions.get(id))).equipped);r.sim=engine.create(r.picks,r.angles,seed,r.levels);arenaUpdate.apply(r.sim,r.players.map(id=>profileForSession(sessions.get(id))),r.ranked||r.tournament);r.sim.manualUlt=[true,true];r.count=0;
+function startCombat(r){r.phase='loading';r.loadingUntil=Date.now()+3000;r.updated=Date.now();let seed=crypto.randomBytes(4).readUInt32BE(0);r.levels=r.players.map((id,i)=>r.tournament?0:profileForSession(sessions.get(id))?.levels?.[r.picks[i]]||0);r.cardLoadouts=r.players.map(id=>arenaUpdate.init(profileForSession(sessions.get(id))).equipped);r.sim=engine.create(r.picks,r.angles,seed,r.levels);arenaUpdate.apply(r.sim,r.players.map(id=>profileForSession(sessions.get(id))),r.ranked||r.tournament);r.sim.manualUlt=r.players.map(id=>!sessions.get(id)?.isBot);r.count=0;
  both(r,'start',{loadMs:3000,players:r.players.map(id=>publicUser(profileForSession(sessions.get(id)))),heroes:r.picks,levels:r.levels,angles:r.angles,scores:r.scores,round:r.round});
  stopTimer(r);setTimeout(()=>{if(!rooms.has(r.id)||r.phase!=='loading')return;r.phase='battle';r.timer=setInterval(()=>{
    if(!rooms.has(r.id)||r.phase!=='battle'){stopTimer(r);return}
@@ -286,6 +291,23 @@ function startCombat(r){r.phase='loading';r.loadingUntil=Date.now()+3000;r.updat
    if(r.sim.finished){stopTimer(r);let w=r.sim.winner;recordRound(r,w);r.scores[w]++;r.phase=(r.scores[w]>=3)?'complete':'between';if(r.phase==='complete')matchStats(r,w);r.acks.clear();r.updated=Date.now();both(r,'round_end',{winner:w,scores:r.scores,round:r.round,matchEnd:r.phase==='complete',damage:r.sim.damage,stats:r.roundStats,totalStats:r.phase==='complete'?r.totalStats:null,trophyRewards:r.trophyRewards||[],rewards:r.rewards||{}});}
  },1000/30);},3000);
 }
+
+// Only admit fallback opponents when the requester is the sole online human.
+function tickOfflineBots(now=Date.now()){
+ for(const sid of [...queue]){const human=sessions.get(sid),u=profileForSession(human);if(!human?.stream||human.stream.destroyed||human.room||now-(human.queuedAt||now)<8000||!offlineBots.alone(u,now))continue;
+  const id='bot_'+crypto.randomBytes(16).toString('hex'),[bot]=offlineBots.acquire(1,id);if(!bot)continue;
+  // Recheck immediately before consuming the queue slot.
+  if(!offlineBots.alone(u,now)){offlineBots.release(bot,id);continue;}
+  queue.splice(queue.indexOf(sid),1);const session={id,profile:bot.id,isBot:true,stream:null,seen:now};sessions.set(id,session);newRoom(human,session,null,{matchmade:true,offlineBot:true});
+ }
+ for(const r of rooms.values()){if(!r.offlineBot)continue;const index=r.players.findIndex(id=>sessions.get(id)?.isBot),bot=sessions.get(r.players[index]);if(!bot)continue;const u=profileForSession(bot);bot.seen=now;
+  if(r.phase==='pick'&&!r.picks[index]&&r.offers[index]?.length){const hero=r.offers[index][crypto.randomInt(r.offers[index].length)];offlineBots.randomLevel(u,hero);action(bot,{action:'pick',hero});}
+  if(r.phase==='aim'&&r.angles[index]===null)action(bot,{action:'ready',angle:crypto.randomInt(-70,71)});
+  if(r.phase==='between'&&!r.acks.has(index))action(bot,{action:'next'});
+  if(r.phase==='complete'&&!r.acks.has(index))action(bot,{action:'next'});
+ }
+}
+const offlineBotTimer=setInterval(()=>tickOfflineBots(),1000);offlineBotTimer.unref?.();
 
 let royaleSerial=0;
 function sendRoyaleLobby(r){
@@ -346,7 +368,7 @@ function royaleAction(s,m){
  throw Error('알 수 없는 로얄 명령입니다.');
 }
 
-function action(s,m){s.seen=Date.now();let type=m.action;if(['ranked_queue','queue','tournament_play','multi_queue','raid_start'].includes(type)&&s.profile){for(const o of sessions.values())if(o.id!==s.id&&o.profile===s.profile&&(queue.includes(o.id)||rankedQueue.includes(o.id)||o.multiQueue||rooms.get(o.room)&&!['complete','waiting'].includes(rooms.get(o.room).phase)||multiplayer.matches.get(o.multi)&&['pick','battle'].includes(multiplayer.matches.get(o.multi).phase)||royales.get(o.royale)&&royales.get(o.royale).phase!=='complete'||liveFeatures.raids.has(o.id)))throw Error('이 계정은 다른 창에서 매칭 또는 전투 중이에요.');}if(liveFeatures.raids.has(s.id)&&['royale_super','multi_super','ultimate'].includes(type)){liveFeatures.action(s,{action:'raid_super'});return;}if(liveFeatures.action(s,m))return;if(liveFeatures.raids.has(s.id)&&!['leave','bind'].includes(type))throw Error('보스전을 먼저 종료하세요.');if(liveFeatures.watchers.has(s.id)&&!['leave','bind'].includes(type))throw Error('관전을 먼저 종료하세요.');if(multiplayer.action(s,m))return;
+function action(s,m){s.seen=Date.now();offlineBots.touch(profileForSession(s));let type=m.action;if(['ranked_queue','queue','tournament_play','multi_queue','raid_start'].includes(type)&&s.profile){for(const o of sessions.values())if(o.id!==s.id&&o.profile===s.profile&&(queue.includes(o.id)||rankedQueue.includes(o.id)||o.multiQueue||rooms.get(o.room)&&!['complete','waiting'].includes(rooms.get(o.room).phase)||multiplayer.matches.get(o.multi)&&['pick','battle'].includes(multiplayer.matches.get(o.multi).phase)||royales.get(o.royale)&&royales.get(o.royale).phase!=='complete'||liveFeatures.raids.has(o.id)))throw Error('이 계정은 다른 창에서 매칭 또는 전투 중이에요.');}if(liveFeatures.raids.has(s.id)&&['royale_super','multi_super','ultimate'].includes(type)){liveFeatures.action(s,{action:'raid_super'});return;}if(liveFeatures.action(s,m))return;if(liveFeatures.raids.has(s.id)&&!['leave','bind'].includes(type))throw Error('보스전을 먼저 종료하세요.');if(liveFeatures.watchers.has(s.id)&&!['leave','bind'].includes(type))throw Error('관전을 먼저 종료하세요.');if(multiplayer.action(s,m))return;
  if(type==='emote'){
   const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');
   const rr=royales.get(s.royale),r=roomOf(s);let recipients,side;
@@ -369,7 +391,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(['ranked_queue','que
  const u=profileForSession(s);if(!u)throw Error('프로필을 먼저 연결하세요.');const {t}=arenaUpdate.findTournament(m.code);if(t.status!=='active')throw Error('진행 중인 대회가 아니에요.');const g=t.rounds.at(-1).find(g=>g.players.includes(u.id)&&!g.winner);if(!g)throw Error('진행할 경기가 없어요.');let r=rooms.get(g.room);if(r&&r.players.includes(s.id)){send(s,'created',{code:t.code});return;}if(r&&r.players.some(id=>sessions.get(id)?.profile===u.id))throw Error('이미 다른 창에서 경기에 참가했어요.');if(r&&r.players.length>=2)throw Error('이미 경기가 시작됐어요.');leave(s);if(r&&rooms.has(r.id))addSecond(r,s);else{r=newRoom(s,null,null,{tournament:{code:t.code,game:g.id}});g.room=r.id;send(s,'created',{code:t.code});}persist();return;
  }
  if(type==='queue'){if(!profileForSession(s))throw Error('프로필을 먼저 설정하세요.');leave(s);let other=null;while(queue.length){let sid=queue.shift();let cand=sessions.get(sid);if(cand&&cand.stream&&!cand.stream.destroyed&&cand.id!==s.id&&cand.profile!==s.profile&&!cand.room){other=cand;break}}
- if(other){newRoom(other,s,null,{matchmade:true})}else{queue.push(s.id);send(s,'queueing',{message:'다른 플레이어를 찾고 있어요…'})}return}
+ if(other){newRoom(other,s,null,{matchmade:true})}else{s.queuedAt=Date.now();queue.push(s.id);send(s,'queueing',{message:'다른 플레이어를 찾고 있어요…'})}return}
  if(type==='room'){if(!profileForSession(s))throw Error('프로필을 먼저 설정하세요.');
    const supplied=String(m.code||'').normalize('NFKC').trim();
    if(!supplied||Array.from(supplied).length>32||/[\x00-\x1f\x7f]/.test(supplied))throw Error('방 이름을 1~32글자로 입력하세요.');
@@ -387,7 +409,7 @@ function action(s,m){s.seen=Date.now();let type=m.action;if(['ranked_queue','que
  if(type==='ultimate'){if(r.phase!=='battle'||!engine.useUltimate(r.sim,side))throw Error('궁극기를 아직 사용할 수 없어요.');both(r,'frame',{state:r.sim});return;}
  if(type==='pick'){if(r.phase!=='pick'||!r.offers[side].includes(m.hero)||!(profileForSession(s)?.owned||[]).includes(m.hero))throw Error('캐릭터를 선택할 수 없는 상태예요.');r.picks[side]=m.hero;send(s,'pick_ok',{hero:m.hero});send(sessions.get(r.players[1-side]),'opponent_picked');if(r.picks.every(Boolean))prepareAim(r);return}
  if(type==='ready'){if(r.phase!=='aim')throw Error('지금은 각도를 정할 수 없어요.');if(!Number.isFinite(m.angle))throw Error('올바른 각도를 입력하세요.');r.angles[side]=Math.min(70,Math.max(-70,m.angle));send(s,'ready_ok');send(sessions.get(r.players[1-side]),'opponent_ready');if(r.angles.every(x=>x!==null))startCombat(r);return}
- if(type==='next'){if(r.tournament&&r.phase==='complete')throw Error('대회 경기가 끝났어요. 아레나 허브에서 다음 대진을 확인하세요.');if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.createdAt=Date.now();r.matchId=crypto.randomUUID();r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.roundStats=null;r.recordedSim=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
+ if(type==='next'){if(r.offlineBot&&r.phase==='complete'&&!offlineBots.alone(profileForSession(s))){leave(s);throw Error('다른 플레이어가 접속 중이에요. 일반 매칭을 이용해 주세요.');}if(r.tournament&&r.phase==='complete')throw Error('대회 경기가 끝났어요. 아레나 허브에서 다음 대진을 확인하세요.');if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.createdAt=Date.now();r.matchId=crypto.randomUUID();r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.roundStats=null;r.recordedSim=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
@@ -515,9 +537,10 @@ const server=http.createServer((req,res)=>{
           u=profiles.has(String(m.id))?migrate(getProfile(m)):await recoverOldProfile(String(m.id),String(m.secret));
         }
         else{let id=crypto.randomBytes(12).toString('hex'),tag;do{tag=crypto.randomBytes(4).toString('hex').toUpperCase()}while(profileLookup(tag));u=newProfile(id,crypto.randomBytes(32).toString('hex'),tag);profiles.set(id,u);persist()}
-        await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
+        offlineBots.touch(u);await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),credentials:{id:u.id,secret:u.secret}})
       }
       u=migrate(getProfile(m));
+      if(m.action==='presence')return json(res,200,{ok:true});
       const advanced=social36.social(u,m)||halloweenEvent.action(u,m)||arenaUpdate.social(u,m)||liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
       if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
@@ -530,9 +553,9 @@ const server=http.createServer((req,res)=>{
       }else if(m.action==='cpu_win'){
         throw Error('봇 테스트는 보상이 없는 연습 모드예요.');
       }else if(m.action==='request'){
-        let v=profileLookup(m.tag);if(!v||v.id===u.id)throw Error('해당 친구 코드를 찾을 수 없어요.');if((u.friends||[]).includes(v.id))throw Error('이미 친구예요.');if(!(v.requests||[]).includes(u.id))v.requests.push(u.id);persist()
+        let v=profileLookup(m.tag);if(offlineBots.isBot(v))throw Error('AI 계정에는 친구 요청을 보낼 수 없어요.');if(!v||v.id===u.id)throw Error('해당 친구 코드를 찾을 수 없어요.');if((u.friends||[]).includes(v.id))throw Error('이미 친구예요.');if(!(v.requests||[]).includes(u.id))v.requests.push(u.id);persist()
       }else if(m.action==='accept'){
-        let v=profiles.get(String(m.target||''));if(!v||(u.requests||[]).indexOf(v.id)<0)throw Error('친구 요청이 없어요.');u.requests=u.requests.filter(id=>id!==v.id);u.friends=[...new Set([...(u.friends||[]),v.id])];v.friends=[...new Set([...(v.friends||[]),u.id])];persist()
+        let v=profiles.get(String(m.target||''));if(!v||offlineBots.isBot(v)||(u.requests||[]).indexOf(v.id)<0)throw Error('친구 요청이 없어요.');u.requests=u.requests.filter(id=>id!==v.id);u.friends=[...new Set([...(u.friends||[]),v.id])];v.friends=[...new Set([...(v.friends||[]),u.id])];persist()
       }else if(m.action==='reject'){
         u.requests=(u.requests||[]).filter(id=>id!==m.target);persist()
       }else if(m.action==='remove'){
@@ -541,7 +564,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v),spectateAvailable:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v37.4',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v38.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

@@ -10,7 +10,7 @@ function radius(alive){return 70/Math.sqrt(Math.max(1,alive));}
 function validate(roster){if(!Array.isArray(roster)||roster.length<2||roster.length>20)throw Error('아레나 참가자는 2~20명으로 설정해 주세요.');return roster.map((p,i)=>{if(!p||!E.HERO_BY_ID[p.hero])throw Error((i+1)+'번 캐릭터를 선택해 주세요.');if(!Number.isInteger(p.level)||p.level<0||p.level>5)throw Error('파워는 0~5로 설정해 주세요.');return {hero:p.hero,level:p.level};});}
 function create(roster,seed=Date.now()){
  const cfg=validate(roster),s=core.create(cfg.map(p=>p.hero),cfg.map(()=>0),seed>>>0,cfg.map(p=>p.level));s.botArena=true;s.roster=cfg;s.placements=[];s.manualUlt=cfg.map(()=>false);s.targetRadius=radius(cfg.length);s.winner=null;s.arenaScale=s.targetRadius/39;
- s.actors.forEach((a,i)=>{const angle=i*Math.PI*2/cfg.length;a.x=W/2+W*.35*Math.cos(angle);a.y=H/2+H*.34*Math.sin(angle);a.vx=-Math.cos(angle)*E.HERO_BY_ID[a.id].speed;a.vy=-Math.sin(angle)*E.HERO_BY_ID[a.id].speed;a.name=(i+1)+'번 · '+E.HERO_BY_ID[a.id].name;a.sid='local-bot-'+i;a.rank=0;a.r=s.targetRadius;});
+ s.actors.forEach((a,i)=>{const angle=i*Math.PI*2/cfg.length;a.x=W/2+W*.35*Math.cos(angle);a.y=H/2+H*.34*Math.sin(angle);let bits=((seed>>>0)+Math.imul(i+1,0x9e3779b9))>>>0;bits=Math.imul(bits^(bits>>>16),0x21f0aaad);bits=Math.imul(bits^(bits>>>15),0x735a2d97);const launch=((bits^(bits>>>15))>>>0)/4294967296*Math.PI*2;a.vx=Math.cos(launch)*E.HERO_BY_ID[a.id].speed;a.vy=Math.sin(launch)*E.HERO_BY_ID[a.id].speed;a.name=(i+1)+'번 · '+E.HERO_BY_ID[a.id].name;a.sid='local-bot-'+i;a.rank=0;a.r=s.targetRadius;});
  for(const q of s.clones||[]){q.arena35BaseRadius=q.r;q.r=q.arena35BaseRadius*s.targetRadius/39;const f=s.actors[q.side];q.x=clamp(f.x+45,22+q.r,W-22-q.r);q.y=clamp(f.y+40,22+q.r,H-22-q.r);}
  return s;
 }
