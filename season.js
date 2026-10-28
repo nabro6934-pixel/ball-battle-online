@@ -19,6 +19,14 @@ function create(heroes){const ids=require('./character-policy').regular(heroes).
  function action(u,m){migrate(u);
   if(m.action==='attendance_claim'){if(u.attendance.lastDay===day())throw Error('오늘 출석 보상은 이미 받았어요.');const r=attendance[u.attendance.count%7];let reward;if(r.random)reward=randomHero(u);else reward={coins:r.coins};u.coins+=reward.coins||0;u.attendance.count++;u.attendance.lastDay=day();return {changed:true,reward};}
   if(m.action==='quest_claim'){const q=quests.find(q=>q.id===m.quest);if(!q)throw Error('퀘스트를 찾지 못했어요.');if(u.daily.claimed.includes(q.id))throw Error('이미 받은 보상이에요.');const progress=q.id==='heroes'?u.daily.heroes.length:u.daily[q.id];if(progress<q.need)throw Error('퀘스트를 먼저 완료해 주세요.');u.daily.claimed.push(q.id);u.coins+=q.coins;return {changed:true,reward:{coins:q.coins}};}
+  if(m.action==='pass_claim_all'){
+   const tier=Math.floor(u.season.xp/100),todo=[];for(let t=1;t<=tier;t++)for(const track of ['free','premium'])if((track==='free'||u.season.premium)&&!u.season.claimed.includes(track+':'+t))todo.push({tier:t,track});
+   const draft=JSON.parse(JSON.stringify(u)),reward={coins:0,heroes:[],pins:[]};
+   // Reserve the player's choice before drawing the tier-20 random hero.
+   todo.sort((a,b)=>Number(b.tier===30&&b.track==='free')-Number(a.tier===30&&a.track==='free'));
+   for(const item of todo){const r=action(draft,{action:'pass_claim',...item,hero:m.hero}).reward;reward.coins+=r.coins||0;if(r.hero)reward.heroes.push(r.hero);if(r.pin)reward.pins.push(r.pin);}
+   if(todo.length)Object.assign(u,draft);return {changed:todo.length>0,reward,claimedCount:todo.length};
+  }
   if(m.action==='pass_claim'){
    const tier=Number(m.tier),track=m.track,key=track+':'+tier;
    if(!Number.isInteger(tier)||tier<1||tier>30||!['free','premium'].includes(track))throw Error('올바른 패스 보상을 선택해 주세요.');
