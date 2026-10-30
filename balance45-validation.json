@@ -1,0 +1,168 @@
+{
+  "version": "v45.0",
+  "engineSha256": "a6efe8577932487a3a7d5b568a93386bcd1d7918e3010ce01ce157af92839e88",
+  "conditions": {
+    "level": 0,
+    "cards": false,
+    "automaticUltimate": true,
+    "dt": 0.03333333333333333,
+    "arena": {
+      "width": 1000,
+      "height": 620
+    },
+    "angles": [
+      0,
+      0
+    ],
+    "baseSeed": 20261030,
+    "sideAssignment": "pair hash parity (not roster order)",
+    "roundsPerPair": 1,
+    "timeoutSeconds": 53,
+    "tiebreak": "remaining HP ratio, damage, seeded random (actual engine)",
+    "rank": "wins descending; tied wins share rank; display order within ties uses defeated-opponent wins"
+  },
+  "matches": 2415,
+  "timeouts": 8,
+  "changes": [
+    {
+      "id": "redchroma",
+      "name": "천고현 레드크로마",
+      "beforeWins": 1,
+      "afterWins": 29,
+      "played": 69
+    },
+    {
+      "id": "hwangmigyeong",
+      "name": "황미경급",
+      "beforeWins": 5,
+      "afterWins": 21,
+      "played": 69
+    },
+    {
+      "id": "hw_pumpkinit",
+      "name": "호박잇",
+      "beforeWins": 4,
+      "afterWins": 40,
+      "played": 69
+    },
+    {
+      "id": "hw_filterbat",
+      "name": "필터 낀 박쥐",
+      "beforeWins": 18,
+      "afterWins": 26,
+      "played": 69
+    },
+    {
+      "id": "chickenskewer",
+      "name": "승후엄마닭꼬치",
+      "beforeWins": 7,
+      "afterWins": 19,
+      "played": 69
+    },
+    {
+      "id": "wormdohyun",
+      "name": "벌레도현",
+      "beforeWins": 12,
+      "afterWins": 21,
+      "played": 69
+    },
+    {
+      "id": "hw_witchlea",
+      "name": "마녀 레아급",
+      "beforeWins": 9,
+      "afterWins": 30,
+      "played": 69
+    },
+    {
+      "id": "lilagokoala",
+      "name": "릴라고의 코알라",
+      "beforeWins": 15,
+      "afterWins": 24,
+      "played": 69
+    },
+    {
+      "id": "hw_mochuping",
+      "name": "모츄핑",
+      "beforeWins": 14,
+      "afterWins": 16,
+      "played": 69
+    },
+    {
+      "id": "americandohyun",
+      "name": "아메리칸 도현",
+      "beforeWins": 6,
+      "afterWins": 21,
+      "played": 69
+    },
+    {
+      "id": "irondohyun",
+      "name": "아이언 도현",
+      "beforeWins": 67,
+      "afterWins": 53,
+      "played": 69
+    },
+    {
+      "id": "cheongohyun",
+      "name": "천고현",
+      "beforeWins": 65,
+      "afterWins": 60,
+      "played": 69
+    },
+    {
+      "id": "icecookie",
+      "name": "빙신쿠키",
+      "beforeWins": 58,
+      "afterWins": 48,
+      "played": 69
+    },
+    {
+      "id": "sahur",
+      "name": "퉁퉁퉁사후르",
+      "beforeWins": 64,
+      "afterWins": 59,
+      "played": 69
+    },
+    {
+      "id": "blackchroma",
+      "name": "천도현 블랙크로마",
+      "beforeWins": 62,
+      "afterWins": 57,
+      "played": 69
+    },
+    {
+      "id": "fidgetspino",
+      "name": "피젯스피노",
+      "beforeWins": 58,
+      "afterWins": 55,
+      "played": 69
+    },
+    {
+      "id": "cheon",
+      "name": "천도현급",
+      "beforeWins": 63,
+      "afterWins": 50,
+      "played": 69
+    },
+    {
+      "id": "pizza",
+      "name": "그래그래 피자",
+      "beforeWins": 60,
+      "afterWins": 53,
+      "played": 69
+    },
+    {
+      "id": "pushmark",
+      "name": "푸시마크",
+      "beforeWins": 50,
+      "afterWins": 45,
+      "played": 69
+    },
+    {
+      "id": "gochujang",
+      "name": "태양초 고추장",
+      "beforeWins": 57,
+      "afterWins": 55,
+      "played": 69
+    }
+  ]
+}
