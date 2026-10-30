@@ -22,5 +22,9 @@
   {
     "from": "function infoUser(u){return `<img src=\"${playerImg(u)}\" alt=\"\" class=\"playerIcon\"><span class=\"name\"><b>${escapeHTML(u?.nick||'플레이어')}</b><br><small>#${escapeHTML(u?.tag||'')}</small></span>`}\n",
     "to": "function infoUser(u){return `<img src=\"${playerImg(u)}\" alt=\"\" class=\"playerIcon ${u?.equippedBorder?'masteryBorder':''}\"><span class=\"name\"><b>${escapeHTML(u?.nick||'플레이어')}</b>${u?.title?`<em class=\"playerTitle\">${escapeHTML(u.title)}</em>`:''}<br><small>#${escapeHTML(u?.tag||'')}</small></span>`}\n"
+  },
+  {
+    "from": "const upgradeCosts=[500,1000,2000,3000,5000];",
+    "to": "const upgradeCosts=[200,500,900,1300,2000];"
   }
 ]
