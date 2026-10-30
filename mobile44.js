@@ -1,6 +1,6 @@
 /* Keyboard/safe viewport support; no account-dependent layout assumptions. */
 (function(){
- const mobile=()=>matchMedia('(max-width:800px), (max-width:1000px) and (max-height:550px)').matches;
+ const mobile=()=>matchMedia('(max-width:900px), (max-width:1000px) and (max-height:550px)').matches;
  let pending=false;
  function viewport(){pending=false;if(!mobile()){document.documentElement.style.removeProperty('--mobile44-height');return;}const h=Math.max(180,Math.min(innerHeight,window.visualViewport?.height||innerHeight));document.documentElement.style.setProperty('--mobile44-height',Math.round(h)+'px');}
  function schedule(){if(!pending){pending=true;requestAnimationFrame(viewport);}}

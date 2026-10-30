@@ -8,5 +8,5 @@ vm.runInNewContext(js,c);raf.shift()();assert.equal(style['--mobile44-height'],'
 // Older mobile browsers can lack visualViewport entirely.
 const d={...c,window:{},innerHeight:600,matchMedia:()=>({matches:true})};vm.runInNewContext(js,d);raf.shift()();assert.equal(style['--mobile44-height'],'600px');
 for(const selector of ['.socialPanelNav','.identity32Code','.identity32Versus','.leaderRow','.profile39Dialog','.mode28Sheet','.passScroll','.battleCountdown','.resultStats','.requestPhotoField','.store36Grid','.botSetup','.ultDock','.drawer29Panel','.collection41'])assert(css.includes(selector),selector+' covered');
-assert(!/display\s*:\s*none/.test(css),'mobile patch hides no user information');assert(css.includes('env(safe-area-inset-bottom)'));assert(css.includes('@media(max-width:360px)'));assert(css.includes('max-height:500px'));
+assert(!/display\s*:\s*none/.test(css),'mobile patch hides no user information');assert(css.includes('env(safe-area-inset-bottom)'));assert(css.includes('@media(max-width:360px)'));assert(css.includes('max-height:550px'));
 console.log('PASS keyboard height, safe fallback without visualViewport, desktop reset, focused field scrolling; all major mobile panels covered without hiding user information.');
