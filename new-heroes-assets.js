@@ -3,4 +3,5 @@ const manifest={"portraits": ["fidgetspino", "granny_first", "granny_second", "g
 for(const id of ["kkamangi", "son", "lilagokoala", "piggrave", "chickenskewer", "bananadriver", "dailydohyun"]){manifest.portraits.push(id);manifest.icons.push(id);}
 manifest.portraits.push('kkamangi_ult','son_ult');
 for(const id of ["fcgoa", "rohmuhyun", "jerryfashion", "bimeiimagined", "seojun", "sonheungmin", "impostormoai", "domo", "blackberry", "gumballhot"]){manifest.portraits.push(id);manifest.icons.push(id);}
+for(const id of ["mochublue", "lilboy", "originalalvin", "weirdduo", "pinksheep", "gojaeyoung", "namul", "notbanchan", "minekoala"]){manifest.portraits.push(id);manifest.icons.push(id);}
 module.exports=Object.fromEntries(Object.entries(manifest).map(([kind,ids])=>[kind,Object.fromEntries(ids.map(id=>[id,fs.readFileSync(path.join(__dirname,'new-heroes',kind,id+'.webp')).toString('base64')]))]));
