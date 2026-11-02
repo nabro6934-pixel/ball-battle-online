@@ -30,11 +30,12 @@ onEvent=function(m){
  if(m.event==='matched'&&m.opponent)app.battlePlayers=m.side===1?[m.opponent,profile]:[profile,m.opponent];
  prebattleEvent(m);
  if(m.event==='matched'){
-  features?.cancelLoading();const card=$('.matchedCard');if(card){card.classList.add('fullMatchCard');card.innerHTML='<div class="versusEyebrow">OPPONENT FOUND</div>'+battleProfileCard(m.opponent||app.opponent)+'<p>상대를 확인하고 캐릭터를 선택하세요</p>';}
+  features?.cancelLoading();if(typeof openMatchIntro49==='function')openMatchIntro49([m.opponent||app.opponent],app.introUntil||Date.now()+5000);const card=$('.matchedCard');if(card&&typeof openMatchIntro49!=='function'){card.classList.add('fullMatchCard');card.innerHTML='<div class="versusEyebrow">OPPONENT FOUND</div>'+battleProfileCard(m.opponent||app.opponent)+'<p>상대를 확인하고 캐릭터를 선택하세요</p>';}
  }
- if(m.event==='multi_matched'){features?.cancelLoading();}
+ if(m.event==='multi_matched'){features?.cancelLoading();if(typeof openMatchIntro49==='function')openMatchIntro49([],app.multiIntroUntil||Date.now()+5000);}
  if(m.event==='multi_lobby'&&app.screen==='matched'){
   const me=m.players.find(p=>p.sid===app.session),enemies=m.players.filter(p=>p.sid!==app.session&&(me?.team===null||p.team!==me?.team));
+  if(typeof renderMatchIntro49==='function')renderMatchIntro49(enemies);
   overlayContent.innerHTML='<div class="versusEyebrow">'+escapeHTML(m.label)+' · OPPONENTS FOUND</div><h2>상대 팀을 확인하세요</h2><div class="matchTeamProfiles">'+enemies.map(p=>battleProfileCard(p,p.hero)).join('')+'</div><p class="micro">잠시 후 캐릭터 선택으로 이동합니다</p>';
  }
  if(['start','multi_start','royale_start','raid_start'].includes(m.event)){
