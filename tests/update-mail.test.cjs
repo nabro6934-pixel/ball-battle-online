@@ -1,10 +1,7 @@
-const assert=require('node:assert/strict');
-const P=require('../progression').create(require('../engine').HEROES);
-for(const prior of [[],[{id:'old-gift',kind:'gift',coins:500,read:false,claimed:false}]]){
- const hadGift=prior.some(m=>m.id==='old-gift');const u={tag:'TESTUSER',owned:['pizza','rico','gaybi'],coins:20,mail:prior};P.migrate(u);
- const notice=u.mail.find(m=>m.id==='season1-heroes-balance-20261009-v18-2');assert(notice);assert.equal(notice.read,false);assert.equal(notice.coins,0);assert(notice.body.includes('각각 체력 100 → 40'));assert(notice.body.includes('20%'));assert(notice.body.includes('프로필 아이콘'));assert.equal(u.mail[0].id,'arena-features-v19');
- const count=u.mail.length,unread=P.privateFields(u).unreadMail;P.migrate(u);assert.equal(u.mail.length,count);
- P.action(u,{action:'mail_read',mailId:notice.id},new Map());assert.equal(P.privateFields(u).unreadMail,unread-1);P.migrate(u);assert.equal(u.mail.length,count);assert.equal(notice.read,true);assert.equal(u.coins,20);
- if(hadGift)assert.equal(u.mail.find(m=>m.id==='old-gift').coins,500);
+'use strict';
+const assert=require('node:assert/strict'),P=require('../progression').create(require('../engine').HEROES);
+const id='season2-update-v60-20261110',retired=['season1-heroes-balance-20261009-v18-2','patch-filter-size-v15-4','arena-features-v19'];
+for(const prior of [[],retired.map(id=>({id,kind:'patch',title:'이전 업데이트',body:'옛 내용',coins:0,heroes:[],read:false})),[{id:'real-gift',kind:'gift',coins:500,read:false,claimed:false}]]){
+ const u={tag:'TESTUSER',owned:['pizza','rico','gaybi'],coins:20,mail:prior};P.migrate(u);const n=u.mail.find(m=>m.id===id);assert(n);assert.equal(u.mail[0].id,id);assert.equal(n.read,false);assert.equal(n.coins,0);assert(n.body.includes('신캐릭터 10명'));assert(n.body.includes('시즌 2 패스'));assert(n.body.includes('청록색'));assert(!n.body.includes('각각 체력 100 → 40'));assert(!u.mail.some(m=>retired.includes(m.id)));if(prior.some(m=>retired.includes(m.id)))assert.equal(u.noticeArchive.length,3);if(prior.some(m=>m.id==='real-gift'))assert.equal(u.mail.find(m=>m.id==='real-gift').coins,500);const count=u.mail.length,unread=P.privateFields(u).unreadMail;P.action(u,{action:'mail_read',mailId:id},new Map());P.migrate(u);assert.equal(u.mail.length,count);assert.equal(n.read,true);assert.equal(P.privateFields(u).unreadMail,unread-1);assert.equal(u.coins,20);
 }
-console.log('PASS: update notice delivered once, unread badge, read state and existing gifts preserved');
+const special={tag:'TEST',owned:['pizza'],coins:0,mail:[{id:retired[0],kind:'gift',coins:250,heroes:[],read:false}]};P.migrate(special);assert(special.mail.some(m=>m.id===retired[0]&&m.coins===250));console.log('PASS current update mail: replaces retired notices, archives once, preserves gifts and read states, no old notices recreated.');

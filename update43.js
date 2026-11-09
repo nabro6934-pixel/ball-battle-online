@@ -1,5 +1,5 @@
 'use strict';
-const ID='season2-update-v59-20261110';
+const ID='season2-update-v60-20261110';
 const IDS=['kkamangi','son','lilagokoala','piggrave','chickenskewer','bananadriver','dailydohyun'];
 function fields(u){return {id:ID,pending:!u.updateNotices?.[ID]};}
 function action(u,m){if(m.action!=='update43_notice_seen')return null;u.updateNotices=u.updateNotices&&typeof u.updateNotices==='object'?u.updateNotices:{};if(u.updateNotices[ID])return {noticeClaimed:false};u.updateNotices[ID]=Date.now();return {changed:true,noticeClaimed:true};}
