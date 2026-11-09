@@ -478,7 +478,7 @@ GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">
 GAME_HTML=GAME_HTML.replace(/\+10코인/g,'+50코인').replace(/정상 승리: 10코인/g,'정상 승리: 50코인');
 GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다.</p><div class=\"socialRows\">'","+'</h2><p>'+(win?'🪙 승리 보상 +50코인':'우승자에게 50코인이 지급됩니다.')+'</p><div class=\"socialRows\">'").replace("$('#royaleHomeBtn').onclick=home;}break;","$('#royaleHomeBtn').onclick=home;refreshPlayer();}break;");
 GAME_HTML=GAME_HTML.replace("?{code:a.code}:{}","?{code:a.code}:{...a}");
-GAME_HTML=GAME_HTML.replace('/cosmetics-ui.js?v=16.0','/cosmetics-ui.js?v=61.0').replace('/season-ui.js?v=16.0','/season-ui.js?v=58.0');
+GAME_HTML=GAME_HTML.replace('/cosmetics-ui.js?v=16.0','/cosmetics-ui.js?v=62.0').replace('/season-ui.js?v=16.0','/season-ui.js?v=58.0');
 // Season 1 additions: 36 heroes, original portraits and new player icons.
 GAME_HTML=GAME_HTML.replace(/프로필 아이콘 32개/g,'프로필 아이콘 '+engine.HEROES.length+'개');
 GAME_HTML=GAME_HTML.replace(/캐릭터 32명/g,'캐릭터 '+engine.HEROES.length+'명').replace(/32인 수집 배틀/g,engine.HEROES.length+'인 수집 배틀');
@@ -575,7 +575,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v),spectateAvailable:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v61.0',seasonId:require('./season-config').id,multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v62.0',seasonId:require('./season-config').id,multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

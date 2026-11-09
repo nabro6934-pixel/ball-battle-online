@@ -360,16 +360,16 @@
     ]
   },
   "greenface": {
-    "source": "greenface_mask",
+    "source": "greenface",
     "size": [
       1254,
       1254
     ],
     "crop": [
-      261,
       17,
-      733,
-      1236
+      14,
+      1219,
+      896
     ]
   },
   "gymgay": {
