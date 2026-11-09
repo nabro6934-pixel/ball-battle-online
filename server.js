@@ -438,6 +438,7 @@ for(const [id,b64] of Object.entries(NEW_HERO_ASSETS.portraits))spriteImages[id]
 let GAME_HTML=fs.readFileSync(path.join(__dirname,'game.html'),'utf8').replace(
  /const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';'
 );
+const originalIcons56=require('./original-icons56').create(JSON.parse(GAME_HTML.match(/const IMAGES=(\{[\s\S]*?\});/)[1]),engine.HEROES);
 for(const edit of JSON.parse(fs.readFileSync(path.join(__dirname,'game-ui-patches.json'),'utf8'))){if(!GAME_HTML.includes(edit.from))throw Error('Game UI patch target missing');GAME_HTML=GAME_HTML.replace(edit.from,()=>edit.to);}
 // Keep the startup playlist identical to the streamed music catalog.
 const LOBBY_MUSIC_TRACKS=JSON.parse(fs.readFileSync(path.join(__dirname,'music/tracks.json'),'utf8'));
@@ -502,6 +503,8 @@ const server=http.createServer((req,res)=>{
   let url;try{url=new URL(req.url,'http://localhost')}catch{return json(res,400,{error:'bad URL'})}
   if(['GET','HEAD'].includes(req.method)&&(/^\/halloween\/(loading|portrait_hw_[a-z]+|icon_hw_[a-z]+)\.webp$/.test(url.pathname)||/^\/cosmetics\/(icons\/|pins\/mastery_)hw_[a-z]+\.webp$/.test(url.pathname)||/^\/character-art\/hw_[a-z]+\.webp$/.test(url.pathname))){const part=url.pathname.split('/').pop().replace(/^mastery_/,''),file=path.join(__dirname,'halloween-art',url.pathname.startsWith('/cosmetics/')?'icon_'+part:url.pathname.startsWith('/character-art/')?'portrait_'+part:part);if(!fs.existsSync(file))return json(res,404,{error:'이미지가 없어요.'});res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=86400','Content-Length':fs.statSync(file).size});if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);return;}
   if(['GET','HEAD'].includes(req.method)){
+    const original56=/^\/cosmetics\/original-icons\/([a-z0-9_]+)\.svg$/.exec(url.pathname);
+    if(original56){const bytes=originalIcons56.render(original56[1]);if(!bytes)return json(res,404,{error:'아이콘이 없어요.'});res.writeHead(200,{'Content-Type':'image/svg+xml','Content-Length':bytes.length,'Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'});res.end(req.method==='HEAD'?undefined:bytes);return;}
     const shopMatch=/^\/cosmetics\/shop\/([a-z_]+)\.svg$/.exec(url.pathname);
     if(shopMatch){const bytes=shopArt(shopMatch[1]);if(!bytes)return json(res,404,{error:'상품을 찾지 못했어요.'});res.writeHead(200,{'Content-Type':'image/svg+xml','Content-Length':bytes.length,'Cache-Control':'public, max-age=86400'});res.end(req.method==='HEAD'?undefined:bytes);return;}
     const icon=/^\/cosmetics\/icons\/([a-z_]+)\.webp$/.exec(url.pathname),art=/^\/character-art\/([a-z_]+)\.webp$/.exec(url.pathname);
@@ -570,7 +573,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v),spectateAvailable:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v55.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v56.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}
