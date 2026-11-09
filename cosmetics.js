@@ -4,11 +4,8 @@ const SHOP=require('./cosmetic-shop').catalog;
 const iconIds=new Set([...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
 const PINS=[
  {id:'basic_thumb_up',name:'따봉'}, {id:'basic_thumb_down',name:'역따봉'}, {id:'basic_heart',name:'하트'},
- {id:'pass_moai_laugh',name:'모아이 웃음',track:'free',tier:5},
- {id:'pass_moai_cry',name:'모아이 울음',track:'free',tier:15},
- {id:'pass_moai_angry',name:'모아이 분노',track:'premium',tier:10},
- {id:'pass_moai_surprise',name:'모아이 놀람',track:'free',tier:25},
- {id:'pass_moai_cool',name:'모아이 선글라스',track:'premium',tier:30}
+ ...require('./season-config').legacyPins,
+ ...require('./season-config').pins
 ];
 PINS.push(...HEROES.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
 PINS.push(...SHOP.filter(x=>x.kind==='pin').map(x=>({...x,shop:true})));
@@ -18,7 +15,7 @@ function migrate(u){
  for(const mail of u.mail||[]){if(Array.isArray(mail.pins))mail.pins=mail.pins.filter(id=>!String(id).startsWith('shop_'));if(String(mail.pin||'').startsWith('shop_'))delete mail.pin;}
  u.profileIcons=[...new Set([...(Array.isArray(u.profileIcons)?u.profileIcons:[]).filter(id=>iconIds.has(id)),...HEROES.filter(h=>!require('./character-policy').limited(h)||admin||u.owned?.includes(h.id)).map(h=>h.id),...(admin?SHOP.filter(x=>x.kind==='icon').map(x=>x.id):[])])];
  u.pins=[...new Set([...(Array.isArray(u.pins)?u.pins:[]).filter(id=>pinIds.has(id)),...basic])];
- for(const p of PINS)if(admin||(u.season?.id==='season-1'&&u.season.claimed?.includes(p.track+':'+p.tier)))if(!u.pins.includes(p.id))u.pins.push(p.id);
+ for(const p of PINS)if(admin||(u.season?.id===p.season&&u.season.claimed?.includes(p.track+':'+p.tier)))if(!u.pins.includes(p.id))u.pins.push(p.id);
  if(!u.profileIcons.includes(u.profileIcon))u.profileIcon=iconIds.has(u.avatar)?u.avatar:'pizza';
  u.equippedPins=[...new Set((Array.isArray(u.equippedPins)?u.equippedPins:basic).filter(id=>u.pins.includes(id)))].slice(0,3);
  if(!u.equippedPins.length)u.equippedPins=[...basic];
@@ -41,6 +38,6 @@ function emote(u,s,m,now=Date.now()){
  if(s.lastPinAt!==undefined&&now-s.lastPinAt<2500)throw Error('핀은 2.5초마다 사용할 수 있어요.');
  s.lastPinAt=now;return {pin:m.pin,duration:2500};
 }
-function passPin(track,tier){return PINS.find(p=>p.track===track&&p.tier===tier);}
+function passPin(track,tier){return PINS.find(p=>p.season===require('./season-config').id&&p.track===track&&p.tier===tier);}
 module.exports={PINS,migrate,fields,action,emote,passPin};
 

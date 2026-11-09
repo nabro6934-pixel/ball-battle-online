@@ -3,11 +3,7 @@ window.createCosmeticsUI=function(api){
  const {app,H,HM,esc,modal,content,title,profile,auth,call,setProfile,refresh,toast,sound}=api;
  const pins=[
   {id:'basic_thumb_up',name:'따봉'},{id:'basic_thumb_down',name:'역따봉'},{id:'basic_heart',name:'하트'},
-  {id:'pass_moai_laugh',name:'모아이 웃음',track:'free',tier:5},
-  {id:'pass_moai_cry',name:'모아이 울음',track:'free',tier:15},
-  {id:'pass_moai_angry',name:'모아이 분노',track:'premium',tier:10},
-  {id:'pass_moai_surprise',name:'모아이 놀람',track:'free',tier:25},
-  {id:'pass_moai_cool',name:'모아이 선글라스',track:'premium',tier:30}
+  ...(window.ArenaSeasonPins||[])
  ];
  pins.push(...H.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
 
@@ -19,7 +15,7 @@ window.createCosmeticsUI=function(api){
  function pinImg(id){if(id.startsWith('shop_pin_'))return base()+'/cosmetics/shop/'+id+'.svg';if(id.startsWith('mastery_'))return iconImg(id.slice(8));return base()+'/cosmetics/pins/'+id+'.webp';}
  function preload(id){if(!byId.has(id))return;let im=images.get(id);if(!im){im=new Image();im.src=pinImg(id);images.set(id,im)}return im;}
  let selectedIcon='pizza',equipped=[],slot=0,busy=false,tab='icons',query='';
- function rewardPin(track,tier){return pins.find(p=>p.track===track&&p.tier===tier);}
+ function rewardPin(track,tier){return pins.find(p=>p.season===window.ArenaSeasonId&&p.track===track&&p.tier===tier);}
  function rewardHTML(track,tier){const p=rewardPin(track,tier);return p?`<img class="passPinArt" src="${pinImg(p.id)}" alt="${p.name}"><small class="passPinName">+ ${p.name} 핀</small>`:'';}
  async function save(){if(busy)return;busy=true;const button=content.querySelector('#saveCosmetics');if(button)button.disabled=true;try{const r=await call('cosmetics_update',{...auth(),profileIcon:selectedIcon,equippedPins:equipped});setProfile(r.profile);refresh();sound('reward');toast('프로필 아이콘과 핀을 저장했어요!');if(api.getActive()==='cosmetics')render();}catch(e){toast(e.message);}finally{busy=false;const b=content.querySelector('#saveCosmetics');if(b)b.disabled=false;}}
  function render(){
@@ -31,7 +27,7 @@ window.createCosmeticsUI=function(api){
    const filter=()=>{pane.querySelectorAll('[data-icon]').forEach(b=>b.hidden=!b.dataset.name.toLowerCase().includes(query.toLowerCase()));};filter();pane.querySelector('#iconSearch').oninput=e=>{query=e.target.value.trim();filter();};
    pane.querySelectorAll('[data-icon]').forEach(b=>b.onclick=()=>{selectedIcon=b.dataset.icon;content.querySelector('.cosmeticPreview img').src=iconImg(selectedIcon);pane.querySelectorAll('[data-icon]').forEach(x=>{x.classList.toggle('selected',x===b);x.setAttribute('aria-pressed',x===b?'true':'false')});});
   }else{
-   pane.innerHTML=`<p class="micro">슬롯을 누른 뒤 핀을 골라요. 장착한 핀은 전투 중 사용할 수 있어요. 기본 3개는 무료, 모아이 5개는 시즌 패스, 캐릭터 전용 핀은 캐릭터 트로피 300개 보상이에요.</p><div class="pinSlots">${[0,1,2].map(i=>`<button data-pin-slot="${i}" class="${slot===i?'selected':''}" aria-label="핀 슬롯 ${i+1}">${equipped[i]?`<img src="${pinImg(equipped[i])}">`:'+'}<small>슬롯 ${i+1}</small></button>`).join('')}</div><div class="pinGrid">${pins.map(pin=>{const has=owned.includes(pin.id);return `<button class="pinTile ${has?'':'locked'} ${equipped.includes(pin.id)?'equipped':''}" data-pin="${pin.id}" ${has?'':'disabled'}><img src="${pinImg(pin.id)}" alt="${pin.name}"><b>${pin.name}</b><small>${has?(equipped.includes(pin.id)?'✓ 장착 중':'보유'):pin.shop?'판매 종료':pin.mastery?'트로피 300 · 우편 수령':`${pin.track==='free'?'무료':'프리미엄'} 패스 ${pin.tier}티어`}</small></button>`}).join('')}</div><p class="micro">이미 해당 패스 보상을 수령했다면 핀도 자동으로 지급돼요.</p>`;
+   pane.innerHTML=`<p class="micro">슬롯을 누른 뒤 핀을 골라요. 장착한 핀은 전투 중 사용할 수 있어요. 기본 3개는 무료, 시즌 2 핀 5개는 시즌 패스, 캐릭터 전용 핀은 캐릭터 트로피 300개 보상이에요.</p><div class="pinSlots">${[0,1,2].map(i=>`<button data-pin-slot="${i}" class="${slot===i?'selected':''}" aria-label="핀 슬롯 ${i+1}">${equipped[i]?`<img src="${pinImg(equipped[i])}">`:'+'}<small>슬롯 ${i+1}</small></button>`).join('')}</div><div class="pinGrid">${pins.map(pin=>{const has=owned.includes(pin.id);return `<button class="pinTile ${has?'':'locked'} ${equipped.includes(pin.id)?'equipped':''}" data-pin="${pin.id}" ${has?'':'disabled'}><img src="${pinImg(pin.id)}" alt="${pin.name}"><b>${pin.name}</b><small>${has?(equipped.includes(pin.id)?'✓ 장착 중':'보유'):pin.shop?'판매 종료':pin.mastery?'트로피 300 · 우편 수령':pin.season!==window.ArenaSeasonId?'시즌 1 종료':`${pin.track==='free'?'무료':'프리미엄'} 패스 ${pin.tier}티어`}</small></button>`}).join('')}</div><p class="micro">이미 해당 패스 보상을 수령했다면 핀도 자동으로 지급돼요.</p>`;
    pane.querySelectorAll('[data-pin-slot]').forEach(b=>b.onclick=()=>{slot=+b.dataset.pinSlot;render();});
    pane.querySelectorAll('[data-pin]').forEach(b=>b.onclick=()=>{const id=b.dataset.pin,old=equipped.indexOf(id);if(old>=0&&old!==slot){const previous=equipped[slot];equipped[slot]=id;if(previous)equipped[old]=previous;else equipped.splice(old,1);}else equipped[slot]=id;equipped=equipped.filter(Boolean);slot=Math.min(slot,equipped.length-1);preload(id);render();});
   }

@@ -478,7 +478,7 @@ GAME_HTML=GAME_HTML.replace(/<link rel="stylesheet" href="\/arena-ui.css\?v=12">
 GAME_HTML=GAME_HTML.replace(/\+10코인/g,'+50코인').replace(/정상 승리: 10코인/g,'정상 승리: 50코인');
 GAME_HTML=GAME_HTML.replace("+'</h2><p>친선전이므로 보상은 없습니다.</p><div class=\"socialRows\">'","+'</h2><p>'+(win?'🪙 승리 보상 +50코인':'우승자에게 50코인이 지급됩니다.')+'</p><div class=\"socialRows\">'").replace("$('#royaleHomeBtn').onclick=home;}break;","$('#royaleHomeBtn').onclick=home;refreshPlayer();}break;");
 GAME_HTML=GAME_HTML.replace("?{code:a.code}:{}","?{code:a.code}:{...a}");
-GAME_HTML=GAME_HTML.replace('/cosmetics-ui.js?v=16.0','/cosmetics-ui.js?v=28.0').replace('/season-ui.js?v=16.0','/season-ui.js?v=35.0');
+GAME_HTML=GAME_HTML.replace('/cosmetics-ui.js?v=16.0','/cosmetics-ui.js?v=58.0').replace('/season-ui.js?v=16.0','/season-ui.js?v=58.0');
 // Season 1 additions: 36 heroes, original portraits and new player icons.
 GAME_HTML=GAME_HTML.replace(/프로필 아이콘 32개/g,'프로필 아이콘 '+engine.HEROES.length+'개');
 GAME_HTML=GAME_HTML.replace(/캐릭터 32명/g,'캐릭터 '+engine.HEROES.length+'명').replace(/32인 수집 배틀/g,engine.HEROES.length+'인 수집 배틀');
@@ -510,7 +510,7 @@ const server=http.createServer((req,res)=>{
     const icon=/^\/cosmetics\/icons\/([a-z_]+)\.webp$/.exec(url.pathname),art=/^\/character-art\/([a-z_]+)\.webp$/.exec(url.pathname);
     const b64=icon?NEW_HERO_ASSETS.icons[icon[1]]:art?NEW_HERO_ASSETS.portraits[art[1]]:null;
     if(b64){const bytes=Buffer.from(b64,'base64');res.writeHead(200,{'Content-Type':'image/webp','Content-Length':bytes.length,'Cache-Control':'public, max-age=86400'});res.end(req.method==='HEAD'?undefined:bytes);return;}
-    if(url.pathname==='/cosmetics-ui.js'){res.writeHead(200,{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end(fs.readFileSync(path.join(__dirname,'cosmetics-ui.js'),'utf8').replace(/32개/g,engine.HEROES.length+'개'));return;}
+    if(url.pathname==='/cosmetics-ui.js'){res.writeHead(200,{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});res.end('window.ArenaSeasonId='+JSON.stringify(require('./season-config').id)+';window.ArenaSeasonPins='+JSON.stringify([...require('./season-config').legacyPins,...require('./season-config').pins])+';\n'+fs.readFileSync(path.join(__dirname,'cosmetics-ui.js'),'utf8').replace(/32개/g,engine.HEROES.length+'개'));return;}
   }
   if(serveMedia(req,res,url.pathname))return;
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'});res.end();return}
@@ -519,7 +519,7 @@ const server=http.createServer((req,res)=>{
  res.end(GAME_HTML);return;
 }
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/game.html')){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store, max-age=0, must-revalidate','Pragma':'no-cache','Expires':'0','Access-Control-Allow-Origin':'*','X-Content-Type-Options':'nosniff'});res.end(GAME_HTML);return}
-  if(['GET','HEAD'].includes(req.method)&&['/season-ui.js','/season-ui.css','/loading-season1.png','/loading-season1-mobile.webp'].includes(url.pathname)){const file=path.join(__dirname,url.pathname.slice(1));res.writeHead(200,{'Content-Type':url.pathname.endsWith('.webp')?'image/webp':url.pathname.endsWith('.png')?'image/png':url.pathname.endsWith('.css')?'text/css; charset=utf-8':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);return;}
+  if(['GET','HEAD'].includes(req.method)&&['/season-ui.js','/season-ui.css','/loading-season1.png','/loading-season1-mobile.webp','/loading-season2-mobile.webp','/loading-season2-desktop.webp'].includes(url.pathname)){const file=path.join(__dirname,url.pathname.slice(1));res.writeHead(200,{'Content-Type':url.pathname.endsWith('.webp')?'image/webp':url.pathname.endsWith('.png')?'image/png':url.pathname.endsWith('.css')?'text/css; charset=utf-8':'application/javascript; charset=utf-8','Cache-Control':'no-cache'});if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);return;}
   if(req.method==='GET'&&url.pathname==='/arena-ui.css'){res.writeHead(200,{'Content-Type':'text/css; charset=utf-8','Cache-Control':'no-cache'});res.end(fs.readFileSync(path.join(__dirname,'arena-ui.css')));return}
   if(req.method==='GET'&&url.pathname==='/player-profile'){const u=profiles.get(url.searchParams.get('id'));if(!u)return json(res,404,{error:'플레이어를 찾을 수 없어요.'});return json(res,200,require('./player-profile')(u,engine.HEROES,publicUser(u)));}
   if(req.method==='GET'&&url.pathname==='/hero-leaderboard'){const id=url.searchParams.get('hero');if(!engine.HEROES.some(h=>h.id===id))return json(res,400,{error:'캐릭터를 찾을 수 없어요.'});return json(res,200,require('./hero-leaderboards')(profiles,id));}
@@ -573,7 +573,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v),spectateAvailable:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v57.0',multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v58.0',seasonId:require('./season-config').id,multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

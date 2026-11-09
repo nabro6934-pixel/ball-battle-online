@@ -1,18 +1,27 @@
 'use strict';
 const crypto=require('node:crypto');
-const SEASON='season-1';
+const config=require('./season-config'),SEASON=config.id;
 const day=(now=Date.now())=>new Date(now+9*3600000).toISOString().slice(0,10);
 const attendance=[{coins:25},{random:true},{coins:50},{coins:50},{random:true},{coins:75},{coins:100}];
 const quests=[{id:'play',title:'온라인 경기 3판 완료',need:3,coins:15},{id:'win',title:'온라인 경기 1판 승리',need:1,coins:10},{id:'heroes',title:'서로 다른 캐릭터 3명 사용',need:3,coins:15}];
 function migrate(u){
- if(!u.season||u.season.id!==SEASON)u.season={id:SEASON,xp:0,premium:false,claimed:[]};
+ if(!u.season||u.season.id!==SEASON){
+  // Capture old earned pins before resetting claims, including never-opened cosmetic screens.
+  if(u.season?.id){
+   const old=u.season,earned=[...config.legacyPins,...config.pins].filter(p=>p.season===old.id&&old.claimed?.includes(p.track+':'+p.tier)).map(p=>p.id);
+   u.pins=[...new Set([...(Array.isArray(u.pins)?u.pins:[]),...earned])];
+   u.seasonHistory=u.seasonHistory&&typeof u.seasonHistory==='object'&&!Array.isArray(u.seasonHistory)?u.seasonHistory:{};
+   u.seasonHistory[old.id]=JSON.parse(JSON.stringify(old));
+  }
+  u.season={id:SEASON,xp:0,premium:false,claimed:[]};
+ }
  u.season.xp=Math.max(0,Math.min(3000,Math.floor(Number(u.season.xp)||0)));u.season.claimed=Array.isArray(u.season.claimed)?u.season.claimed:[];
  if(!u.attendance)u.attendance={count:0,lastDay:null};
  if(!u.daily||u.daily.day!==day())u.daily={day:day(),play:0,win:0,heroes:[],claimed:[]};
  return u;
 }
 function grantPremium(u){migrate(u);u.season.premium=true;}
-function fields(u){migrate(u);return {seasonPass:{...u.season,tier:Math.floor(u.season.xp/100),nextXP:u.season.xp%100},attendance:{...u.attendance,todayClaimed:u.attendance.lastDay===day(),nextDay:u.attendance.count%7+1},daily:{...u.daily,quests:quests.map(q=>({...q,progress:q.id==='heroes'?u.daily.heroes.length:u.daily[q.id],claimed:u.daily.claimed.includes(q.id)}))}};}
+function fields(u){migrate(u);return {seasonPass:{...u.season,number:config.number,name:config.name,tier:Math.floor(u.season.xp/100),nextXP:u.season.xp%100},attendance:{...u.attendance,todayClaimed:u.attendance.lastDay===day(),nextDay:u.attendance.count%7+1},daily:{...u.daily,quests:quests.map(q=>({...q,progress:q.id==='heroes'?u.daily.heroes.length:u.daily[q.id],claimed:u.daily.claimed.includes(q.id)}))}};}
 function create(heroes){const ids=require('./character-policy').regular(heroes).map(h=>h.id),valid=new Set(heroes.map(h=>h.id));
  function randomHero(u,allCoins=500){const missing=ids.filter(id=>!u.owned.includes(id));if(!missing.length)return {coins:allCoins};const hero=missing[crypto.randomInt(missing.length)];u.owned.push(hero);return {hero};}
  function record(u,history,won){migrate(u);u.daily.play++;if(won){u.daily.win++;u.season.xp=Math.min(3000,u.season.xp+50);}for(const r of history)if(valid.has(r.hero)&&!u.daily.heroes.includes(r.hero))u.daily.heroes.push(r.hero);}
