@@ -1,0 +1,6 @@
+/* Never zoom profile artwork past the edges of its square frame. */
+.playerIcon,.playerBadge>img,.clubAvatar.playerIcon,.socialRow .playerIcon,.leaderRow .playerIcon,.profile39Identity>.playerIcon,.iconTile img,.pinTile img{object-fit:contain!important;object-position:center!important;clip-path:none!important;transform:none;aspect-ratio:1}
+.profile39Portrait{display:flex!important;align-items:center;justify-content:center;height:150px!important;padding:7px;box-sizing:border-box;overflow:visible!important}
+.profile39Portrait img{display:block;width:100%!important;height:100%!important;max-width:100%;max-height:100%;object-fit:contain!important;object-position:center!important;clip-path:none!important;transform:none!important}
+.fighterDetail>img{object-fit:contain!important;object-position:center!important;clip-path:none!important}
+@media(max-width:560px){.profile39Portrait{height:135px!important;padding:6px}}
