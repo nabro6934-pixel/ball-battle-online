@@ -10,7 +10,8 @@ window.createCosmeticsUI=function(api){
  const byId=new Map(pins.map(p=>[p.id,p])),images=new Map(),bubbles=new Map();
  const base=()=>api.base();
  const originalIconIds56=["pizza", "rico", "gaybi", "cheon", "darryl", "duo", "hoit", "nice", "pogo", "utti", "ddak", "sahur", "spyger", "tralalero", "lilago", "eggkimchi", "filter", "icecookie", "zeta", "shade", "moai", "medicine", "alvin", "lea", "pogo6974", "zetaseungju", "b67", "edgyalvin", "kip", "cheondohyun", "greenface", "gymgay", "fidgetspino", "grannyduo", "fries"];
- function iconImg(id){if(originalIconIds56.includes(id))return base()+'/cosmetics/original-icons/'+id+'.svg?v=56';return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/icons/'+(HM[id]?id:'pizza')+'.webp'+(["mochublue", "lilboy", "originalalvin", "weirdduo", "pinksheep", "gojaeyoung", "namul", "notbanchan", "minekoala"].includes(id)?'?v=53':'');}
+ originalIconIds56.push(...H.filter(h=>h.release===57).map(h=>h.id));
+ function iconImg(id){if(originalIconIds56.includes(id))return base()+'/cosmetics/original-icons/'+id+'.svg?v='+(HM[id]?.release===57?'61':'56');return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/icons/'+(HM[id]?id:'pizza')+'.webp'+(["mochublue", "lilboy", "originalalvin", "weirdduo", "pinksheep", "gojaeyoung", "namul", "notbanchan", "minekoala"].includes(id)?'?v=53':'');}
  function playerImg(u){return iconImg(u?.profileIcon||u?.avatar);}
  function pinImg(id){if(id.startsWith('shop_pin_'))return base()+'/cosmetics/shop/'+id+'.svg';if(id.startsWith('mastery_'))return iconImg(id.slice(8));return base()+'/cosmetics/pins/'+id+'.webp';}
  function preload(id){if(!byId.has(id))return;let im=images.get(id);if(!im){im=new Image();im.src=pinImg(id);images.set(id,im)}return im;}
