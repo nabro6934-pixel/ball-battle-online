@@ -1,0 +1,17 @@
+/* Keep the teal backdrop scoped to the lobby. */
+body[data-screen=home]{background:#087e83!important;background-image:radial-gradient(ellipse at 55% 18%,#2ab9ad 0,#0b9294 48%,#086b77 100%)!important}
+body[data-screen=home] .arena{background:#0b8d91!important}
+body[data-screen=home] .overlay:has(.arenaLobby24){background:radial-gradient(ellipse at 50% 32%,#43cbbb66,transparent 65%),linear-gradient(135deg,#109c98,#087f88 60%,#086e7c)!important}
+body[data-screen=home] .lobbyShowcase .fighterGlow{background:radial-gradient(ellipse,#84ffe65c,transparent 70%)!important}
+.season59Notice{width:min(740px,94vw);max-height:90dvh;padding:0;border:2px solid #51d7ca;border-radius:20px;background:#0b2634;color:#f1fffc;overflow:auto}
+.season59Notice::backdrop{background:#01171cc9;backdrop-filter:blur(5px)}
+.season59Notice header,.season59Notice footer{padding:20px 24px!important;background:#103a47!important;color:#ecfffb!important}
+.season59Notice header small{color:#6cffe0;letter-spacing:2px;font-weight:900}
+.season59Notice h2{color:#fff!important;font-size:26px;margin:8px 0}
+.season59Notice p{color:#d0eceb!important;line-height:1.65;font-size:13px;margin:7px 0}
+.notice59Banner{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#072147}
+.notice59Body{padding:5px 24px 18px}.notice59Body section{padding:13px 0;border-bottom:1px solid #64c9c333}.notice59Body h3{color:#93ffe6;font-size:17px;margin:5px 0}
+.season59Notice .notice59Keep{padding:12px;border:1px solid #5bcab0;border-radius:10px;background:#14614e55}
+.season59Notice footer{position:sticky;bottom:0;box-shadow:0 -8px 20px #06202a80;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.season59Notice footer button{white-space:nowrap;background:#72f1cb!important;color:#073f3f!important;padding:12px 18px;border:0;border-radius:12px;font-weight:900}
+@media(max-width:560px){.season59Notice header,.season59Notice footer{padding:14px!important}.notice59Body{padding:4px 16px 12px}.season59Notice h2{font-size:22px}.season59Notice footer{flex-wrap:wrap}.season59Notice footer button{width:100%}}

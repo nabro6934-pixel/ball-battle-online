@@ -25,8 +25,19 @@ const zones43=drawNewHeroZones;drawNewHeroZones=function(s){zones43(s);ctx.save(
  for(const o of s.objects43||[]){ctx.globalAlpha=Math.min(1,Math.max(0,o.until-s.t));shape43(o.type,o.x,o.y,o.r);ctx.globalAlpha=1;ctx.strokeStyle=o.type==='food43'?'#a35568':'#d0a73b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(o.x,o.y,o.r+6,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,(o.until-s.t)/(o.type==='food43'?6:4)));ctx.stroke();}
  for(const z of s.bins43||[]){ctx.fillStyle='#8b98b41c';ctx.beginPath();ctx.arc(z.x,z.y,z.r+8,0,7);ctx.fill();shape43('bin43',z.x,z.y,z.r);}
  ctx.restore();};
-let notice43Busy=false;
-async function notice43(){if(notice43Busy||!profile?.setupDone||!profile.update43?.pending||app.screen!=='home'||!socialModal.classList.contains('hidden')||document.querySelector('.hw31Notice,dialog[open]'))return;notice43Busy=true;try{const v=await socialCall('update43_notice_seen',{...profileCred});if(v.profile)profile=v.profile;if(!v.noticeClaimed)return;const d=document.createElement('dialog');d.className='notice43';d.setAttribute('aria-labelledby','notice43Title');d.innerHTML='<header><small>UPDATE v43 · NEW CHARACTERS</small><h2 id="notice43Title">새로운 7캐릭터가 아레나에!</h2><p>새로운 전투 방식과 전용 아이콘·칭호를 만나보세요.</p></header><div class="notice43List">'+['kkamangi','son','lilagokoala','piggrave','chickenskewer','bananadriver','dailydohyun'].map(id=>'<article><img src="'+socialBase()+'/cosmetics/icons/'+id+'.webp" alt=""><div><b>'+escapeHTML(HM[id].name)+'</b><p>'+escapeHTML(HM[id].blurb)+'</p><small>칭호 · '+escapeHTML(profile.titleCatalog?.[id]||'')+'</small></div></article>').join('')+'</div><footer><p>일반 캐릭터 뽑기에 추가 · 변신 모습은 궁극기 동안만 적용<br>이번 안내는 계정마다 한 번만 표시됩니다.</p><button class="primary" autofocus>확인 · 아레나로</button></footer>';document.body.append(d);const previous=document.activeElement;d.querySelector('button').onclick=()=>d.close();d.addEventListener('close',()=>{d.remove();previous?.focus?.();},{once:true});d.showModal();}catch(e){console.warn('업데이트 안내를 불러오지 못했어요.');}finally{notice43Busy=false;}}
+let notice43Busy=false,notice59SessionSeen=false;
+async function notice43(){
+ if(notice43Busy||notice59SessionSeen||!profile?.setupDone||!profile.update43?.pending||app.loading||app.screen!=='home'||!socialModal.classList.contains('hidden')||document.querySelector('.hw31Notice,dialog[open]'))return;
+ notice43Busy=true;
+ try{
+  const d=document.createElement('dialog');d.className='notice43 season59Notice';d.setAttribute('aria-labelledby','notice59Title');
+  d.innerHTML='<header><small>SEASON 2 · UPDATE</small><h2 id="notice59Title">릴라고 아레나 시즌 2 시작!</h2><p>새로운 시즌과 함께 달라진 아레나를 만나보세요.</p></header><img class="notice59Banner" src="'+socialBase()+'/loading-season2-desktop.webp" alt="Lil_Ago Arena 시즌 2"><div class="notice59Body"><section><h3>🎟️ 시즌 2 패스</h3><p>패스 XP와 보상 수령 기록을 초기화했어요. 기존과 같은 30티어 보상 구성에 새로운 핀 5종이 추가됐어요. 프리미엄 패스도 새 시즌 기준으로 시작해요.</p></section><section><h3>✨ 새 핀 5종</h3><p>비메이 상상 · 분노 / 경찰 재영 · 경례 / 앙보르기니 · 웃음 / 메카 재영 · 따봉 / 아메리칸 도현 · 응원</p><p>무료 5·15·25티어, 프리미엄 10·30티어에서 획득할 수 있어요.</p></section><section><h3>⚔️ 신캐릭터 10명</h3><p>앙보르기니, 치킨치킨, 메카 재영, 탱크 재영, 핧, 지훈자지, 아무거나, 제이크 고아원, 경찰 재영, 메이드복 비메이가 합류했어요. 전체 캐릭터는 99명이에요.</p></section><section><h3>🎨 새롭게 바뀐 화면</h3><p>시즌 2 전용 로딩 화면을 모바일 세로형과 PC 가로형으로 준비했어요. 메인 화면 배경도 청록색으로 변경했어요.</p></section><p class="notice59Keep">보유 캐릭터·코인·트로피와 이미 획득한 핀은 그대로 유지돼요.</p></div><footer><p>이번 공지는 계정마다 한 번 표시돼요.</p><button class="primary" autofocus>확인 · 아레나로</button></footer>';
+  document.body.append(d);const previous=document.activeElement;
+  d.querySelector('button').onclick=()=>d.close();
+  d.addEventListener('close',async()=>{notice59SessionSeen=true;d.remove();previous?.focus?.();try{const v=await socialCall('update43_notice_seen',{...profileCred});if(v.profile)profile=v.profile;}catch(e){console.warn('공지 확인 기록을 저장하지 못했어요.');}finally{notice43Busy=false;}},{once:true});
+  d.showModal();
+ }catch(e){notice43Busy=false;console.warn('업데이트 공지를 표시하지 못했어요.');}
+}
 const header43=refreshHeader;refreshHeader=function(...a){header43(...a);setTimeout(notice43,0);};
 const home43=home;home=function(...a){home43(...a);initProfile().then(()=>setTimeout(notice43,250)).catch(()=>{});};
 setInterval(notice43,2500);
