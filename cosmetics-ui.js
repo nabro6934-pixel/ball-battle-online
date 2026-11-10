@@ -9,7 +9,7 @@ window.createCosmeticsUI=function(api){
 
  const byId=new Map(pins.map(p=>[p.id,p])),images=new Map(),bubbles=new Map();
  const base=()=>api.base();
- function iconImg(id){if(HM[id])return base()+'/cosmetics/original-icons/'+id+'.svg?v=63';return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/original-icons/pizza.svg?v=63';}
+ function iconImg(id){if(HM[id])return base()+'/cosmetics/original-icons/'+id+'.svg?v=69';return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/original-icons/pizza.svg?v=69';}
  function playerImg(u){return iconImg(u?.profileIcon||u?.avatar);}
  function pinImg(id){if(id.startsWith('shop_pin_'))return base()+'/cosmetics/shop/'+id+'.svg';if(id.startsWith('mastery_'))return iconImg(id.slice(8));return base()+'/cosmetics/pins/'+id+'.webp';}
  function preload(id){if(!byId.has(id))return;let im=images.get(id);if(!im){im=new Image();im.src=pinImg(id);images.set(id,im)}return im;}

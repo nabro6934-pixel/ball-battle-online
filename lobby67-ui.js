@@ -14,7 +14,7 @@ function mountLobby67(){const root=$('.v12Lobby');if(!root)return;const get=s=>r
  mode.className='modeBar lobby67Actions';const play=mode.querySelector('#playLobby');play.innerHTML='<span>플레이</span>'+icon67('play');
  const bottom=document.createElement('nav');bottom.className='lobby67Tabs';bottom.setAttribute('aria-label','주요 메뉴');for(const b of tabs)bottom.append(b);
  const services=document.createElement('nav');services.className='lobby68Services';services.setAttribute('aria-label','클럽 및 캐릭터 요청');
- for(const [id,label,icon] of [['clan67','클럽','friends'],['characterRequestLobby','신규 캐릭터 요청','draw'],['adminLobbyBtn','관리자 선물','pass']]){const button=storage.querySelector('#'+id);if(!button)continue;if(id==='adminLobbyBtn'&&!profile?.isAdmin)continue;button.className='lobby68Service';button.innerHTML=icon67(icon)+'<span>'+label+'</span>';services.append(button);}
+ for(const [id,label,icon] of [['questsLobbyBtn','퀘스트 · 출석','pass'],['clan67','클럽','friends'],['characterRequestLobby','신규 캐릭터 요청','draw'],['adminLobbyBtn','관리자 선물','pass']]){const button=storage.querySelector('#'+id);if(!button)continue;if(id==='adminLobbyBtn'&&!profile?.isAdmin)continue;button.className='lobby68Service';button.innerHTML=icon67(icon)+'<span>'+label+'</span>';services.append(button);}
  root.className='lobby67';root.replaceChildren(heading,services,stage,mode);if(privateRoom)root.append(privateRoom);if(error)root.append(error);root.append(bottom,storage);root.dataset.theme='competitive-cyan';
 }
 const homeBefore67=home;home=function(...args){const out=homeBefore67(...args);mountLobby67();return out;};
