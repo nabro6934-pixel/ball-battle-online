@@ -63,3 +63,8 @@ body:not([data-screen=home]) .header{background:#102d48!important;border-color:#
 #socialModal #socialContent .leaderTools input::placeholder{color:#e5f1ff!important;opacity:1}
 /* Four shortcuts fit both ordinary accounts and administrator accounts. */
 @media(max-width:650px){.lobby68Services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lobby68Services .lobby68Service{flex-direction:row;gap:8px;min-height:51px;font-size:12px!important}}
+
+/* All menu typography stays readable on the shared dark surfaces, including legacy inline colors. */
+body:not([data-screen=battle]):not([data-screen=aim]):not([data-screen=royaleBattle]) :is(.page,#socialModal,.mode28Sheet,.drawer29Panel,.overlayContent,#draft66,.season59Notice,.hw31Notice,.rank30Promotion) :is(div,span,p,b,strong,small,em,i,a,label,h1,h2,h3,h4,h5,h6,button,input,textarea,select,option,li,dt,dd,th,td,summary){color:#fff!important;-webkit-text-fill-color:#fff!important}
+#socialModal #socialContent :is(div,span,p,b,strong,small,em,i,a,label,h1,h2,h3,h4,h5,h6,button,input,textarea,select,option,li,dt,dd,th,td,summary){color:#fff!important;-webkit-text-fill-color:#fff!important}
+body :is(.page,#socialModal,.mode28Sheet,.drawer29Panel,.overlayContent) :is(input,textarea)::placeholder{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:.75}
