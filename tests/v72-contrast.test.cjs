@@ -1,0 +1,10 @@
+'use strict';
+const vm=require('vm'),fs=require('fs'),assert=require('node:assert/strict');let callback;
+function element(bg,parent=null){const map={};return {parentElement:parent,namespaceURI:'http://www.w3.org/1999/xhtml',tagName:'SPAN',bg,image:'none',style:{getPropertyValue:k=>map[k],setProperty:(k,v,p)=>{map[k]=v;map[k+'Priority']=p;}},getClientRects:()=>[{}],closest:()=>null,map};}
+const body=element('rgb(9, 23, 43)'),white=element('rgb(238, 246, 255)',body),yellow=element('rgb(255, 236, 153)',body),nested=element('rgba(0, 0, 0, 0)',yellow),dark=element('rgba(0, 0, 0, 0)',body),nodes=[white,yellow,nested,dark].map(parentElement=>({parentElement,nodeValue:'테스트'}));white.tagName='SELECT';const option=element('rgba(0, 0, 0, 0)',white);white.querySelectorAll=()=>[option];let walker;
+const context={window:{addEventListener(){}},document:{body,head:{append(){}},fonts:{ready:{then(){}}},createElement:()=>({}),createTreeWalker(){let i=-1;walker={nextNode(){return ++i<nodes.length;},get currentNode(){return nodes[i];}};return walker;},querySelectorAll:()=>[white]},MutationObserver:class{observe(){}disconnect(){}},NodeFilter:{SHOW_TEXT:4},getComputedStyle:el=>({backgroundColor:el.bg,backgroundImage:el.image}),setTimeout:f=>{callback=f;},requestAnimationFrame:f=>f()};
+vm.runInNewContext(fs.readFileSync('contrast72-ui.js','utf8'),context);callback();
+assert.equal(white.map.color,'#101820');assert.equal(option.map.color,'#101820');assert.equal(yellow.map.color,'#101820');assert.equal(nested.map.color,'#101820');assert.equal(dark.map.color,'#ffffff');assert.equal(white.map['-webkit-text-fill-color'],'#101820');assert.equal(white.map.colorPriority,'important');
+white.bg='rgb(18, 44, 73)';context.window.ArenaContrast72.refresh();callback();assert.equal(white.map.color,'#ffffff');assert.equal(option.map.color,'#ffffff');
+const {foreground}=context.window.ArenaContrast72;assert.equal(foreground([255,255,255]),'#101820');assert.equal(foreground([0,0,0]),'#ffffff');
+console.log('PASS v72 white selects/options, yellow tabs, transparent descendants, dark surfaces, inline priority, background changes and text-fill contrast');
