@@ -33,3 +33,6 @@ function menuHeroArt64(id){
  if(!menuHeroArt64.cache[id]){const [x,y,w,h]=bounds,source=IMAGES[id];menuHeroArt64.cache[id]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'+w+'" height="'+h+'" viewBox="'+[x,y,w,h].join(' ')+'"><image width="600" height="'+(id==='maidbimei'?453:450)+'" xlink:href="'+source+'"/></svg>');}
  return menuHeroArt64.cache[id];
 }
+
+// v71: visible next dish, clone lifespan and control protection.
+const actorBefore71=drawActor;drawActor=function(f,...args){actorBefore71(f,...args);if(f.hp<=0)return;const t=time43();ctx.save();ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#10243a';ctx.fillStyle='#fff';let label='';if(f.id==='queenmeal')label='다음: '+['김치','계란말이','스팸'][f.nextDish71||0];if(f.id==='b67'&&f.isClone&&f.expires71>t)label=(f.expires71-t).toFixed(1)+'초';if(label){ctx.strokeText(label,f.x,f.y+f.r+42);ctx.fillText(label,f.x,f.y+f.r+42);}if(f.controlImmune71>t){ctx.strokeStyle='#a4faff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(f.x,f.y,f.r+8,0,7);ctx.stroke();}ctx.restore();};
