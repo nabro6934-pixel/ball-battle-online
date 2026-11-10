@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),c={module:{exports:{}}};vm.runInNewContext(fs.readFileSync('engine.js','utf8').replace('return {HEROES,HERO_BY_ID','return {_73:{basic,early71,tick51,lock57},HEROES,HERO_BY_ID'),c);const E=c.module.exports,T=E._73;
+function make(id,level=0){const s=E.create([id,'pizza'],[0,0],73,[level,level]);s.manualUlt=[true,true];s.actors.forEach((f,i)=>Object.assign(f,{x:250+i*300,y:300,vx:0,vy:0,hp:10000,max:10000,atkTimer:999,ultTimer:0}));return s;}
+for(const level of [0,5]){let s=make('zeta',level);T.basic(s,...s.actors);assert.equal(s.bullets.length,8);assert(s.bullets.every(p=>Math.abs(p.damage-2.1*.8*(1+level*.2))<1e-9));
+ s=make('jakeorphanage',level);E.useUltimate(s,0);const z=s.rings57[0];s.actors[1].x=z.x+z.r+50;T.lock57(s);assert.equal(s.damage[0],+(5.2*.55*(1+level*.2)).toFixed(2));
+ s=make('gojaeyoung',level);E.useUltimate(s,0);assert.equal(s.actors[0].ultActive.type,'chain51');s.actors[0].x=s.actors[1].x;T.tick51(s,0);assert.equal(s.damage[0],25*(1+level*.2));assert.equal(s.actors[0].ultActive,null);}
+let s=make('gojaeyoung');T.basic(s,...s.actors);assert.equal(s.flashes71.length,1);const z=s.flashes71[0];assert(Math.hypot(z.x-s.actors[1].x,z.y-s.actors[1].y)<=85.0001);assert.equal(z.at,.45);assert.equal(s.effects51.filter(x=>x.type==='cameraWarning73').length,1);
+s.t=.44;T.early71(s,.01);assert.equal(s.actors[1].slow,0);s.actors[1].x=900;s.actors[1].y=500;s.t=.45;T.early71(s,.01);assert.equal(s.actors[1].slow,0);assert.equal(s.effects51.filter(x=>x.type==='cameraFlash73').length,1);assert(!s.fx.some(x=>x.type==='electricBlast'));
+s=make('gojaeyoung');T.basic(s,...s.actors);s.actors[1].x=s.flashes71[0].x;s.actors[1].y=s.flashes71[0].y;s.t=.45;T.early71(s,.01);assert.equal(s.actors[1].slow,.6);
+console.log('PASS v73 exact -20% basic-only Z damage, +30% prison collision at power 0/5, original camera chain damage, one local warning/flash, no full-arena flash and real hit/miss cases');

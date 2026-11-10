@@ -21,3 +21,6 @@ const actorBefore51=drawActor;drawActor=function(f,...args){const t=time43(),j=f
  if(f.id==='lilboy'){ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillStyle='#ffda85';ctx.strokeStyle='#25283c';ctx.lineWidth=3;const label=(f.growth51||40)+'%';ctx.strokeText(label,f.x,f.y-f.r-37);ctx.fillText(label,f.x,f.y-f.r-37);}
  if(f.silence51Until>t){ctx.strokeStyle='#ffd758';ctx.lineWidth=3;ctx.beginPath();ctx.arc(f.x,f.y-f.r-22,12,0,7);ctx.stroke();line47(f.x-9,f.y-f.r-31,f.x+9,f.y-f.r-13,'#ff7b65',3);}
  ctx.restore();};
+
+// Local camera light telegraphs never tint or cover the full arena.
+const zonesBefore73=drawNewHeroZones;drawNewHeroZones=function(s){zonesBefore73(s);ctx.save();for(const z of s.effects51||[]){if(!['cameraWarning73','cameraFlash73'].includes(z.type))continue;const left=Math.max(0,z.until-s.t);ctx.strokeStyle='#fff3a8';ctx.lineWidth=3;ctx.fillStyle=z.type==='cameraWarning73'?'#ffe58122':'#fff6c9bb';ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();if(z.type==='cameraWarning73'){ctx.setLineDash([7,5]);ctx.stroke();ctx.setLineDash([]);}else{ctx.globalAlpha=Math.min(1,left/.3);ctx.stroke();ctx.globalAlpha=1;}}ctx.restore();};
