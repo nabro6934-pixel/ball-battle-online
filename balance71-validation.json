@@ -1,7 +1,6 @@
 {
-  "version": "v71.0",
-  "deploymentSourceSha256": "2f98198731e8171c559a0a238e68a5f28f32a765f4aa10745a8219f23ce28159",
-  "simulationSourceNote": "Final engine source differs only by trailing whitespace; token-equivalence checked.",
+  "version": "v71.1",
+  "deploymentSourceSha256": "186659564f5040e43e970a3d3226fe4777bd0c7a6972c969604e57c3748df958",
   "stages": {
     "before": {
       "started": "2026-11-10T18:54:36.582Z",
@@ -3259,7 +3258,7 @@
         }
       ]
     },
-    "final": {
+    "prefinal": {
       "started": "2026-11-10T19:03:13.510Z",
       "finished": "2026-11-10T19:04:44.825Z",
       "engineSha256": "7edab05afd155e31861c19c6b4c627952906e01b82c2c0a524f1d70ac8937732",
@@ -4075,10 +4074,1642 @@
         }
       ]
     },
-    "validation": {
+    "prevalidation": {
       "started": "2026-11-10T19:03:21.255Z",
       "finished": "2026-11-10T19:04:52.212Z",
       "engineSha256": "7edab05afd155e31861c19c6b4c627952906e01b82c2c0a524f1d70ac8937732",
+      "matchCount": 4851,
+      "ticks": 3922367,
+      "conditions": {
+        "level": 0,
+        "cards": false,
+        "dt": 0.03333333333333333,
+        "angles": [
+          0,
+          0
+        ],
+        "seedBase": 710000,
+        "mirror": true,
+        "ultimate": "automatic when available",
+        "timeLimitSeconds": 53,
+        "pairing": "each unordered pair once; sides alternate by roster index parity",
+        "tieBreak": "production engine: remaining HP ratio, then damage, then seeded random"
+      },
+      "ranking": [
+        {
+          "id": "policejaeyoung",
+          "name": "경찰 재영",
+          "wins": 69,
+          "losses": 29,
+          "matches": 98,
+          "winRate": 70.41
+        },
+        {
+          "id": "namul",
+          "name": "나물이",
+          "wins": 68,
+          "losses": 30,
+          "matches": 98,
+          "winRate": 69.39
+        },
+        {
+          "id": "hw_lemon",
+          "name": "레몬이",
+          "wins": 67,
+          "losses": 31,
+          "matches": 98,
+          "winRate": 68.37
+        },
+        {
+          "id": "bananadriver",
+          "name": "랏코너무귀여워서망고빙수로만들고먹어버림",
+          "wins": 66,
+          "losses": 32,
+          "matches": 98,
+          "winRate": 67.35
+        },
+        {
+          "id": "impostormoai",
+          "name": "임포스터 모아이",
+          "wins": 66,
+          "losses": 32,
+          "matches": 98,
+          "winRate": 67.35
+        },
+        {
+          "id": "gumballhot",
+          "name": "므흣한 검볼",
+          "wins": 65,
+          "losses": 33,
+          "matches": 98,
+          "winRate": 66.33
+        },
+        {
+          "id": "petersshit",
+          "name": "Peter's Shit",
+          "wins": 64,
+          "losses": 34,
+          "matches": 98,
+          "winRate": 65.31
+        },
+        {
+          "id": "dailydohyun",
+          "name": "천도현의 일상",
+          "wins": 63,
+          "losses": 35,
+          "matches": 98,
+          "winRate": 64.29
+        },
+        {
+          "id": "edgyalvin",
+          "name": "중2병 가오 앨빈",
+          "wins": 62,
+          "losses": 36,
+          "matches": 98,
+          "winRate": 63.27
+        },
+        {
+          "id": "hw_frankenface",
+          "name": "프랑켄페이스",
+          "wins": 61,
+          "losses": 37,
+          "matches": 98,
+          "winRate": 62.24
+        },
+        {
+          "id": "hw_pumpkinit",
+          "name": "호박잇",
+          "wins": 61,
+          "losses": 37,
+          "matches": 98,
+          "winRate": 62.24
+        },
+        {
+          "id": "blackberry",
+          "name": "블랙베리",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "gymgay",
+          "name": "헬창게이",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "meatman",
+          "name": "채끝살 맨",
+          "wins": 59,
+          "losses": 39,
+          "matches": 98,
+          "winRate": 60.2
+        },
+        {
+          "id": "maidbimei",
+          "name": "메이드복 비메이",
+          "wins": 58,
+          "losses": 40,
+          "matches": 98,
+          "winRate": 59.18
+        },
+        {
+          "id": "originalalvin",
+          "name": "원조 앨빈",
+          "wins": 58,
+          "losses": 40,
+          "matches": 98,
+          "winRate": 59.18
+        },
+        {
+          "id": "notbanchan",
+          "name": "이런반찬 안먹찬",
+          "wins": 58,
+          "losses": 40,
+          "matches": 98,
+          "winRate": 59.18
+        },
+        {
+          "id": "nice",
+          "name": "나이스급",
+          "wins": 57,
+          "losses": 41,
+          "matches": 98,
+          "winRate": 58.16
+        },
+        {
+          "id": "wormbare",
+          "name": "벌레도현 생얼",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "anything",
+          "name": "아무거나",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "blackchroma",
+          "name": "천도현 블랙크로마",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "cheon",
+          "name": "천도현급",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "halg",
+          "name": "핧",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "weirdduo",
+          "name": "뭔가 이상한 퉁퉁이 이슬이",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "bimeimom",
+          "name": "비메이 엄마",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "spyger",
+          "name": "스파이거",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "medicine",
+          "name": "약먹으러가자",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "bluechroma",
+          "name": "천도현 블루크로마",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "grannyduo",
+          "name": "도현이 집압 편의점 알바 할머니 듀오",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "sonheungmin",
+          "name": "손흥민",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "irondohyun",
+          "name": "아이언 도현",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "pizza",
+          "name": "그래그래 피자",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "rohmuhyun",
+          "name": "노무현",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "duo",
+          "name": "듀오",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "piggrave",
+          "name": "재영이가 죽인 돼지의 무덤",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "jakeorphanage",
+          "name": "제이크 고아원",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "zetaseungju",
+          "name": "제타승주",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "gochujang",
+          "name": "태양초 고추장",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "tralalero",
+          "name": "트랄랄레로 트랄랄라",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "pinksheep",
+          "name": "재영이의 분홍색 양",
+          "wins": 52,
+          "losses": 46,
+          "matches": 98,
+          "winRate": 53.06
+        },
+        {
+          "id": "minekoala",
+          "name": "지뢰계 코알라",
+          "wins": 52,
+          "losses": 46,
+          "matches": 98,
+          "winRate": 53.06
+        },
+        {
+          "id": "chickenchicken",
+          "name": "치킨치킨",
+          "wins": 52,
+          "losses": 46,
+          "matches": 98,
+          "winRate": 53.06
+        },
+        {
+          "id": "ddak",
+          "name": "다딱이는 아가리",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "hw_witchlea",
+          "name": "마녀 레아급",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "tankjaeyoung",
+          "name": "탱크 재영",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "fries",
+          "name": "도현이 정액 감튀",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "rico",
+          "name": "빨간고아 리코",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "fcgoa",
+          "name": "FC 고아",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "eggkimchi",
+          "name": "가지김치",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "formerduli",
+          "name": "둘리였던 것",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "angborghini",
+          "name": "앙보르기니",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "pogo",
+          "name": "포고하는 12년생",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "hw_filterbat",
+          "name": "필터 낀 박쥐",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "gaybi",
+          "name": "게이비",
+          "wins": 48,
+          "losses": 50,
+          "matches": 98,
+          "winRate": 48.98
+        },
+        {
+          "id": "queenmeal",
+          "name": "퀸카와의 밥상",
+          "wins": 48,
+          "losses": 50,
+          "matches": 98,
+          "winRate": 48.98
+        },
+        {
+          "id": "greenface",
+          "name": "그린페이스",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "jerryfashion",
+          "name": "동묘패션 제리얌",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "lilago",
+          "name": "릴라고",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "alvin",
+          "name": "앨빈",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "zeta",
+          "name": "제타",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "cheondohyun",
+          "name": "천도현이",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "darryl",
+          "name": "검은 고아 대릴",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "lilboy",
+          "name": "릴보이",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "mochublue",
+          "name": "모츄핑 블루",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "icecookie",
+          "name": "빙신쿠키",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "son",
+          "name": "SON",
+          "wins": 45,
+          "losses": 53,
+          "matches": 98,
+          "winRate": 45.92
+        },
+        {
+          "id": "domo",
+          "name": "도모",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "lea",
+          "name": "레아급",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "pushmark",
+          "name": "푸시마크",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "mechajaeyoung",
+          "name": "메카 재영",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "bimeiimagined",
+          "name": "비메이(상상)",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "hoit",
+          "name": "호잇",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "hw_mochuping",
+          "name": "모츄핑",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "seojun",
+          "name": "서준이급",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "jaeyoungscience",
+          "name": "재영이 과학선생님",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "cheongohyun",
+          "name": "천고현",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "filter",
+          "name": "필터 낀 병신",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "moai",
+          "name": "모아이",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "americandohyun",
+          "name": "아메리칸 도현",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "jihoonboxer",
+          "name": "지훈자지",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "b67",
+          "name": "67B",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "muhehe",
+          "name": "무헤헷",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "hw_mirai",
+          "name": "미라이",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "utti",
+          "name": "우띠",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "hairdohyun",
+          "name": "털도현",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "hwangmigyeong",
+          "name": "황미경급",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "gojaeyoung",
+          "name": "고재영",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "ironprototype",
+          "name": "아이언 도현 프로토타임",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "sahur",
+          "name": "퉁퉁퉁사후르",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "shade",
+          "name": "노란고아 셰이드",
+          "wins": 37,
+          "losses": 61,
+          "matches": 98,
+          "winRate": 37.76
+        },
+        {
+          "id": "chickenskewer",
+          "name": "승후엄마닭꼬치",
+          "wins": 37,
+          "losses": 61,
+          "matches": 98,
+          "winRate": 37.76
+        },
+        {
+          "id": "hw_draculago",
+          "name": "드라큘라고",
+          "wins": 36,
+          "losses": 62,
+          "matches": 98,
+          "winRate": 36.73
+        },
+        {
+          "id": "kip",
+          "name": "키프",
+          "wins": 36,
+          "losses": 62,
+          "matches": 98,
+          "winRate": 36.73
+        },
+        {
+          "id": "wormdohyun",
+          "name": "벌레도현",
+          "wins": 35,
+          "losses": 63,
+          "matches": 98,
+          "winRate": 35.71
+        },
+        {
+          "id": "redchroma",
+          "name": "천고현 레드크로마",
+          "wins": 35,
+          "losses": 63,
+          "matches": 98,
+          "winRate": 35.71
+        },
+        {
+          "id": "pogo6974",
+          "name": "포고하는 6974년생",
+          "wins": 34,
+          "losses": 64,
+          "matches": 98,
+          "winRate": 34.69
+        },
+        {
+          "id": "lilagokoala",
+          "name": "릴라고의 코알라",
+          "wins": 33,
+          "losses": 65,
+          "matches": 98,
+          "winRate": 33.67
+        },
+        {
+          "id": "kkamangi",
+          "name": "까망이",
+          "wins": 32,
+          "losses": 66,
+          "matches": 98,
+          "winRate": 32.65
+        },
+        {
+          "id": "fidgetspino",
+          "name": "피젯스피노",
+          "wins": 31,
+          "losses": 67,
+          "matches": 98,
+          "winRate": 31.63
+        }
+      ]
+    },
+    "final": {
+      "started": "2026-11-10T19:09:10.044Z",
+      "finished": "2026-11-10T19:10:47.367Z",
+      "engineSha256": "186659564f5040e43e970a3d3226fe4777bd0c7a6972c969604e57c3748df958",
+      "matchCount": 4851,
+      "ticks": 3932841,
+      "conditions": {
+        "level": 0,
+        "cards": false,
+        "dt": 0.03333333333333333,
+        "angles": [
+          0,
+          0
+        ],
+        "seedBase": 640000,
+        "mirror": false,
+        "ultimate": "automatic when available",
+        "timeLimitSeconds": 53,
+        "pairing": "each unordered pair once; sides alternate by roster index parity",
+        "tieBreak": "production engine: remaining HP ratio, then damage, then seeded random"
+      },
+      "ranking": [
+        {
+          "id": "hw_pumpkinit",
+          "name": "호박잇",
+          "wins": 70,
+          "losses": 28,
+          "matches": 98,
+          "winRate": 71.43
+        },
+        {
+          "id": "namul",
+          "name": "나물이",
+          "wins": 65,
+          "losses": 33,
+          "matches": 98,
+          "winRate": 66.33
+        },
+        {
+          "id": "impostormoai",
+          "name": "임포스터 모아이",
+          "wins": 65,
+          "losses": 33,
+          "matches": 98,
+          "winRate": 66.33
+        },
+        {
+          "id": "policejaeyoung",
+          "name": "경찰 재영",
+          "wins": 62,
+          "losses": 36,
+          "matches": 98,
+          "winRate": 63.27
+        },
+        {
+          "id": "gumballhot",
+          "name": "므흣한 검볼",
+          "wins": 62,
+          "losses": 36,
+          "matches": 98,
+          "winRate": 63.27
+        },
+        {
+          "id": "rohmuhyun",
+          "name": "노무현",
+          "wins": 61,
+          "losses": 37,
+          "matches": 98,
+          "winRate": 62.24
+        },
+        {
+          "id": "bananadriver",
+          "name": "랏코너무귀여워서망고빙수로만들고먹어버림",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "maidbimei",
+          "name": "메이드복 비메이",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "edgyalvin",
+          "name": "중2병 가오 앨빈",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "cheon",
+          "name": "천도현급",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "hw_frankenface",
+          "name": "프랑켄페이스",
+          "wins": 60,
+          "losses": 38,
+          "matches": 98,
+          "winRate": 61.22
+        },
+        {
+          "id": "hw_lemon",
+          "name": "레몬이",
+          "wins": 59,
+          "losses": 39,
+          "matches": 98,
+          "winRate": 60.2
+        },
+        {
+          "id": "sonheungmin",
+          "name": "손흥민",
+          "wins": 59,
+          "losses": 39,
+          "matches": 98,
+          "winRate": 60.2
+        },
+        {
+          "id": "anything",
+          "name": "아무거나",
+          "wins": 59,
+          "losses": 39,
+          "matches": 98,
+          "winRate": 60.2
+        },
+        {
+          "id": "petersshit",
+          "name": "Peter's Shit",
+          "wins": 59,
+          "losses": 39,
+          "matches": 98,
+          "winRate": 60.2
+        },
+        {
+          "id": "meatman",
+          "name": "채끝살 맨",
+          "wins": 58,
+          "losses": 40,
+          "matches": 98,
+          "winRate": 59.18
+        },
+        {
+          "id": "minekoala",
+          "name": "지뢰계 코알라",
+          "wins": 57,
+          "losses": 41,
+          "matches": 98,
+          "winRate": 58.16
+        },
+        {
+          "id": "tralalero",
+          "name": "트랄랄레로 트랄랄라",
+          "wins": 57,
+          "losses": 41,
+          "matches": 98,
+          "winRate": 58.16
+        },
+        {
+          "id": "greenface",
+          "name": "그린페이스",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "originalalvin",
+          "name": "원조 앨빈",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "dailydohyun",
+          "name": "천도현의 일상",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "gymgay",
+          "name": "헬창게이",
+          "wins": 56,
+          "losses": 42,
+          "matches": 98,
+          "winRate": 57.14
+        },
+        {
+          "id": "nice",
+          "name": "나이스급",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "weirdduo",
+          "name": "뭔가 이상한 퉁퉁이 이슬이",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "jakeorphanage",
+          "name": "제이크 고아원",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "blackchroma",
+          "name": "천도현 블랙크로마",
+          "wins": 55,
+          "losses": 43,
+          "matches": 98,
+          "winRate": 56.12
+        },
+        {
+          "id": "jerryfashion",
+          "name": "동묘패션 제리얌",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "wormbare",
+          "name": "벌레도현 생얼",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "rico",
+          "name": "빨간고아 리코",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "irondohyun",
+          "name": "아이언 도현",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "bluechroma",
+          "name": "천도현 블루크로마",
+          "wins": 54,
+          "losses": 44,
+          "matches": 98,
+          "winRate": 55.1
+        },
+        {
+          "id": "eggkimchi",
+          "name": "가지김치",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "blackberry",
+          "name": "블랙베리",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "zetaseungju",
+          "name": "제타승주",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "gochujang",
+          "name": "태양초 고추장",
+          "wins": 53,
+          "losses": 45,
+          "matches": 98,
+          "winRate": 54.08
+        },
+        {
+          "id": "queenmeal",
+          "name": "퀸카와의 밥상",
+          "wins": 52,
+          "losses": 46,
+          "matches": 98,
+          "winRate": 53.06
+        },
+        {
+          "id": "fcgoa",
+          "name": "FC 고아",
+          "wins": 52,
+          "losses": 46,
+          "matches": 98,
+          "winRate": 53.06
+        },
+        {
+          "id": "gaybi",
+          "name": "게이비",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "duo",
+          "name": "듀오",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "hw_witchlea",
+          "name": "마녀 레아급",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "bimeimom",
+          "name": "비메이 엄마",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "spyger",
+          "name": "스파이거",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "piggrave",
+          "name": "재영이가 죽인 돼지의 무덤",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "chickenchicken",
+          "name": "치킨치킨",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "halg",
+          "name": "핧",
+          "wins": 51,
+          "losses": 47,
+          "matches": 98,
+          "winRate": 52.04
+        },
+        {
+          "id": "formerduli",
+          "name": "둘리였던 것",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "mechajaeyoung",
+          "name": "메카 재영",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "medicine",
+          "name": "약먹으러가자",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "pinksheep",
+          "name": "재영이의 분홍색 양",
+          "wins": 50,
+          "losses": 48,
+          "matches": 98,
+          "winRate": 51.02
+        },
+        {
+          "id": "lea",
+          "name": "레아급",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "notbanchan",
+          "name": "이런반찬 안먹찬",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "pogo",
+          "name": "포고하는 12년생",
+          "wins": 49,
+          "losses": 49,
+          "matches": 98,
+          "winRate": 50
+        },
+        {
+          "id": "pizza",
+          "name": "그래그래 피자",
+          "wins": 48,
+          "losses": 50,
+          "matches": 98,
+          "winRate": 48.98
+        },
+        {
+          "id": "hw_filterbat",
+          "name": "필터 낀 박쥐",
+          "wins": 48,
+          "losses": 50,
+          "matches": 98,
+          "winRate": 48.98
+        },
+        {
+          "id": "fries",
+          "name": "도현이 정액 감튀",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "utti",
+          "name": "우띠",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "jaeyoungscience",
+          "name": "재영이 과학선생님",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "tankjaeyoung",
+          "name": "탱크 재영",
+          "wins": 47,
+          "losses": 51,
+          "matches": 98,
+          "winRate": 47.96
+        },
+        {
+          "id": "darryl",
+          "name": "검은 고아 대릴",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "grannyduo",
+          "name": "도현이 집압 편의점 알바 할머니 듀오",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "zeta",
+          "name": "제타",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "cheondohyun",
+          "name": "천도현이",
+          "wins": 46,
+          "losses": 52,
+          "matches": 98,
+          "winRate": 46.94
+        },
+        {
+          "id": "angborghini",
+          "name": "앙보르기니",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "alvin",
+          "name": "앨빈",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "sahur",
+          "name": "퉁퉁퉁사후르",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "filter",
+          "name": "필터 낀 병신",
+          "wins": 44,
+          "losses": 54,
+          "matches": 98,
+          "winRate": 44.9
+        },
+        {
+          "id": "moai",
+          "name": "모아이",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "hw_mochuping",
+          "name": "모츄핑",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "americandohyun",
+          "name": "아메리칸 도현",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "kip",
+          "name": "키프",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "hoit",
+          "name": "호잇",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "hwangmigyeong",
+          "name": "황미경급",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "son",
+          "name": "SON",
+          "wins": 43,
+          "losses": 55,
+          "matches": 98,
+          "winRate": 43.88
+        },
+        {
+          "id": "b67",
+          "name": "67B",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "lilagokoala",
+          "name": "릴라고의 코알라",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "muhehe",
+          "name": "무헤헷",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "wormdohyun",
+          "name": "벌레도현",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "icecookie",
+          "name": "빙신쿠키",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "seojun",
+          "name": "서준이급",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "jihoonboxer",
+          "name": "지훈자지",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "pushmark",
+          "name": "푸시마크",
+          "wins": 42,
+          "losses": 56,
+          "matches": 98,
+          "winRate": 42.86
+        },
+        {
+          "id": "gojaeyoung",
+          "name": "고재영",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "domo",
+          "name": "도모",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "chickenskewer",
+          "name": "승후엄마닭꼬치",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "ironprototype",
+          "name": "아이언 도현 프로토타임",
+          "wins": 41,
+          "losses": 57,
+          "matches": 98,
+          "winRate": 41.84
+        },
+        {
+          "id": "lilboy",
+          "name": "릴보이",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "bimeiimagined",
+          "name": "비메이(상상)",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "cheongohyun",
+          "name": "천고현",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "hairdohyun",
+          "name": "털도현",
+          "wins": 40,
+          "losses": 58,
+          "matches": 98,
+          "winRate": 40.82
+        },
+        {
+          "id": "shade",
+          "name": "노란고아 셰이드",
+          "wins": 39,
+          "losses": 59,
+          "matches": 98,
+          "winRate": 39.8
+        },
+        {
+          "id": "kkamangi",
+          "name": "까망이",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "ddak",
+          "name": "다딱이는 아가리",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "hw_draculago",
+          "name": "드라큘라고",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "lilago",
+          "name": "릴라고",
+          "wins": 38,
+          "losses": 60,
+          "matches": 98,
+          "winRate": 38.78
+        },
+        {
+          "id": "hw_mirai",
+          "name": "미라이",
+          "wins": 37,
+          "losses": 61,
+          "matches": 98,
+          "winRate": 37.76
+        },
+        {
+          "id": "redchroma",
+          "name": "천고현 레드크로마",
+          "wins": 36,
+          "losses": 62,
+          "matches": 98,
+          "winRate": 36.73
+        },
+        {
+          "id": "fidgetspino",
+          "name": "피젯스피노",
+          "wins": 36,
+          "losses": 62,
+          "matches": 98,
+          "winRate": 36.73
+        },
+        {
+          "id": "pogo6974",
+          "name": "포고하는 6974년생",
+          "wins": 35,
+          "losses": 63,
+          "matches": 98,
+          "winRate": 35.71
+        },
+        {
+          "id": "mochublue",
+          "name": "모츄핑 블루",
+          "wins": 33,
+          "losses": 65,
+          "matches": 98,
+          "winRate": 33.67
+        }
+      ]
+    },
+    "validation": {
+      "started": "2026-11-10T19:09:11.209Z",
+      "finished": "2026-11-10T19:10:49.443Z",
+      "engineSha256": "186659564f5040e43e970a3d3226fe4777bd0c7a6972c969604e57c3748df958",
       "matchCount": 4851,
       "ticks": 3922367,
       "conditions": {

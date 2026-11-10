@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const raw=fs.readFileSync(require.resolve('../engine'),'utf8'),c={module:{exports:{}}};
-vm.runInNewContext(raw.replace('return {HEROES,HERO_BY_ID','return {_71:{balanceDamage71,damage,early71,basic,superMove,tick57,tick47,expansionEarly,expansionTick,returnMorph71},HEROES,HERO_BY_ID'),c);
+vm.runInNewContext(raw.replace('return {HEROES,HERO_BY_ID','return {_71:{balanceDamage71,updateSuper,damage,early71,basic,superMove,tick57,tick47,expansionEarly,expansionTick,returnMorph71},HEROES,HERO_BY_ID'),c);
 const E=c.module.exports,T=E._71;
 function make(ids,d=170){const s=E.create(ids,[0,0],71,[0,0]);s.manualUlt=[true,true];s.actors.forEach((f,i)=>Object.assign(f,{x:250+i*d,y:300,vx:0,vy:0,hp:10000,max:10000,atkTimer:999,ultTimer:0}));return s;}
 for(const id of ['domo','fcgoa','wormdohyun','gumballhot','angborghini']){const s=make([id,'pizza']);T.damage(s,s.actors[1],10,s.actors[0],'test');assert.equal(s.damage[0],+(10*T.balanceDamage71(id)).toFixed(2));}
@@ -23,3 +23,5 @@ console.log('PASS v71 mechanics: exact damage buffs, clone lifespan, dish order,
 // Actual repeated collision tests: one hit per Z pass and one per piercing projectile target.
 for(const type of ['z','whitespray']){s=make([type==='z'?'zeta':'fries','pizza'],200);s.actors.forEach(f=>{f.ultTimer=999;});s.bullets=[{type,owner:0,x:450,y:300,vx:0,vy:0,r:15,damage:10,age:.1,life:3,bounces:100,...(type==='z'?{hitPass:{}}:{pierce71:true,hitTargets71:{}})}];E.tick(s,.01);const first=s.damage[0];assert(first>0);E.tick(s,.01);assert.equal(s.damage[0],first);if(type==='z'){s.bullets[0].age=.63;E.tick(s,.01);assert.equal(s.damage[0],+(first*2).toFixed(2));E.tick(s,.01);assert.equal(s.damage[0],+(first*2).toFixed(2));}}
 console.log('PASS actual projectile collisions prevent duplicate hits per pass/target');
+
+s=make(['rico','bluechroma']);T.superMove(s,...s.actors);T.updateSuper(s,...s.actors,.2);assert(s.bullets.some(p=>p.ultimate71));s=make(['bluechroma','pizza']);s.bullets=[{type:'gum',ultimate71:true,owner:1,x:300,y:300,r:10}];T.early71(s,.03);assert.equal(s.bullets.length,1);assert(!s.actors[0].blockNext71);console.log('PASS ultimate projectile provenance prevents blocking ultimates sharing basic projectile types');
