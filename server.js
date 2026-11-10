@@ -295,18 +295,19 @@ function startCombat(r){r.phase='loading';r.loadingUntil=Date.now()+3000;r.updat
  },1000/30);},3000);
 }
 
-// Only admit fallback opponents when the requester is the sole online human.
-function createOfflineBotRoom(human,now=Date.now()){
- const u=profileForSession(human);if(!u||!offlineBots.alone(u,now))return null;
+// Public queues fill with AI after one minute, regardless of other online users.
+function createOfflineBotRoom(human,now=Date.now(),ranked=false){
+ const u=profileForSession(human);if(!u)return null;
  const id='bot_'+crypto.randomBytes(16).toString('hex'),[bot]=offlineBots.acquire(1,id);if(!bot)return null;
- if(!offlineBots.alone(u,now)){offlineBots.release(bot,id);return null;}
- const queued=queue.indexOf(human.id);if(queued>=0)queue.splice(queued,1);
- const session={id,profile:bot.id,isBot:true,stream:null,seen:now};sessions.set(id,session);return newRoom(human,session,null,{matchmade:true,offlineBot:true});
+ if(ranked)arenaUpdate.init(bot).rating=arenaUpdate.fields(u).rating;
+ const waiting=ranked?rankedQueue:queue,queued=waiting.indexOf(human.id);if(queued>=0)waiting.splice(queued,1);
+ const session={id,profile:bot.id,isBot:true,stream:null,seen:now};sessions.set(id,session);return newRoom(human,session,null,{matchmade:!ranked,ranked,offlineBot:true});
 }
 function tickOfflineBots(now=Date.now()){
- for(const sid of [...queue]){const human=sessions.get(sid),u=profileForSession(human);if(!human?.stream||human.stream.destroyed||human.room||now-(human.queuedAt||now)<8000||!offlineBots.alone(u,now))continue;createOfflineBotRoom(human,now);}
+ matchRankedWaiting();
+ for(const [waiting,ranked] of [[queue,false],[rankedQueue,true]])for(const sid of [...waiting]){const human=sessions.get(sid);if(!human?.stream||human.stream.destroyed||human.room||now-(ranked?(human.rankedAt??now):(human.queuedAt??now))<60000)continue;createOfflineBotRoom(human,now,ranked);}
  for(const r of rooms.values()){if(!r.offlineBot)continue;const index=r.players.findIndex(id=>sessions.get(id)?.isBot),bot=sessions.get(r.players[index]);if(!bot)continue;const u=profileForSession(bot);bot.seen=now;
-  if(r.phase==='pick'&&!r.picks[index]&&r.offers[index]?.length){const hero=r.offers[index][crypto.randomInt(r.offers[index].length)];offlineBots.randomLevel(u,hero);action(bot,{action:'pick',hero});}
+  if(r.phase==='pick'&&!r.picks[index]&&r.offers[index]?.length){const hero=r.offers[index][crypto.randomInt(r.offers[index].length)];u.levels[hero]=profileForSession(sessions.get(r.players[1-index]))?.levels?.[hero]||0;action(bot,{action:'pick',hero});}
   if(r.phase==='aim'&&r.angles[index]===null)action(bot,{action:'ready',angle:crypto.randomInt(-70,71)});
   if(r.phase==='between'&&!r.acks.has(index))action(bot,{action:'next'});
   if(r.phase==='complete')r.acks.add(index);
@@ -414,7 +415,7 @@ function action(s,m){s.seen=Date.now();offlineBots.touch(profileForSession(s));l
  if(type==='ultimate'){if(r.phase!=='battle'||!engine.useUltimate(r.sim,side))throw Error('궁극기를 아직 사용할 수 없어요.');both(r,'frame',{state:r.sim});return;}
  if(type==='pick'){if(r.phase!=='pick'||!r.offers[side].includes(m.hero)||!(profileForSession(s)?.owned||[]).includes(m.hero))throw Error('캐릭터를 선택할 수 없는 상태예요.');r.picks[side]=m.hero;send(s,'pick_ok',{hero:m.hero});send(sessions.get(r.players[1-side]),'opponent_picked');if(r.picks.every(Boolean))prepareAim(r);return}
  if(type==='ready'){if(r.phase!=='aim')throw Error('지금은 각도를 정할 수 없어요.');if(!Number.isFinite(m.angle))throw Error('올바른 각도를 입력하세요.');r.angles[side]=Math.min(70,Math.max(-70,m.angle));send(s,'ready_ok');send(sessions.get(r.players[1-side]),'opponent_ready');if(r.angles.every(x=>x!==null))startCombat(r);return}
- if(type==='next'){if(!s.isBot&&r.offlineBot&&r.phase==='complete'&&!offlineBots.alone(profileForSession(s))){leave(s);throw Error('다른 플레이어가 접속 중이에요. 일반 매칭을 이용해 주세요.');}if(r.tournament&&r.phase==='complete')throw Error('대회 경기가 끝났어요. 아레나 허브에서 다음 대진을 확인하세요.');if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.createdAt=Date.now();r.matchId=crypto.randomUUID();r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.roundStats=null;r.recordedSim=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
+ if(type==='next'){if(r.tournament&&r.phase==='complete')throw Error('대회 경기가 끝났어요. 아레나 허브에서 다음 대진을 확인하세요.');if(r.phase==='between'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2)prepareNext(r);return}if(r.phase==='complete'){r.acks.add(side);send(s,'next_ok');if(r.acks.size===2){r.scores=[0,0];r.round=1;r.statsDone=false;r.createdAt=Date.now();r.matchId=crypto.randomUUID();r.history=[[],[]];r.trophyRewards=[];r.rewards={};r.totalStats=null;r.roundStats=null;r.recordedSim=null;r.acks.clear();sendPicks(r)}return}throw Error('아직 다음 라운드로 넘어갈 수 없어요.')}
  throw Error('알 수 없는 동작입니다.');
 }
 // Bind originals by stable character ID, never by roster or upload index.
@@ -443,6 +444,7 @@ for(const h of engine.HEROES.filter(h=>h.event==='halloween2026')){const source=
 GAME_HTML=GAME_HTML.replace(/const IMAGES=(\{[\s\S]*?\});/,(_,json)=>'const IMAGES='+JSON.stringify({...JSON.parse(json),...spriteImages})+';');
 const originalIcons56=require('./original-icons56').create(JSON.parse(GAME_HTML.match(/const IMAGES=(\{[\s\S]*?\});/)[1]),engine.HEROES);
 for(const edit of JSON.parse(fs.readFileSync(path.join(__dirname,'game-ui-patches.json'),'utf8'))){if(!GAME_HTML.includes(edit.from))throw Error('Game UI patch target missing');GAME_HTML=GAME_HTML.replace(edit.from,()=>edit.to);}
+GAME_HTML=GAME_HTML.replace('const heroImg=(id)=>IMAGES[id];','const heroImg=(id)=>menuHeroArt64(id)||IMAGES[id];');
 // Keep the startup playlist identical to the streamed music catalog.
 const LOBBY_MUSIC_TRACKS=JSON.parse(fs.readFileSync(path.join(__dirname,'music/tracks.json'),'utf8'));
 GAME_HTML=GAME_HTML.replace(/window\.createLobbyMusic\(\{tracks:\[[\s\S]*?\]\}\)/,()=> 'window.createLobbyMusic({tracks:'+JSON.stringify(LOBBY_MUSIC_TRACKS).replace(/</g,'\\u003c')+'})').replace(/\/lobby-music\.js\?v=[^"']+/g,'/lobby-music.js?v=23');
@@ -578,7 +580,7 @@ const server=http.createServer((req,res)=>{
       await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),friends:(u.friends||[]).map(id=>profiles.get(id)).filter(Boolean).map(v=>({...publicUser(v),versus:(u.versus||{})[v.id]||{wins:0,losses:0},online:[...sessions.values()].some(s=>s.profile===v.id&&s.stream),inBattle:!!liveFeatures.battle(v),spectateAvailable:!!liveFeatures.battle(v)})),requests:(u.requests||[]).map(id=>profiles.get(id)).filter(Boolean).map(publicUser)})
     }catch(e){return json(res,e.code?.startsWith('PROFILE_')?401:400,{error:e instanceof SyntaxError?'요청 내용을 읽지 못했어요. 다시 시도해 주세요.':e.message||'요청에 실패했어요',code:e.code||'REQUEST_ERROR'})}});return;
   }
-  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v63.0',seasonId:require('./season-config').id,multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
+  if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{status:'ok',version:'v64.0',seasonId:require('./season-config').id,multiplayer:multiplayer.counts(),profileIcons:engine.HEROES.length+require('./cosmetic-shop').catalog.filter(x=>x.kind==='icon').length,pins:cosmetics.PINS.length,portraitVersion:'transparent-v1',characterCount:engine.HEROES.length,storage:dbPool?'postgres':'unavailable',nicknamePolicy:'unique-v1',nicknameDuplicates:profiles.size-new Set([...profiles.values()].map(u=>nicknameKey(u.nick))).size,waiting:queue.length,rooms:rooms.size,royaleRooms:royales.size,online:[...sessions.values()].filter(s=>!!s.stream).length})}
   if(req.method==='GET'&&url.pathname==='/events'){
     const sid=url.searchParams.get('sid');if(!validSid(sid))return json(res,400,{error:'invalid session'});
     let s=identify(sid);if(s.stream&&s.stream!==res){try{s.stream.end()}catch{}}

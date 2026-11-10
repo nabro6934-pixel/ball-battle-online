@@ -1,4 +1,4 @@
-Object.assign(artBounds48,{"angborghini": [0, 29, 588, 352], "chickenchicken": [0, 5, 434, 595], "mechajaeyoung": [8, 12, 486, 580], "tankjaeyoung": [30, 6, 551, 394], "halg": [47, 12, 479, 575], "jihoonboxer": [25, 2, 526, 546], "anything": [50, 13, 440, 556], "jakeorphanage": [10, 0, 581, 600], "policejaeyoung": [0, 7, 589, 443], "maidbimei": [128, 7, 454, 446]});
+Object.assign(artBounds48,{"angborghini": [0, 29, 588, 352], "chickenchicken": [0, 5, 434, 595], "mechajaeyoung": [8, 12, 486, 580], "tankjaeyoung": [30, 6, 551, 394], "halg": [47, 12, 479, 575], "jihoonboxer": [25, 2, 526, 546], "anything": [50, 13, 440, 556], "jakeorphanage": [10, 0, 581, 600], "policejaeyoung": [155, 4, 288, 446], "maidbimei": [126, 3, 338, 450]});
 /* v57 art reads authoritative simulation state. */
 function shape57(type,x,y,r,a=0){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.lineWidth=2;ctx.strokeStyle='#263247';
  if(type==='drumstick57'){line47(-r,0,r*.2,0,'#fff1d4',r*.35);ctx.fillStyle='#ce8034';ctx.beginPath();ctx.ellipse(r*.35,0,r*.85,r*.65,-.2,0,7);ctx.fill();ctx.stroke();}
@@ -24,3 +24,12 @@ const actorBefore57=drawActor;drawActor=function(f,...args){const t=time43(),y=f
  if(f.id==='mechajaeyoung'){const label='메카 Lv.'+(f.stage57||1);ctx.strokeText(label,f.x,f.y-f.r-30);ctx.fillText(label,f.x,f.y-f.r-30);}
  if(f.lock57?.until>t){ctx.strokeStyle='#fff4d3';ctx.lineWidth=3;ctx.beginPath();ctx.arc(f.x,f.y,f.r+6,0,7);ctx.stroke();}ctx.restore();};
 const ultimateBefore57=features.updateUltimate;features.updateUltimate=function(){ultimateBefore57();const s=app.screen==='royaleBattle'?app.royaleData:app.combat;document.querySelectorAll('.ultimateControl[data-ult]').forEach(b=>{const f=s?.actors[+b.dataset.ult];if(f?.id==='mechajaeyoung'&&(f.stage57||1)>=4){b.disabled=true;b.classList.remove('charged');const label=b.querySelector('.ultLabel');if(label)label.textContent='메카 최종 단계';const meter=b.querySelector('.ultMeter i');if(meter)meter.style.width='100%';}});};
+
+// Menu artwork uses tight visible bounds instead of the transparent source canvas.
+function menuHeroArt64(id){
+ const bounds={maidbimei:[126,3,338,450],policejaeyoung:[155,4,288,446]}[id];
+ if(!bounds)return null;
+ menuHeroArt64.cache=menuHeroArt64.cache||{};
+ if(!menuHeroArt64.cache[id]){const [x,y,w,h]=bounds,source=IMAGES[id];menuHeroArt64.cache[id]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'+w+'" height="'+h+'" viewBox="'+[x,y,w,h].join(' ')+'"><image width="600" height="'+(id==='maidbimei'?453:450)+'" xlink:href="'+source+'"/></svg>');}
+ return menuHeroArt64.cache[id];
+}

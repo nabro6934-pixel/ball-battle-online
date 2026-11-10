@@ -1,7 +1,7 @@
 'use strict';
 const crypto=require('node:crypto');
 const MODES={duo:{size:4,label:'2대2',teamSize:2},trio:{size:6,label:'3대3',teamSize:3},royale4:{size:4,label:'4인 배틀로얄',teamSize:0}};
-const AI_WAIT_MS=60000,AI_COOLDOWN_MS=180000,ROYALE_FILL_MS=30000,QUEUE_RECONNECT_MS=120000;
+const AI_WAIT_MS=60000,AI_COOLDOWN_MS=180000,ROYALE_FILL_MS=60000,QUEUE_RECONNECT_MS=120000;
 const ROYALE_REWARDS={1:{coins:50,trophies:13},2:{coins:30,trophies:7},3:{coins:10,trophies:2},4:{coins:0,trophies:0}};
 module.exports=function createMultiplayer(api){
  const {sessions,profile,send,migrate,persist,progression,season,contribution,publicUser,offer,exitOther,engine}=api;
@@ -15,21 +15,21 @@ module.exports=function createMultiplayer(api){
  function queueAlive(s,now=Date.now()){return !!s&&(!!s.stream&&!s.stream.destroyed||Number.isFinite(s.disconnectedAt)&&now-s.disconnectedAt<QUEUE_RECONNECT_MS);}
  function retain(s,now=Date.now()){return !!s&&Number.isFinite(s.disconnectedAt)&&now-s.disconnectedAt<QUEUE_RECONNECT_MS&&!!(s.multiQueue||matches.has(s.multi));}
  function botDeadline(mode,now=Date.now()){
-  const q=queues.get(mode);if(mode==='royale4'&&q.length>=2&&q.length<4){if(!botDeadlines.has(mode))botDeadlines.set(mode,now+ROYALE_FILL_MS);return botDeadlines.get(mode);}
-  botDeadlines.delete(mode);if(q.length===1&&api.offlineBots?.alone(user(q[0]),now))return (sessions.get(q[0]).multiQueuedAt||now)+8000;return null;
+  const q=queues.get(mode);if(!q.length)return null;
+  return Math.min(...q.map(id=>sessions.get(id)?.multiQueuedAt??now))+AI_WAIT_MS;
  }
- function notify(mode,now=Date.now(),force=false){const q=queues.get(mode),deadline=botDeadline(mode,now),key=mode+':'+q.join(',')+':'+deadline;for(const id of q){if(!force&&queueNotices.get(id)===key)continue;queueNotices.set(id,key);send(sessions.get(id),'multi_queue',{mode,label:MODES[mode].label,count:q.length,needed:MODES[mode].size,serverNow:now,queuedAt:sessions.get(id)?.multiQueuedAt||now,botFillAt:deadline,aiWaitMs:deadline===null?null:Math.max(0,deadline-now),minHumans:mode==='royale4'?2:MODES[mode].size-2});}}
+ function notify(mode,now=Date.now(),force=false){const q=queues.get(mode),deadline=botDeadline(mode,now),key=mode+':'+q.join(',')+':'+deadline;for(const id of q){if(!force&&queueNotices.get(id)===key)continue;queueNotices.set(id,key);send(sessions.get(id),'multi_queue',{mode,label:MODES[mode].label,count:q.length,needed:MODES[mode].size,serverNow:now,queuedAt:sessions.get(id)?.multiQueuedAt||now,botFillAt:deadline,aiWaitMs:deadline===null?null:Math.max(0,deadline-now),minHumans:1});}}
  function removeQueue(s){queueNotices.delete(s.id);for(const [mode,q] of queues){const i=q.indexOf(s.id);if(i>=0){q.splice(i,1);notify(mode)}}s.multiQueue=null;}
  function lobby(r,s){const players=r.players.map((sid,i)=>({sid,team:r.teams?.[i]??null,...person(sid),hero:r.picks[i]||null,level:r.picks[i]?user(sid)?.levels?.[r.picks[i]]||0:null,ready:r.ready.has(i)}));const payload={mode:r.mode,label:MODES[r.mode].label,players,deadline:r.deadline};if(s)send(s,'multi_lobby',{...payload,offer:r.offers[r.players.indexOf(s.id)]||[],resume:true});else for(const id of r.players)send(sessions.get(id),'multi_lobby',{...payload,offer:r.offers[r.players.indexOf(id)]||[]});}
  function grouped(ids){const out=new Map();for(const id of ids){const key=sessions.get(id)?.queuedGroup||id;if(!out.has(key))out.set(key,[]);out.get(key).push(id);}return [...out.values()];}
- function buildTeams(ids,size){const groups=grouped(ids).sort((a,b)=>b.length-a.length),choices=[];function visit(j,left,right){if(j===groups.length){if(left.length===size&&right.length===size&&left.filter(id=>bots.has(id)&&!user(id)?.isBot).length<=1&&right.filter(id=>bots.has(id)&&!user(id)?.isBot).length<=1){const score=Math.abs(left.reduce((n,id)=>n+progression.total(user(id)),0)-right.reduce((n,id)=>n+progression.total(user(id)),0));choices.push({left,score});}return;}const g=groups[j];if(left.length+g.length<=size)visit(j+1,[...left,...g],right);if(right.length+g.length<=size)visit(j+1,left,[...right,...g]);}visit(0,[],[]);if(!choices.length)return null;choices.sort((a,b)=>a.score-b.score);return ids.map(id=>choices[0].left.includes(id)?0:1);}
+ function buildTeams(ids,size){const groups=grouped(ids).sort((a,b)=>b.length-a.length),choices=[];function visit(j,left,right){if(j===groups.length){if(left.length===size&&right.length===size){const score=Math.abs(left.reduce((n,id)=>n+progression.total(user(id)),0)-right.reduce((n,id)=>n+progression.total(user(id)),0));choices.push({left,score});}return;}const g=groups[j];if(left.length+g.length<=size)visit(j+1,[...left,...g],right);if(right.length+g.length<=size)visit(j+1,left,[...right,...g]);}visit(0,[],[]);if(!choices.length)return null;choices.sort((a,b)=>a.score-b.score);return ids.map(id=>choices[0].left.includes(id)?0:1);}
  function takeMatch(mode){const q=queues.get(mode),cfg=MODES[mode];if(q.length<cfg.size)return null;const gs=grouped(q).slice(0,40);let found=null,checks=0;function visit(i,ids){if(found||++checks>20000)return;if(ids.length===cfg.size){if(!cfg.teamSize||buildTeams(ids,cfg.teamSize))found=ids;return;}if(i>=gs.length)return;if(ids.length+gs[i].length<=cfg.size)visit(i+1,[...ids,...gs[i]]);visit(i+1,ids);}visit(0,[]);if(found)for(const id of found)q.splice(q.indexOf(id),1);return found;}
  function create(mode,ids){const cfg=MODES[mode],r={id:'multi'+(++serial),mode,players:ids,profiles:ids.map(id=>user(id).id),teams:cfg.teamSize?buildTeams(ids,cfg.teamSize):null,picks:ids.map(()=>null),angles:ids.map(()=>0),offers:ids.map(id=>offer(user(id))),ready:new Set(),phase:'pick',created:Date.now(),deadline:Date.now()+40000,left:new Set(),sim:null,timer:null,pickTimer:null,statsDone:false,rewards:{}};r.bots=new Set(ids.filter(id=>bots.has(id)));for(let i=0;i<ids.length;i++)if(r.bots.has(ids[i])){r.picks[i]=r.offers[i][0];r.angles[i]=crypto.randomInt(-70,71);if(user(ids[i])?.isBot)user(ids[i]).levels[r.picks[i]]=crypto.randomInt(6);r.ready.add(i);}
  matches.set(r.id,r);for(const id of ids){const s=sessions.get(id);if(!s)continue;s.multi=r.id;s.multiQueue=null;send(s,'multi_matched',{mode,label:cfg.label})}lobby(r);r.pickTimer=setTimeout(()=>{if(r.phase!=='pick')return;for(let i=0;i<r.players.length;i++){r.picks[i]||=r.offers[i][0];r.ready.add(i)}start(r)},40000);return r;}
  function enqueue(s,mode){if(!MODES[mode])throw Error('올바른 대전 모드를 선택하세요.');const u=profile(s);if(!u)throw Error('프로필을 먼저 연결하세요.');const active=matches.get(s.multi);if(active&&['pick','battle'].includes(active.phase))throw Error('진행 중인 대전을 먼저 종료하세요.');for(const other of sessions.values())if(other.id!==s.id&&other.profile===s.profile&&(queued(other)||['pick','battle'].includes(matches.get(other.multi)?.phase)))throw Error('이 계정은 이미 매칭 중이거나 대전 중이에요.');exitOther(s);removeQueue(s);const q=queues.get(mode);for(let i=q.length-1;i>=0;i--){const cand=sessions.get(q[i]);if(!queueAlive(cand)||!user(q[i])){if(cand)cand.multiQueue=null;q.splice(i,1)}}q.push(s.id);s.multiQueuedAt=Date.now();s.multiQueue=mode;notify(mode);if(!api.batchQueue){let ids;while((ids=takeMatch(mode))){create(mode,ids);notify(mode)}}}
  function start(r){if(r.phase!=='pick')return;
   if(r.bots.size){const levels=r.players.filter(id=>!r.bots.has(id)).map(id=>{const i=r.players.indexOf(id);return user(id)?.levels?.[r.picks[i]]||0;});const average=levels.reduce((n,v)=>n+v,0)/levels.length;
-   for(const id of r.bots){const i=r.players.indexOf(id),u=user(id);if(!u.isBot)u.levels[r.picks[i]]=Math.max(0,Math.min(5,Math.round(average)+(crypto.randomInt(3)-1)));}
+   for(const id of r.bots){const i=r.players.indexOf(id),u=user(id);u.levels[r.picks[i]]=Math.max(0,Math.min(5,Math.round(average)+(crypto.randomInt(3)-1)));}
   }clearTimeout(r.pickTimer);r.pickTimer=null;for(let i=0;i<r.players.length;i++)r.picks[i]||=r.offers[i][0];r.sim=arena.create(r.picks,r.angles,crypto.randomBytes(4).readUInt32BE(),r.players.map((id,i)=>user(id)?.levels?.[r.picks[i]]||0));r.cardLoadouts=r.players.map(id=>api.arenaUpdate?.().init(user(id)).equipped);api.arenaUpdate?.().apply(r.sim,r.players.map(user));r.sim.mode=r.mode;r.sim.teams=r.teams;r.sim.manualUlt=r.players.map(id=>!r.bots.has(id));const rows=[0,0];r.sim.actors.forEach((a,i)=>{a.sid=r.players[i];a.isBot=r.bots.has(a.sid);a.name=user(a.sid)?.nick||'플레이어';a.team=r.teams?.[i]??null;if(!r.teams){const angle=r.angles[i]*Math.PI/180,vx=a.vx,vy=a.vy;a.vx=vx*Math.cos(angle)-vy*Math.sin(angle);a.vy=vx*Math.sin(angle)+vy*Math.cos(angle);}if(r.teams){a.x=a.team===0?290:1110;a.y=220+rows[a.team]++*220;a.vx=(a.team===0?1:-1)*Math.cos(r.angles[i]*Math.PI/180)*engine.HERO_BY_ID[a.id].speed;a.vy=Math.sin(r.angles[i]*Math.PI/180)*engine.HERO_BY_ID[a.id].speed;}});r.startAt=Date.now()+3000;r.phase='battle';emit(r,'multi_start',{state:r.sim,mode:r.mode,loadMs:3000,players:r.players.map((sid,i)=>({sid,team:r.teams?.[i]??null,...person(sid),hero:r.picks[i],level:r.sim.actors[i].level}))});r.timer=setInterval(()=>step(r),65);}
  function step(r){if(r.phase!=='battle'||Date.now()<r.startAt)return;let dt=.065;while(dt>0&&!r.sim.finished){const h=Math.min(.05,dt);arena.tick(r.sim,h);dt-=h}emit(r,'multi_state',{state:r.sim});if(r.sim.finished)finish(r);}
  function placements(r){if(r.teams)return [];const winner=r.sim.actors.findIndex(a=>a.side===r.sim.winner||a.sid===r.sim.winner),losers=[...new Set(r.sim.eliminations)].filter(i=>i!==winner).reverse();for(const a of r.sim.actors)if(a.side!==winner&&!losers.includes(a.side))losers.push(a.side);return [winner,...losers].map((i,n)=>({sid:r.players[i],name:r.sim.actors[i].name,rank:n+1}));}
@@ -40,42 +40,21 @@ module.exports=function createMultiplayer(api){
  function leave(s){if(s.multiQueue&&s.queuedGroup){const group=s.queuedGroup;for(const o of sessions.values())if(o.queuedGroup===group){removeQueue(o);o.queuedGroup=null;if(o.id!==s.id)send(o,'multi_left');}}removeQueue(s);const r=matches.get(s.multi);s.multi=null;s.queuedGroup=null;if(!r)return;if(r.phase==='complete'){r.left.add(s.id);if(r.players.every(id=>sessions.get(id)?.multi!==r.id))dispose(r);return;}r.left.add(s.id);if(r.phase==='pick'){emit(r,'multi_cancelled',{message:'참가자가 나가서 매칭이 취소됐어요. 다시 매칭해 주세요.'});dispose(r);return;}const i=r.players.indexOf(s.id),a=r.sim?.actors[i];if(a?.hp>0){a.hp=0;r.sim.eliminations.push(i);r.forfeit=true;}if(r.players.filter(id=>!r.bots.has(id)).every(id=>r.left.has(id)))dispose(r);else step(r);}
  function resume(s){if(s.multiQueue){notify(s.multiQueue,Date.now(),true);return;}const r=matches.get(s.multi);if(!r)return;if(r.phase==='pick')lobby(r,s);else if(r.phase==='battle'){send(s,'multi_start',{state:r.sim,mode:r.mode,loadMs:Math.max(0,(r.startAt||0)-Date.now()),players:r.players.map((sid,i)=>({sid,team:r.teams?.[i]??null,...person(sid),hero:r.picks[i],level:r.sim.actors[i].level}))});send(s,'multi_state',{state:r.sim})}else result(r,s);}
  function fillBots(now=Date.now()){
-  if(api.offlineBots){
-   for(const [mode,q] of queues){const cfg=MODES[mode];
-    for(let j=q.length-1;j>=0;j--){const s=sessions.get(q[j]);if(!queueAlive(s,now)||!user(q[j])){if(s)s.multiQueue=null;q.splice(j,1);}}
-    let full;while((full=takeMatch(mode)))create(mode,full);
-    const deadline=botDeadline(mode,now),groupFill=mode==='royale4'&&q.length>=2&&q.length<4;
-    if(deadline===null||now<deadline){notify(mode,now);continue;}
-    if(!groupFill&&(q.length!==1||!api.offlineBots.alone(user(q[0]),now))){notify(mode,now);continue;}
-    const humans=[...q],count=cfg.size-humans.length,owner='offline_multi_'+crypto.randomBytes(10).toString('hex'),accounts=api.offlineBots.acquire(count,owner);if(accounts.length!==count){notify(mode,now);continue;}
-    if(!groupFill&&!api.offlineBots.alone(user(humans[0]),now)){for(const u of accounts)api.offlineBots.release(u,owner);continue;}
-    const ids=accounts.map(u=>{const id='ai_'+crypto.randomBytes(10).toString('hex');bots.set(id,{user:u,leaseOwner:owner});return id;});
-    q.splice(0,humans.length);botDeadlines.delete(mode);const r=create(mode,[...humans,...ids]);r.offlineBot=true;r.botLeaseOwner=owner;notify(mode,now);
-   }
-   return;
-  }
-
-  for(const mode of ['duo','trio']){
-   const cfg=MODES[mode],q=queues.get(mode);
+  for(const [mode,q] of queues){const cfg=MODES[mode];
    for(let j=q.length-1;j>=0;j--){const session=sessions.get(q[j]);if(!queueAlive(session,now)||!user(q[j])){if(session)session.multiQueue=null;q.splice(j,1);}}
-   // Human matches always take precedence, including when a timer and enqueue coincide.
    let full;while((full=takeMatch(mode)))create(mode,full);
-   const eligible=q.filter(id=>{const s=sessions.get(id);return !s.lastAiMatchAt||now-s.lastAiMatchAt>=AI_COOLDOWN_MS;});
-   if(eligible.length<cfg.size-2||!eligible.some(id=>now-(sessions.get(id).multiQueuedAt||now)>=AI_WAIT_MS)){notify(mode);continue;}
-   const groups=grouped(q).filter(g=>g.every(id=>eligible.includes(id))).slice(0,24);
-   let chosen=null,botIds=[];
-   for(const count of [1,2]){
-    const temp=Array.from({length:count},(_,i)=>{
-     const id='ai_'+crypto.randomBytes(10).toString('hex'),hero=engine.HEROES[crypto.randomInt(engine.HEROES.length)].id;
-     const humans=eligible.map(user),trophy=humans.reduce((n,u)=>n+progression.total(u),0)/Math.max(1,humans.length);
-     const u={id,nick:'아레나 AI '+(i+1),avatar:hero,profileIcon:hero,owned:[hero],coins:0,wins:0,losses:0,levels:{[hero]:0},trophies:{[hero]:Math.round(trophy)}};
-     bots.set(id,{user:u});return id;
-    });
-    let checks=0;function visit(i,ids){if(chosen||++checks>10000)return;if(ids.length===cfg.size-count){if(ids.some(id=>now-(sessions.get(id).multiQueuedAt||now)>=AI_WAIT_MS)&&buildTeams([...ids,...temp],cfg.teamSize))chosen=ids;return;}if(i>=groups.length)return;if(ids.length+groups[i].length<=cfg.size-count)visit(i+1,[...ids,...groups[i]]);visit(i+1,ids);}
-    visit(0,[]);if(chosen){botIds=temp;break;}for(const id of temp)bots.delete(id);
-   }
-   if(chosen){for(const id of chosen){q.splice(q.indexOf(id),1);sessions.get(id).lastAiMatchAt=now;}create(mode,[...chosen,...botIds]);}
-   notify(mode);
+   const deadline=botDeadline(mode,now);if(deadline===null||now<deadline){notify(mode,now);continue;}
+   const humans=[];for(const group of grouped(q))if(humans.length+group.length<cfg.size)humans.push(...group);
+   if(!humans.length){notify(mode,now);continue;}
+   const count=cfg.size-humans.length,owner='queue64_'+crypto.randomBytes(10).toString('hex');
+   const accounts=api.offlineBots?.acquire(count,owner)||[];
+   // Use temporary AI accounts if all persistent AI accounts are already playing.
+   if(accounts.length!==count){for(const u of accounts)api.offlineBots?.release(u,owner);accounts.length=0;}
+   const regular=require('./character-policy').regular(engine.HEROES).map(h=>h.id),average=humans.reduce((n,id)=>n+progression.total(user(id)),0)/humans.length;
+   const ids=Array.from({length:count},(_,i)=>{const id='ai_'+crypto.randomBytes(10).toString('hex'),hero=regular[crypto.randomInt(regular.length)],u=accounts[i]||{id,nick:'아레나 AI '+(i+1),avatar:hero,profileIcon:hero,owned:[hero],coins:0,wins:0,losses:0,levels:{},trophies:{[hero]:Math.round(average)}};bots.set(id,{user:u,leaseOwner:owner});return id;});
+   if(cfg.teamSize&&!buildTeams([...humans,...ids],cfg.teamSize)){for(const id of ids){api.offlineBots?.release(user(id),owner);bots.delete(id);}continue;}
+   for(const id of humans)q.splice(q.indexOf(id),1);
+   const r=create(mode,[...humans,...ids]);r.offlineBot=true;r.botLeaseOwner=owner;notify(mode,now);
   }
  }
  const aiTimer=setInterval(()=>fillBots(),1000);aiTimer.unref?.();

@@ -722,6 +722,23 @@ function updateSuper(s,f,e,dt){if(f.ultActive?.type?.endsWith("57"))return;if(f.
  if(u.waves>=max||u.type==='eggkimchi'&&u.elapsed+1e-8>=3.5){if(u.type==='utti'&&u.elapsed<5)return;if(u.type==='utti'){f.airborne=0;f.invul=0}f.ultActive=null;}
 }
 function knockImpact(s,f){const k=f.knockback;if(!k||k.hit||s.t>=k.until)return;k.hit=true;damage(s,f,6,s.actors[k.side],'포스필드 충돌');fx(s,'slam',f.x,f.y,{color:'#cd8bf1'});}
+// Resolve coincident centers and restore an outward speed after grabs/landings.
+function bodyContact64(s,a,b){
+ let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+ if(d>=a.r+b.r)return null;
+ if(d<1e-7){dx=(b.previous57?.x??b.x)-(a.previous57?.x??a.x);dy=(b.previous57?.y??b.y)-(a.previous57?.y??a.y);const prior=Math.hypot(dx,dy);if(prior>1e-7){dx/=prior;dy/=prior;}else{dx=1;dy=0;}}
+ else{dx/=d;dy/=d;}
+ const fixed=f=>held(s,f)||f.net48?.until>s.t||f.wall48?.until>s.t||f.root43?.until>s.t||f.stun>0||f.freeze>0||f.mute>0;
+ const fa=fixed(a),fb=fixed(b),gap=a.r+b.r-d+.5;
+ const move=(f,sign,n)=>{f.x=clamp(f.x+sign*dx*n,L+f.r,R-f.r);f.y=clamp(f.y+sign*dy*n,T+f.r,B-f.r);};
+ if(!fa||!fb){move(a,-1,fa?0:fb?gap:gap/2);move(b,1,fb?0:fa?gap:gap/2);
+ // Reassign separation blocked by an arena edge to the other free body.
+ let left=a.r+b.r+.5-((b.x-a.x)*dx+(b.y-a.y)*dy);
+ if(left>0&&!fa)move(a,-1,left);left=a.r+b.r+.5-((b.x-a.x)*dx+(b.y-a.y)*dy);if(left>0&&!fb)move(b,1,left);
+ for(const [f,sign,locked] of [[a,-1,fa],[b,1,fb]]){if(locked||f.knockback?.until>s.t)continue;const outward=sign*(f.vx*dx+f.vy*dy),min=HERO_BY_ID[f.id].speed*.55;if(outward<min){f.vx+=sign*dx*(min-outward);f.vy+=sign*dy*(min-outward);}}
+ }
+ return {nx:dx,ny:dy};
+}
 function held(s,f){return f.lock57?.until>s.t||(f.grab47?.until>s.t&&!!find47(s,f.grab47.owner))||(f.bin43?.until>s.t&&s.actors[f.bin43.owner]?.hp>0)||f.underground37Until>s.t||f.cage37&&f.cage37.until>s.t&&s.actors[f.cage37.source]?.hp>0||f.abductedUntil>s.t||f.carriedUntil>s.t||f.forceHold&&s.t<f.forceHold.until&&entities(s).some(q=>(q.entityId||'actor'+q.side)===f.forceHold.source&&q.hp>0)}
 function tick(s,dt=1/30){if(s.meeting48?.remaining>0){const m=s.meeting48;m.remaining=Math.max(0,m.remaining-Math.min(.05,Math.max(0,dt)));if(m.remaining<=1e-8){m.remaining=0;const f=s.actors[m.owner];for(const key of m.victims){const q=find47(s,key);if(q){effect47(s,f,'eject47',{x:q.x,y:q.y,r:q.r,hero:q.id,until:s.t+1.4});damage(s,q,q.hp,f,'긴급회의 아웃',true,true);}}}return s;}if(s.finished)return s; dt=Math.min(.05,Math.max(0,dt));if(s.t===0)for(const q of s.clones||[])if(q.isCompanion){const f=s.actors[q.side];q.x=clamp(f.x+(f.x>W/2?-75:75),L+q.r,R-q.r);q.y=clamp(f.y+55,T+q.r,B-q.r);q.vx=f.vx;q.vy=f.vy;}s.t+=dt;for(const f of s.actors){if(f.hp<=0)continue;if(f.cardCharge)f.ultTimer=Math.max(0,f.ultTimer-dt*f.cardCharge);if(f.cardRecovery){f.stun=Math.max(0,f.stun-dt*f.cardRecovery);f.freeze=Math.max(0,f.freeze-dt*f.cardRecovery);}if(f.cardRegen&&s.t+1e-8>=f.cardRegenAt){f.hp=Math.min(f.max,+(f.hp+f.max*f.cardRegen).toFixed(2));f.cardRegenAt+=4;}}early57(s);early51(s);early47(s);expansionEarly(s,dt);early37(s);early43(s);if(teamEnd(s))return s;let [a,b]=s.actors;if(royale&&s.actors.filter(f=>f.hp>0).length<=1){end(s,s.actors.find(f=>f.hp>0)?.side??0);return s;}
  for(const q of entities(s))if(q.forceHold&&s.t>=q.forceHold.until){
@@ -760,9 +777,8 @@ function tick(s,dt=1/30){if(s.meeting48?.remaining>0){const m=s.meeting48;m.rema
  updateNewAreas(s,dt);if(s.finished)return s;
  contacts54(s);if(s.finished)return s;
  const bodies=entities(s);for(let ai=0;ai<bodies.length;ai++)for(let bi=ai+1;bi<bodies.length;bi++){const a=bodies[ai],b=bodies[bi];if(['grip51','ride51'].includes(a.ultActive?.type)||['grip51','ride51'].includes(b.ultActive?.type)||air43(s,a)||air43(s,b)||a.isBat||b.isBat||a.underground37Until>s.t||b.underground37Until>s.t||a.hp<=0||b.hp<=0||a.abductedUntil>s.t||b.abductedUntil>s.t||a.carriedUntil>s.t||b.carriedUntil>s.t||!enemies(s,a.side,b.side))continue;
- const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
- if(d<a.r+b.r){contact57(s,a,b);contact57(s,b,a);if(a.knockback?.side!==b.side)knockImpact(s,a);if(b.knockback?.side!==a.side)knockImpact(s,b);let nx=dx/d,ny=dy/d,push=(a.r+b.r-d)/2;a.x-=nx*push;a.y-=ny*push;b.x+=nx*push;b.y+=ny*push;
-  let impulse=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(impulse<0){a.vx+=impulse*nx;a.vy+=impulse*ny;b.vx-=impulse*nx;b.vy-=impulse*ny}
+ const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+ if(d<a.r+b.r){contact57(s,a,b);contact57(s,b,a);if(a.knockback?.side!==b.side)knockImpact(s,a);if(b.knockback?.side!==a.side)knockImpact(s,b);bodyContact64(s,a,b);
   if(a.airborne<=0&&b.airborne<=0){
     for(const [f,e] of [[a,b],[b,a]]){
       if(held(s,f)||f.stun>0||f.freeze>0||f.mute>0)continue;
@@ -777,6 +793,8 @@ function tick(s,dt=1/30){if(s.meeting48?.remaining>0){const m=s.meeting48;m.rema
  }
  }
  lock43(s);lock48(s);lock51(s);lock57(s);newPassives(s,dt);lock43(s);lock48(s);lock51(s);if(s.finished)return s;
+ const postBodies=entities(s).filter(f=>f.hp>0&&!f.isBat&&!air43(s,f)&&!(f.underground37Until>s.t)&&!(f.abductedUntil>s.t)&&!(f.carriedUntil>s.t)&&!['grip51','ride51'].includes(f.ultActive?.type));
+ for(let i=0;i<postBodies.length;i++)for(let j=i+1;j<postBodies.length;j++)if(enemies(s,postBodies[i].side,postBodies[j].side))bodyContact64(s,postBodies[i],postBodies[j]);
  for(const f of entities(s)){if(f.hp<=0)continue;for(const z of s.zones){if(enemies(s,f.side,z.owner)&&inside(f,z))damage(s,f,9*dt,s.actors[z.owner],'코너 가시');}if(f.cornerTrap&&s.t<f.cornerTrap.until){const z=f.cornerTrap;f.x=clamp(f.x,z.x+f.r,z.x+z.w-f.r);f.y=clamp(f.y,z.y+f.r,z.y+z.h-f.r);}else f.cornerTrap=null;}
  for(const f of entities(s))if(f.forceHold&&held(s,f)){
   const src=entities(s).find(q=>(q.entityId||'actor'+q.side)===f.forceHold.source);
