@@ -1,7 +1,7 @@
 'use strict';
 const HEROES=require('./engine').HEROES;
 const SHOP=require('./cosmetic-shop').catalog;
-const iconIds=new Set([...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
+const iconIds=new Set([require('./talk-reward').ID,...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
 const PINS=[
  {id:'basic_thumb_up',name:'따봉'}, {id:'basic_thumb_down',name:'역따봉'}, {id:'basic_heart',name:'하트'},
  ...require('./season-config').legacyPins,
@@ -21,7 +21,7 @@ function migrate(u){
  if(!u.equippedPins.length)u.equippedPins=[...basic];
  return u;
 }
-function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
+function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:[...SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),...(u.profileIcons.includes(require('./talk-reward').ID)?[{id:require('./talk-reward').ID,name:'릴라고 토크 · 권총',kind:'icon'}]:[])],profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
 function action(u,m){
  if(m.action==='cosmetic_buy')throw Error('핀·아이콘 상점 판매가 종료됐어요.');
  if(m.action!=='cosmetics_update')return null;

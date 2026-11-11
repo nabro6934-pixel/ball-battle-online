@@ -7,9 +7,14 @@ window.createCosmeticsUI=function(api){
  ];
  pins.push(...H.map(h=>({id:'mastery_'+h.id,name:h.name+' · 숙련 핀',mastery:true})));
 
+ const talkToken=new URLSearchParams(location.hash.slice(1)).get('arena-talk');
+ if(talkToken){
+ const claim=document.createElement('button');claim.textContent='🎁 릴라고 토크 · 권총 아이콘 받기';claim.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:20000;background:#ffe26c;color:#17283b;border:3px solid #17283b;border-radius:14px;padding:18px 26px;font-weight:900;max-width:92vw;cursor:pointer';document.body.append(claim);
+ claim.onclick=async()=>{claim.disabled=true;try{await api.init();const r=await call('talk_reward_claim',{...auth(),token:talkToken});setProfile(r.profile);refresh();toast(r.alreadyClaimed?'이미 받은 아이콘이에요.':'권총 아이콘을 받았어요! 아이콘 메뉴에서 장착하세요.');history.replaceState(null,'',location.pathname+location.search);claim.remove();await open('icons');}catch(e){toast(e.message);claim.disabled=false;}};
+ }
  const byId=new Map(pins.map(p=>[p.id,p])),images=new Map(),bubbles=new Map();
  const base=()=>api.base();
- function iconImg(id){if(HM[id])return base()+'/cosmetics/original-icons/'+id+'.svg?v=69';return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/original-icons/pizza.svg?v=69';}
+ function iconImg(id){if(id==='talk_s2_pistol')return base()+'/talk-pistol.svg';if(HM[id])return base()+'/cosmetics/original-icons/'+id+'.svg?v=69';return id?.startsWith('shop_icon_')?base()+'/cosmetics/shop/'+id+'.svg':base()+'/cosmetics/original-icons/pizza.svg?v=69';}
  function playerImg(u){return iconImg(u?.profileIcon||u?.avatar);}
  function pinImg(id){if(id.startsWith('shop_pin_'))return base()+'/cosmetics/shop/'+id+'.svg';if(id.startsWith('mastery_'))return iconImg(id.slice(8));return base()+'/cosmetics/pins/'+id+'.webp';}
  function preload(id){if(!byId.has(id))return;let im=images.get(id);if(!im){im=new Image();im.src=pinImg(id);images.set(id,im)}return im;}

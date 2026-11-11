@@ -554,6 +554,7 @@ const server=http.createServer((req,res)=>{
   if(req.method==='GET'&&url.pathname==='/leaderboard'){return json(res,200,{players:[...profiles.values()].sort((a,b)=>progression.total(b)-progression.total(a)||(b.wins||0)-(a.wins||0)).map(publicUser)})}
 
   if(['GET','HEAD'].includes(req.method)&&/^\/character-art\/[a-z_]+\.webp$/.test(url.pathname)){const id=url.pathname.split('/').pop().slice(0,-5);if(!originalPortraitIds.includes(id)){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':'image/webp','Cache-Control':'public, max-age=86400'});if(req.method==='HEAD')res.end();else fs.createReadStream(path.join(__dirname,'portraits',id+'.webp')).pipe(res);return;}
+  if(['GET','HEAD'].includes(req.method)&&url.pathname==='/talk-pistol.svg'){const data=fs.readFileSync(path.join(__dirname,'talk-pistol.svg'));res.writeHead(200,{'Content-Type':'image/svg+xml','Cache-Control':'public, max-age=86400','Content-Length':data.length});res.end(req.method==='HEAD'?undefined:data);return;}
   if(req.method==='POST'&&url.pathname==='/clans'){
    let bytes=0,chunks=[],tooLarge=false;req.on('data',part=>{bytes+=Buffer.byteLength(part);if(bytes>8192){tooLarge=true;chunks=[];}else if(!tooLarge)chunks.push(Buffer.from(part));});req.on('end',async()=>{if(tooLarge)return json(res,413,{ok:false,error:'요청 내용이 너무 커요.'});const body=Buffer.concat(chunks).toString('utf8');
     try{const m=JSON.parse(body||'{}');const u=getProfile(m);const out=liveFeatures.social(u,m)||clanAction(u,m);if(out.changed)await saveClanAndProfiles();else await dbSaveChain;return json(res,200,{ok:true,profile:privateUser(u),...out})}
@@ -576,7 +577,7 @@ const server=http.createServer((req,res)=>{
       }
       u=migrate(getProfile(m));
       if(m.action==='presence')return json(res,200,{ok:true});
-      const advanced=update43.action(u,m)||social36.social(u,m)||halloweenEvent.action(u,m)||arenaUpdate.social(u,m)||liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
+      const advanced=require('./talk-reward').action(u,m)||update43.action(u,m)||social36.social(u,m)||halloweenEvent.action(u,m)||arenaUpdate.social(u,m)||liveFeatures.social(u,m)||parties.social(u,m)||mastery.action(u,m)||cosmetics.action(u,m)||season.action(u,m,profiles)||progression.action(u,m,profiles);
       if(advanced){if(advanced.changed)persist();await dbSaveChain;for(const id of advanced.recipients||[])for(const session of sessions.values())if(session.profile===id)send(session,'mail_notice',{unread:progression.privateFields(profiles.get(id)).unreadMail});const {recipients,changed,...payload}=advanced;return json(res,200,{ok:true,profile:privateUser(u),...payload});}
       if(m.action==='update'){
         updateNickname(u,m.nick,m.avatar);persist()
