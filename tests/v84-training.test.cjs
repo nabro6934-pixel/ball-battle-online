@@ -10,3 +10,10 @@ assert.throws(()=>T.create({mode:'bad',roster:[]}));assert.throws(()=>T.create({
 // Natural matches finish under the real shared rules, including objectives and teams.
 for(const id of ['random','trio','crown82','control82','bounty82','walls82','random82','arena']){const c=config(T.byId[id]);c.observer=true;const r=T.create(c,8401);let n=0;while(!r.complete&&n++<24000)T.tick(r,1/30);assert(r.complete,id+' naturally ends');assert(r.rounds.length>0);}
 console.log('PASS v84: 18 isolated training types, natural mode endings, series/draft pools, team rules, powers, observer/manual ult, instant toggle, validation, immutable config');
+// Target practice uses the selected fighter's real HP; actual melee changes the bar.
+const targetRun=T.create({mode:'practice82',moving:false,roster:[{hero:'samueljohnson',level:0},{hero:'pizza',level:0}]});
+const attacker=targetRun.sim.actors[0],target=targetRun.sim.actors[1],initialHP=target.hp;
+assert(initialHP<1000);attacker.x=480;attacker.y=target.y=310;target.x=550;attacker.vx=60;attacker.vy=target.vx=target.vy=0;
+for(let i=0;i<30;i++)T.tick(targetRun);assert(target.hp<initialHP&&target.hp>0);assert.equal(target.max,initialHP);assert(!targetRun.complete);
+target.hp=0;T.tick(targetRun);assert.equal(target.hp,target.max);assert(!targetRun.complete);
+console.log('PASS v85 target: normal max HP, real melee damage, visible health fraction and respawn without rewards');

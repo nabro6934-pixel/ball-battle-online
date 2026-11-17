@@ -23,7 +23,7 @@ function startRound(run){const cfg=run.config,m=byId[cfg.mode],ids=cfg.roster.ma
  if(M.modes[cfg.mode]||cfg.mode==='practice82')M.init(sim,cfg.mode);
  if(m.relay){sim.event82.round=run.round;sim.event82.relayScores=[...run.scores];}
  sim.actors.forEach((a,i)=>{a.sid=i===0&&!cfg.observer?'training-player84':'training-bot84-'+i;a.name=(i===0?'나':m.team&&i<m.team?'팀원 '+i:'상대 '+(m.team?i-m.team+1:i))+' · '+E.HERO_BY_ID[a.id].name;a.team=sim.teams?.[i]??null;if(m.team){a.x=a.team===0?290:1110;a.y=220+(i%m.team)*220;}});
- if(cfg.mode==='practice82'){sim.practiceMoving82=cfg.moving;sim.actors[1].hp=sim.actors[1].max=100000;sim.manualUlt=[!cfg.observer,true];sim.actors[0].x=220;sim.actors[1].x=730;if(cfg.awake&&sim.actors[0].id==='lilagoo4f'){Object.assign(sim.actors[0],{awakened:true,child78:null,hp:120*sim.actors[0].power,max:120*sim.actors[0].power});sim.clones=sim.clones.filter(q=>q.side!==0);}}
+ if(cfg.mode==='practice82'){sim.practiceMoving82=cfg.moving;sim.manualUlt=[!cfg.observer,true];sim.actors[0].x=220;sim.actors[1].x=730;if(cfg.awake&&sim.actors[0].id==='lilagoo4f'){Object.assign(sim.actors[0],{awakened:true,child78:null,hp:120*sim.actors[0].power,max:120*sim.actors[0].power});sim.clones=sim.clones.filter(q=>q.side!==0);}}
  return sim;
 }
 function create(input,seed=84){const config=validate(input),run={id:seed>>>0,seed:seed>>>0,config,round:1,scores:[0,0],totalDamage:config.roster.map(()=>0),complete:false,winner:null,rounds:[]};startRound(run);return run;}
