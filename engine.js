@@ -117,7 +117,7 @@ case 'namgungsunhee':for(const angle of [-.16,.16])shot78(s,f,e,'pullheart78',6,
 case 'dictatoriggy':{const a=Math.atan2(e.y-f.y,e.x-f.x);visual78(s,f,'curvedpunch78',{angle:a,r:201.25});for(const q of foes78(s,f)){const angle=Math.atan2(q.y-f.y,q.x-f.x);if(dist(f,q)<=201.25+q.r&&Math.abs(Math.atan2(Math.sin(angle-a),Math.cos(angle-a)))<=1.2){hit78(s,f,q,11,'휘는 주먹');if(q.hp>0&&!(q.controlImmune71>s.t)){eject43(s,f,q,180);q.knockback.until=s.t+.16;}}}f.atkTimer=1.2;break;}
 case 'grandpa67':shot78(s,f,e,'dumbbell78',10,{speed:460,r:22});f.atkTimer=1.7;break;
 case 'hwangjeongsik':for(let j=0;j<3;j++)job78(s,f,'clothburst78',j*.12,{angle:Math.atan2(e.y-f.y,e.x-f.x)});f.atkTimer=1.8;break;
-}return true;}
+}if(f.atkTimer>.1)f.basicAt82=s.t;return true;}
 function super78(s,f,e){if(!IDS78.has(f.id))return false;if(f.id==='lilagoo4f'&&!f.awakened)return true;f.ultTimer=f.ultCooldown=({olivia:16,samueljohnson:19,jamiejohnson:18,lilagoo4f:4,namgungsunhee:19,dictatoriggy:24,grandpa67:19,hwangjeongsik:20})[f.id];switch(f.id){
 case 'olivia':for(let j=0;j<4;j++)job78(s,f,'rifleburst78',j*.15,{target:key37(e)});break;
 case 'samueljohnson':shot78(s,f,e,'bighammer78',8,{speed:590,r:27});break;
@@ -720,7 +720,7 @@ function updateNewAreas(s,dt){for(let i=s.attackAreas.length-1;i>=0;i--){const z
 }
 function bulletHit(p,q){if(q.abductedUntil)return false;if(p.halfWidth)return Math.abs(p.x-q.x)<=p.halfWidth+q.r&&Math.abs(p.y-q.y)<=p.halfHeight+q.r;return dist(p,q)<=p.r+q.r;}
 
-function basic(s,f,e){f.basicAt82=s.t;if(silenced51(s,f))return;if(newBasic(s,f,e))return;let d=dist(f,e),id=attackId(f);fx(s,'shot',f.x,f.y,{side:f.side,color:HERO_BY_ID[id].color,weapon:id});
+function basic(s,f,e){if(!IDS78.has(f.id))f.basicAt82=s.t;if(silenced51(s,f))return;if(newBasic(s,f,e))return;let d=dist(f,e),id=attackId(f);fx(s,'shot',f.x,f.y,{side:f.side,color:HERO_BY_ID[id].color,weapon:id});
  if(id==='edgyalvin'){fire(s,f,e,'alvinword',0,520,7,{r:18,life:2.2,text:'앨빈급'});const p=s.bullets[s.bullets.length-1];p.halfWidth=80;p.halfHeight=15;f.atkTimer=.95;}
  if(id==='kip'){s.attackAreas.push({type:'firecone',owner:f.side,x:f.x,y:f.y,angle:Math.atan2(e.y-f.y,e.x-f.x),length:190,near:22,far:135,speed:400,life:.95,age:0,hits:{}});f.atkTimer=1.15;}
  if(id==='cheondohyun'){s.attackAreas.push({type:'gasspray',owner:f.side,x:f.x,y:f.y,angle:Math.atan2(e.y-f.y,e.x-f.x),length:280,near:12,far:115,speed:0,followOwner:true,life:1.05,age:0,hits:{}});f.atkTimer=1.2;}

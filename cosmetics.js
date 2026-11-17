@@ -1,7 +1,8 @@
 'use strict';
 const HEROES=require('./engine').HEROES;
 const SHOP=require('./cosmetic-shop').catalog;
-const iconIds=new Set([require('./talk-reward').ID,...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
+const SETS83=require('./character-sets83');
+const iconIds=new Set([...SETS83.icons.map(x=>x.id),require('./talk-reward').ID,...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
 const PINS=[
  {id:'basic_thumb_up',name:'따봉'}, {id:'basic_thumb_down',name:'역따봉'}, {id:'basic_heart',name:'하트'},
  ...require('./season-config').legacyPins,
@@ -13,15 +14,15 @@ const pinIds=new Set(PINS.map(p=>p.id)),basic=PINS.filter(p=>!p.track&&!p.master
 function migrate(u){
  const admin=u.tag==='6E2C5BF4';
  for(const mail of u.mail||[]){if(Array.isArray(mail.pins))mail.pins=mail.pins.filter(id=>!String(id).startsWith('shop_'));if(String(mail.pin||'').startsWith('shop_'))delete mail.pin;}
- u.profileIcons=[...new Set([...(Array.isArray(u.profileIcons)?u.profileIcons:[]).filter(id=>iconIds.has(id)),...HEROES.filter(h=>!require('./character-policy').limited(h)||admin||u.owned?.includes(h.id)).map(h=>h.id),...(admin?SHOP.filter(x=>x.kind==='icon').map(x=>x.id):[])])];
+ u.profileIcons=[...new Set([...SETS83.restoreIcons(u),...(Array.isArray(u.profileIcons)?u.profileIcons:[]).filter(id=>iconIds.has(id)),...HEROES.filter(h=>!require('./character-policy').limited(h)||admin||u.owned?.includes(h.id)).map(h=>h.id),...(admin?SHOP.filter(x=>x.kind==='icon').map(x=>x.id):[])])];
  u.pins=[...new Set([...(Array.isArray(u.pins)?u.pins:[]).filter(id=>pinIds.has(id)),...basic])];
- for(const p of PINS)if(admin||(u.season?.id===p.season&&u.season.claimed?.includes(p.track+':'+p.tier)))if(!u.pins.includes(p.id))u.pins.push(p.id);
+ for(const p of PINS)if(admin||(u.season?.id===p.season&&u.season?.claimed?.includes(p.track+':'+p.tier)))if(!u.pins.includes(p.id))u.pins.push(p.id);
  if(!u.profileIcons.includes(u.profileIcon))u.profileIcon=iconIds.has(u.avatar)?u.avatar:'pizza';
  u.equippedPins=[...new Set((Array.isArray(u.equippedPins)?u.equippedPins:basic).filter(id=>u.pins.includes(id)))].slice(0,3);
  if(!u.equippedPins.length)u.equippedPins=[...basic];
  return u;
 }
-function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:[...SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),...(u.profileIcons.includes(require('./talk-reward').ID)?[{id:require('./talk-reward').ID,name:'릴라고 토크 · 권총',kind:'icon'}]:[])],profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
+function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:[...SETS83.icons.filter(x=>u.profileIcons.includes(x.id)),...SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),...(u.profileIcons.includes(require('./talk-reward').ID)?[{id:require('./talk-reward').ID,name:'릴라고 토크 · 권총',kind:'icon'}]:[])],profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
 function action(u,m){
  if(m.action==='cosmetic_buy')throw Error('핀·아이콘 상점 판매가 종료됐어요.');
  if(m.action!=='cosmetics_update')return null;
