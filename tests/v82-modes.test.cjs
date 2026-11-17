@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),E=require('../engine'),M=require('../modes82');
-assert.equal(Object.keys(M.modes).length,6);
+assert.equal(Object.keys(M.modes).length,5);
 for(const id of ['crown82','control82','bounty82']){const core=E.forArena(1400,950),s=core.create(['samueljohnson','olivia','jamiejohnson','lilagoo4f'],[0,0,0,0],8234,[0,0,0,0]);if(id!=='crown82')s.teams=[0,1,0,1];M.init(s,id);for(let i=0;i<3000&&!s.finished;i++)M.tick(s,core,1/30);assert(s.finished,id+' finishes');assert(s.actors.every(a=>Number.isFinite(a.hp)&&Number.isFinite(a.x)),id);assert(s.event82.scores.every(Number.isFinite));assert(s.winner>=0&&s.winner<4);}
 {const core=E.forArena(1400,950),s=core.create(['pizza','pizza','pizza','pizza'],[0,0,0,0],2,[0,0,0,0]);M.init(s,'crown82');s.event82.crown.owner=0;M.after(s,1);assert.equal(s.event82.scores[0],1);s.actors[0].hp=0;M.after(s,.1);assert.equal(s.event82.crown.owner,null);}
 {const core=E.forArena(1400,950),s=core.create(['pizza','pizza','pizza','pizza'],[0,0,0,0],2,[0,0,0,0]);s.teams=[0,1,0,1];M.init(s,'control82');s.actors.forEach(a=>{a.x=100;a.y=100});s.actors[0].x=700;s.actors[0].y=475;M.after(s,1);assert.deepEqual(s.event82.scores,[1,0,1,0]);s.actors[1].x=700;s.actors[1].y=475;M.after(s,1);assert.deepEqual(s.event82.scores,[1,0,1,0]);}

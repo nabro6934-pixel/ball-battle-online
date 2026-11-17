@@ -1,0 +1,20 @@
+name: Verify arena mode update
+on:
+  push:
+    branches: [main]
+    paths: ['engine.js', 'modes82.js', 'multiplayer.js', 'training84.js', 'ui88.js', 'tests/**', '.github/workflows/update88.yml']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: node --check server.js && node --check ui88.js && npm run test:update88

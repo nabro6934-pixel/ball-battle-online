@@ -7,7 +7,8 @@
     "test:update82": "node tests/v82-modes.test.cjs && node tests/v82-server.test.cjs && node tests/v82-ui.test.cjs && node tests/v78-server.test.cjs && node tests/v78-heroes.test.cjs && node tests/v79-balance.test.cjs && node tests/v80-balance.test.cjs && node tests/v71-balance.test.cjs",
     "test:update83": "node tests/v83-sets.test.cjs && node tests/v83-api.test.cjs && npm run test:update82",
     "test:update84": "node tests/v84-training.test.cjs && npm run test:update83",
-    "test:update87": "node tests/v87-presentation.test.cjs && npm run test:update84"
+    "test:update87": "node tests/v87-presentation.test.cjs && npm run test:update84",
+    "test:update88": "node tests/v88-modes.test.cjs && npm run test:update87"
   },
   "dependencies": {
     "pg": "8.16.3"
