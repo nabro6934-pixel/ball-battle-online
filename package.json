@@ -3,9 +3,14 @@
   "version": "7.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:update82": "node tests/v82-modes.test.cjs && node tests/v82-server.test.cjs && node tests/v82-ui.test.cjs && node tests/v78-server.test.cjs && node tests/v78-heroes.test.cjs && node tests/v79-balance.test.cjs && node tests/v80-balance.test.cjs && node tests/v71-balance.test.cjs"
   },
   "dependencies": {
     "pg": "8.16.3"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "fake-indexeddb": "6.2.8"
   }
 }
