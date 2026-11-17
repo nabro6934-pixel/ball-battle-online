@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),D=require('../mode-display87'),T=require('../training84'),E=require('../engine');
+function sim(id){const m=T.byId[id];return T.create({mode:id,roster:Array.from({length:m.count},(_,i)=>({hero:E.HEROES[i].id,level:0,pool:E.HEROES.slice(i*3,i*3+3).map(h=>h.id)}))}).sim;}
+let s=sim('control82');s.event82.scores=[22.5,22.5,9,9];s.actors[0].x=s.actors[2].x=s.W/2;s.actors[0].y=s.actors[2].y=s.H/2;let v=D.view(s);assert.equal(v.rows.length,2);assert.equal(v.rows[0].value,50);assert.equal(v.rows[1].value,20);assert(v.status.includes('경합'));s.finished=true;s.winner=2;assert.equal(D.view(s).winner,'레드 팀 승리');
+s=sim('bounty82');s.event82.scores=[12,12,7,7];s.event82.streaks=[3,0,0,0];v=D.view(s);assert.equal(v.rows[0].value,12);assert.equal(v.rows[0].max,30);assert(v.rows[0].detail.includes('3연속'));
+s=sim('crown82');s.event82.scores=[12.5,5,0,1];s.event82.crown.owner=0;v=D.view(s);assert.equal(v.rows.length,4);assert.equal(v.rows[0].value,12.5);assert.equal(v.rows[0].max,45);assert(v.rows[0].detail.includes('보유'));s.t=95;assert.equal(D.view(s).remaining,0);
+s=sim('random82');s.event82.round=4;s.event82.relayScores=[2,1];v=D.view(s);assert.equal(v.rows[0].value,2);assert.equal(v.rows[1].value,1);assert(v.status.includes('4 / 5'));
+s=sim('walls82');s.actors[1].hp=0;v=D.view(s);assert(v.status.includes('생존 3 / 4'));assert(v.status.includes('열림까지 6초'));assert.equal(v.rows[1].value,0);
+s=sim('mirror82');s.actors[0].hp=s.actors[0].max*.4;assert.equal(D.view(s).rows[0].value,40);assert.equal(D.view({...s,mode:'random'}),null);
+const rows=[{id:'a:2',at:200,frames:[{t:0},{t:1}],bytes:20},{id:'a:1',at:100,frames:[{t:0},{t:2}],bytes:20},{id:'a-other:1',at:300,frames:[{t:0},{t:9}],bytes:20}];const original=JSON.stringify(rows),replay=D.replayFor({id:'a'},rows);assert.deepEqual(replay.timeline87,[0,2,2.2,3.2]);assert.deepEqual(replay.frames.map(f=>f.t),[0,2,0,1]);assert.deepEqual(replay.rounds87,['1','1','2','2']);assert.equal(D.replayFor({id:'wrong'},rows),null);assert.equal(JSON.stringify(rows),original);
+const kept=D.keepRows([...rows,{id:'b:1',at:400,bytes:20},{id:'c:1',at:500,bytes:20}]);assert(!kept.some(r=>r.id.startsWith('a:')));assert.equal(new Set(kept.map(D.matchKey)).size,3);assert.equal(D.keepRows([{id:'huge:1',at:900,bytes:49*1024*1024}]).length,0);
+console.log('PASS v87: exact team percentage deduplication, crown/bounty/relay/wall/mirror HUD values, contest/winner/time, exact replay linkage, continuous multi-round timeline, immutable frames and bounded storage');
