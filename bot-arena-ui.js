@@ -6,8 +6,8 @@ try{const saved=JSON.parse(localStorage.getItem('arena-bot-observer-v35'));if(sa
 function bot35Save(){try{localStorage.setItem('arena-bot-observer-v35',JSON.stringify(bot35Config));}catch{}}
 function bot35Options(selected){return [...H].sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(h=>'<option value="'+h.id+'" '+(selected===h.id?'selected':'')+'>'+escapeHTML(h.name)+'</option>').join('');}
 function bot35Stop(){cancelAnimationFrame(bot35RAF);bot35RAF=0;bot35Session=null;document.body.classList.remove('botArena35Live');$('#bot35HUD')?.remove();$('#bot35Roster')?.remove();}
-function bot35Tabs(selected){return '<nav class="bot35Tabs" aria-label="봇전 종류"><button data-bot35-tab="duel" class="'+(selected==='duel'?'selected':'')+'">1대1 봇전</button><button data-bot35-tab="arena" class="'+(selected==='arena'?'selected':'')+'">아레나 관전 · 최대 20명</button></nav>';}
-function bot35BindTabs(){overlayContent.querySelectorAll('[data-bot35-tab]').forEach(b=>b.onclick=()=>b.dataset.bot35Tab==='arena'?showBotArena35Setup():showBotSetup());}
+function bot35Tabs(selected){return '<nav class="bot35Tabs" aria-label="봇전 종류"><button data-bot35-tab="duel" class="'+(selected==='duel'?'selected':'')+'">1대1 봇전</button><button data-bot35-tab="arena" class="'+(selected==='arena'?'selected':'')+'">아레나 관전 · 최대 20명</button><button data-bot35-tab="training">모드 연습</button></nav>';}
+function bot35BindTabs(){overlayContent.querySelectorAll('[data-bot35-tab]').forEach(b=>b.onclick=()=>b.dataset.bot35Tab==='arena'?showBotArena35Setup():b.dataset.bot35Tab==='training'?ui84.setup():showBotSetup());}
 const bot35OriginalSetup=showBotSetup;showBotSetup=function(){bot35Stop();bot35OriginalSetup();overlayContent.insertAdjacentHTML('afterbegin',bot35Tabs('duel'));bot35BindTabs();};
 function showBotArena35Setup(){
  bot35Stop();cancelBattleCountdown();features?.cancelLoading();canvas.width=1000;canvas.height=620;app.mode='cpu';app.online=false;app.royaleData=null;
