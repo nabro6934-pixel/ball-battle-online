@@ -8,3 +8,5 @@
 - Changing Maze is removed from mode catalogs, online queues and practice selection. Legacy wall helpers remain only for old stored compatibility/regression data.
 
 Validation: real engine/training/presentation tests executed in the hosted JavaScript runtime, including retained winner/replaced loser, 3–0/3–2 finishes, random vectors/determinism, teammate collisions, grazing capture, crown relocation, bounty20, final-only online rewards and between-round leave cleanup. Existing v71/v79/v80 mechanics/render tests also executed. A GitHub Actions job runs the complete Node/DOM/backend regression chain before deployment where available; there is no local executor or pixel browser in this session.
+
+Chromium verification completed at 1280×900 and 390×844 touch: side/arena bounds are disjoint and inside the viewport, capture shows 50% without team duplication, both bot team labels are present, the duplicate speed control is hidden, mirror has no objective sidebar, and there are no uncaught browser errors. The training header no longer duplicates side-panel win numbers.
