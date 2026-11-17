@@ -5,4 +5,6 @@ manifest.portraits.push('kkamangi_ult','son_ult');
 for(const id of ["fcgoa", "rohmuhyun", "jerryfashion", "bimeiimagined", "seojun", "sonheungmin", "impostormoai", "domo", "blackberry", "gumballhot"]){manifest.portraits.push(id);manifest.icons.push(id);}
 for(const id of ["mochublue", "lilboy", "originalalvin", "weirdduo", "pinksheep", "gojaeyoung", "namul", "notbanchan", "minekoala"]){manifest.portraits.push(id);manifest.icons.push(id);}
 for(const id of ["angborghini", "chickenchicken", "mechajaeyoung", "tankjaeyoung", "halg", "jihoonboxer", "anything", "jakeorphanage", "policejaeyoung", "maidbimei"]){manifest.portraits.push(id);manifest.icons.push(id);}
+for(const id of ["olivia", "samueljohnson", "jamiejohnson", "lilagoo4f", "namgungsunhee", "dictatoriggy", "grandpa67", "hwangjeongsik"]){manifest.portraits.push(id);manifest.icons.push(id);}
+manifest.portraits.push('o4f_girl','o4f_boy');
 module.exports=Object.fromEntries(Object.entries(manifest).map(([kind,ids])=>[kind,Object.fromEntries(ids.map(id=>[id,fs.readFileSync(path.join(__dirname,'new-heroes',kind,id+'.webp')).toString('base64')]))]));
