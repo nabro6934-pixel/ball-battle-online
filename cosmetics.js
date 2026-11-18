@@ -2,7 +2,7 @@
 const HEROES=require('./engine').HEROES;
 const SHOP=require('./cosmetic-shop').catalog;
 const SETS83=require('./character-sets83');
-const iconIds=new Set([...SETS83.icons.map(x=>x.id),require('./talk-reward').ID,...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
+const iconIds=new Set([...SETS83.icons.map(x=>x.id),require('./talk-reward').ID,require('./talk-reward').KENYA_ID,...HEROES.map(h=>h.id),...SHOP.filter(x=>x.kind==='icon').map(x=>x.id)]);
 const PINS=[
  {id:'basic_thumb_up',name:'따봉'}, {id:'basic_thumb_down',name:'역따봉'}, {id:'basic_heart',name:'하트'},
  ...require('./season-config').legacyPins,
@@ -22,7 +22,7 @@ function migrate(u){
  if(!u.equippedPins.length)u.equippedPins=[...basic];
  return u;
 }
-function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:[...SETS83.icons.filter(x=>u.profileIcons.includes(x.id)),...SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),...(u.profileIcons.includes(require('./talk-reward').ID)?[{id:require('./talk-reward').ID,name:'릴라고 토크 · 권총',kind:'icon'}]:[])],profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
+function fields(u){migrate(u);return {profileIcons:[...u.profileIcons],cosmeticShop:[],ownedIconVariants:[...SETS83.icons.filter(x=>u.profileIcons.includes(x.id)),...SHOP.filter(x=>x.kind==='icon'&&u.profileIcons.includes(x.id)),...(u.profileIcons.includes(require('./talk-reward').ID)?[{id:require('./talk-reward').ID,name:'릴라고 토크 · 권총',kind:'icon'}]:[]),...(u.profileIcons.includes(require('./talk-reward').KENYA_ID)?[{id:require('./talk-reward').KENYA_ID,name:'릴라고 토크 · 케냐 국기',kind:'icon'}]:[])],profileIcon:u.profileIcon,pins:[...u.pins],equippedPins:[...u.equippedPins]};}
 function action(u,m){
  if(m.action==='cosmetic_buy')throw Error('핀·아이콘 상점 판매가 종료됐어요.');
  if(m.action!=='cosmetics_update')return null;
